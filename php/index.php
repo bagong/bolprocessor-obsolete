@@ -7,12 +7,10 @@ $this_page = "index.php";
 if(isset($_GET['path'])) {
 	$dir = $_GET['path'];
 	$current_path = '';
-//	echo "dir = ".$dir."<br />";
 	$table = explode('/',$dir);
 	$table[count($table)-1] = '';
 	$upper_dir = implode('/',$table);
 	$upper_dir = preg_replace("/\/$/u",'',$upper_dir);
-//	echo "upperdir = ".$upper_dir."<br />";
 	$link = $this_page."?path=".$upper_dir;
 	echo "<p>[<a href=\"".$link."\">move up</a>]</p>";
 	}
@@ -39,9 +37,11 @@ if(isset($_POST['createfile'])) {
 
 $folder = str_replace($root,'',$dir);
 require_once("_header.php");
-echo "<h3>Content of this folder ‘".$folder."’</h3>";
+echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 
-if(!isset($_POST['createfile'])) {
+$table = explode('_',$folder);
+$extension = end($table);
+if($extension <> "temp" AND !isset($_POST['createfile'])) {
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"createfile\" value=\"CREATE NEW GRAMMAR IN THIS FOLDER\">&nbsp;➡&nbsp;";
@@ -51,16 +51,42 @@ if(!isset($_POST['createfile'])) {
 	}
 	
 $dircontent = scandir($dir);
+$now = time();
+$yesterday = $now - (24 * 3600);
 foreach($dircontent as $thisfile) {
 	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
+	$time_saved = filemtime($dir."/".$thisfile);
+	if($time_saved < $yesterday) $old = TRUE;
+	else $old = FALSE;
 	if(is_dir($dir."/".$thisfile)) {
+		if($old) {
+			$table = explode('_',$thisfile);
+			$extension = end($table);
+			if($extension == "temp" AND count($table) > 2) {
+				$id = $table[count($table) - 2];
+				if($id <> session_id()) {
+					my_rmdir($dir."/".$thisfile);
+					continue;
+					}
+				}
+			}
 		$link = $this_page."?path=".$current_path.$dir."/".$thisfile;
 		echo "<b><a href=\"".$link."\">".$thisfile."</a></b><br />";
 		continue;
 		}
 	$table = explode(".",$thisfile);
 	$extension = end($table);
-//	if($extension <> "bpgr" AND (!is_integer(strpos($thisfile,'-')) OR ($pos=strpos($thisfile,'-')) > 0)) continue;
+	if($old) {
+		$table = explode('_',$thisfile);
+		$prefix = $table[0];
+		if($prefix == "trace") {
+			$id = $table[1];
+			if($extension == "txt" AND $id <> session_id()) {
+				unlink($dir."/".$thisfile);
+				continue;
+				}
+			}
+		}
 	$prefix = substr($thisfile,1,2);
 	switch($prefix) {
 		case 'gr':

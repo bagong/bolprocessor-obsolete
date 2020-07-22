@@ -13,22 +13,7 @@ function pick_up_headers($content) {
 	$content = str_replace(chr(13).chr(10),chr(10),$content);
 	$content = str_replace(chr(13),chr(10),$content);
 	$content = str_replace(chr(9),' ',$content); // Remove tabulations
-/*	$content = str_replace("Ò","“",$content);
-	$content = str_replace("Ó","”",$content);
-	$content = str_replace("ž","û",$content);
-	$content = str_replace("Ž","é",$content);
-	$content = str_replace("š","ö",$content); */
-	
 	$content = clean_up_encoding($content);
-/*	$content = mb_convert_encoding($content, "UTF-8", mb_detect_encoding($content, "UTF-8, ISO-8859-1, ISO-8859-15", true));
-	$content = str_replace("¥","•",$content);
-	$content = str_replace("Ô","‘",$content);
-	$content = str_replace("Õ","’",$content);
-	$content = str_replace("Ò","“",$content);
-	$content = str_replace("Ó","”",$content);
-	$content = str_replace("É","…",$content);
-	$content = str_replace("Â","¬",$content);
-	$content = str_replace(" "," ",$content); */
 	do $content = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$content,$count);
 	while($count > 0);
 	$table = explode(chr(10),$content);
@@ -42,7 +27,6 @@ function pick_up_headers($content) {
 		if($i == 0)
 			$line = preg_replace("/.*(\/\/.*)/u","$1",$line);
 		if($start AND is_integer($pos=strpos($line,"//")) AND $pos == 0) {
-		//	$pick_up_headers['headers'] .= $line;
 			if($i > 1) $table_out[] = $line;
 			else {
 				if($pick_up_headers['headers'] <> '')
@@ -105,17 +89,21 @@ function fix_file_name($line,$type) {
 	}
 
 function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound_file,$alphabet_file,$settings_file,$orchestra_file,$interaction_file,$midisetup_file,$timebase_file,$keyboard_file,$glossary_file) {
+	global $output_file, $file_format;
 	$page_type = str_replace(".php",'',$url_this_page);
 	$page_type = preg_replace("/\.php.*/u",'',$url_this_page);
 //	echo $page_type;
-	if($page_type == "grammar" OR $page_type == "alphabet" OR $page_type == "glossary" OR $page_type == "interaction" OR $page_type == "orchestra") {
+	if($page_type == "grammar" OR $page_type == "alphabet" OR $page_type == "glossary" OR $page_type == "interaction") {
 		if(isset($_POST['show_help_entries'])) {
 			$entries = display_help_entries($content);
 			echo $entries."<br />";
 			}
 		else {
-			echo "<div style=\"float:right; width:600px;\"><form method=\"post\" action=\"".$url_this_page."#help_entries\" enctype=\"multipart/form-data\">";
-			echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"show_help_entries\" onclick=\"this.form.target='_blank';return true;\" value=\"SHOW HELP ENTRIES\">&nbsp;";
+			echo "<div style=\"float:right; width:600px;\">";
+			echo "<form method=\"post\" action=\"".$url_this_page."#help_entries\" enctype=\"multipart/form-data\">";
+			echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
+			echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
+			echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"show_help_entries\" value=\"SHOW HELP ENTRIES\">";
 			echo "</form></div>";
 			}
 		}
@@ -412,5 +400,19 @@ function note_convention($i) {
 		case 2: $c = "indian"; break;
 		}
 	return $c;
+	}
+
+function my_rmdir($src) {
+    $dir = opendir($src);
+    while(FALSE !== ($file = readdir($dir))) {
+        if(($file <> '.' ) && ($file <> '..')) {
+            $full = $src.'/'.$file;
+            if(is_dir($full)) my_rmdir($full);
+            else unlink($full);
+            }
+        }
+    closedir($dir);
+    rmdir($src);
+    return;
 	}
 ?>

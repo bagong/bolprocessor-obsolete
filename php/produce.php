@@ -31,13 +31,13 @@ else $show_production = FALSE;
 if(isset($_GET['trace_production'])) $trace_production = TRUE;
 else $trace_production = FALSE;
 
-$table = explode('/',$grammar_path);
+/* $table = explode('/',$grammar_path);
 $filename = $table[count($table) - 1];
-$dir = str_replace($filename,'',$grammar_path);
+$dir = str_replace($filename,'',$grammar_path); */
 
 $table = explode('/',$grammar_path);
 $grammar_name = $table[count($table) - 1];
-$dir = str_replace($filename,'',$grammar_path);
+$dir = str_replace($grammar_name,'',$grammar_path);
 $application_path = $root."bolprocessor/";
 
 // chdir($dir); // Will be removed soon
@@ -60,7 +60,7 @@ switch($file_format) {
 		$command .= " -d --rtmidi";
 		break;
 	}
-if($tracefile <> '') $command .= " --traceout ".$tracefile;
+if($tracefile <> '') $command .= " --traceout ".$dir."/".$tracefile;
 if($show_production) $command .= " --show-production";
 if($trace_production) $command .= " --trace-production";
 echo "<p><small>command = ".$command."</small></p>";

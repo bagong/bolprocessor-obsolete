@@ -53,7 +53,7 @@ if(isset($_POST['change_output_folder'])) {
 	fclose($handle);
 	}
 
-if(isset($_POST['savegrammar']) OR isset($_POST['produce']) /* OR isset($_POST['compilegrammar']) */) {
+if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 //	echo "<p style=\"color:red;\">Saved file…</p>";
 	$content = $_POST['thisgrammar'];
 	$output_file = $_POST['output_file'];
@@ -143,13 +143,19 @@ if(isset($_POST['compilegrammar'])) {
 			$mssg = $o[$i];
 			$mssg = clean_up_encoding($mssg);
 			if(is_integer($pos=strpos($mssg,"Errors: 0")) AND $pos == 0) $no_error = TRUE;
-			if($i < 4) echo $mssg."<br />";
 			}
 		}
 	if(!$no_error) {
 		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
 		}
 	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error. The trace file is empty.</font></p>";
+/*	if($n_messages > 0) {
+		for($i=0; $i < $n_messages; $i++) {
+			$mssg = $o[$i];
+			$mssg = clean_up_encoding($mssg);
+			if($i < 4) echo $mssg."<br />";
+			}
+		} */
 	
 /*		sleep(5); echo ".";
 		$wait = 0;
@@ -228,7 +234,7 @@ echo "<br /><input type=\"radio\" name=\"file_format\" value=\"csound\"";
 if($file_format == "csound") echo " checked";
 echo ">CSOUND file";
 echo "</p></td>";
-echo "<td style=\"text-align:right;\" rowspan=\"2\">";
+echo "<td style=\"text-align:right; vertical-align:middle;\" rowspan=\"2\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savegrammar\" value=\"SAVE ‘".$filename."’\"><br /><br />";
 // echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"></p>";
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"><br /><br />";

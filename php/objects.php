@@ -26,7 +26,7 @@ foreach($_POST as $key => $value) {
 		}
 	}
 
-$temp_folder = $dir.str_replace(' ','_',$filename)."_temp";
+$temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
 // echo $temp_folder;
 if(!file_exists($temp_folder)) {
 	echo "<p style=\"color:red;\">Created folder: ".$temp_folder."</p>";
@@ -171,7 +171,7 @@ for($i = 0; $i < count($table); $i++) {
 if($handle_object) fclose($handle_object);
 echo "<p style=\"color:blue;\">".$comment_on_file."</p>";
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’ INCLUDING ALL CHANGES TO PROTOTYPES\"></p>";
-echo "<p>➡ <i>If you reload this page before saving the file, all changes to prototypes may be lost!</i></p>";
+echo "<p>➡ <i>If you reload this page before saving the file, all changes to prototypes may be lost. I am working on an ‘autosave’ procedure that will record data changes every minute.</i></p>";
 echo "</form>";
  echo "<hr>";
  echo "<h3>Click object prototypes below to edit them:</h3>";

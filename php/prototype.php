@@ -388,16 +388,19 @@ echo "<input type=\"checkbox\" name=\"object_type4\"";
    
 // echo "Resolution = ".$object_param[$j]." ms<br />";
 
-echo $j.") Resolution = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"> ms<br />";
+$resolution = $object_param[$j];
+if($resolution == '' OR $resolution == 0) $resolution = 1;
+$resolution = intval($resolution);
+echo "Resolution = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"5\" value=\"".$resolution."\"> ms<br />";
 
-echo $j.") Default channel = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"><br />";
+echo "Default channel = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"><br />";
 
 $Tref = $object_param[$j++] * $object_param[1];
-echo $j.") Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ this is NOT the duration!<br />";
+echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ this is NOT the duration!<br />";
 
 $object_quantization = $object_param[$j];
 if(intval($object_quantization) == $object_quantization) $object_quantization = intval($object_quantization);
-echo $j.") Quantization = <input type=\"text\" name=\"object_param_".$j++."\" size=\"5\" value=\"".$object_quantization."\"> ms  ➡ zero means no quantization<br />";
+echo "Quantization = <input type=\"text\" name=\"object_param_".$j++."\" size=\"5\" value=\"".$object_quantization."\"> ms  ➡ zero means no quantization<br />";
 
 $string = $object_param[$j++];
 $k = 0;
