@@ -24,3 +24,10 @@ bp
 
 # BP2 decoded resource files
 resources/decoded_resources/
+
+# local-only files to ignore
+Makefile copy
+bp-linux.tar.gz
+ctests/
+output/
+
