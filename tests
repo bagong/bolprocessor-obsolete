@@ -1,0 +1,133 @@
+#!/bin/bash
+# This assumes a binary called "bp" built using the makefile provided. Xcode builds
+# will produce a binary called bp64 and/or bp32. Adjust "BINARY" and comment out
+# build step, if running from manual Xcode build.
+
+export WORKINGDIR=$(pwd)
+export NOW="$(date +'%Y.%m.%d-%H.%M.%S')"
+export PROJECTDIR="$HOME/Projects/bolprocessor"
+export SYSTEM=Catalina-make # Catalina-xcode, RPI-Buster, MSYS2
+export BINARY="bp"
+export BPEXEC="$PROJECTDIR/$BINARY"
+export CSEXEC="/usr/local/bin/csound"
+export TESTSDIR="$PROJECTDIR/ctests"
+export RESULTSDIR="$TESTSDIR/output/ctests"
+export PHPDIR="$PROJECTDIR/php"
+
+# create (or clean) folder for output of tests
+if test -e "$RESULTSDIR"; then
+	tar czf $RESULTSDIR/../bp-ctests-$NOW-$SYSTEM.tar.gz $RESULTSDIR/* 2> /dev/null
+	rm $RESULTSDIR/*
+else
+    mkdir -p $RESULTSDIR
+fi
+
+# build
+cd $PROJECTDIR
+if test -f "$BPEXEC"; then
+	tar czf $RESULTSDIR/../bp-binary-$NOW-$SYSTEM.tar.gz $BPEXEC 2> /dev/null
+	rm $BPEXEC
+fi
+
+gcc -v 2> $RESULTSDIR/versioninfo-gcc.stdout
+make -d > $RESULTSDIR/bp-make.stdout 2> $RESULTSDIR/bp-make.stderr
+
+# Tests
+
+# change to ctests folder (tests don't run outside)
+cd $TESTSDIR
+
+# show versioninfo (verify if binary runs at all)
+$BPEXEC --version > $RESULTSDIR/versioninfo-bp.stdout 2> $RESULTSDIR/versioninfo-bp.stderr
+
+# show help
+$BPEXEC --help > $RESULTSDIR/helpinfo-bp.stdout 2> $RESULTSDIR/helpinfo-bp.stderr
+
+# NotReich
+
+## Output from produce grammar-file
+export FILENAME=$RESULTSDIR/NotReich.produce-data-from-grammar
+$BPEXEC produce -gr.NotReich > $FILENAME.stdout 2> $FILENAME.stderr
+
+## Generate data-file from grammar
+export FILENAME=$RESULTSDIR/NotReich.bpda
+$BPEXEC produce -gr.NotReich -o $FILENAME > $FILENAME.stdout 2> $FILENAME.stderr
+
+# generate csound score data to stdout
+export FILENAME=$RESULTSDIR/NotReich.produce-csscore-from-grammar
+$BPEXEC produce -gr.NotReich -d --csoundout - > $FILENAME.stdout 2> $FILENAME.stderr
+
+# generate csound score file
+export FILENAME=$RESULTSDIR/NotReich.sco
+$BPEXEC produce -gr.NotReich -d --csoundout $FILENAME > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Render soundfile from csound score file
+$CSEXEC -s -A -o $RESULTSDIR/NotReich.aiff $TESTSDIR/BP2test.orc $RESULTSDIR/NotReich.sco > $RESULTSDIR/NotReich.aiff.stdout 2> $RESULTSDIR/NotReich.aiff.stderr
+
+# Use action templates with testgrammar and generate trace-file
+export FILENAME=$RESULTSDIR/checktemplates.templates-from-grammar.trace
+$BPEXEC templates -gr.checktemplates --traceout $FILENAME > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Compile test-grammar and generate trace-file
+export FILENAME=$RESULTSDIR/symbols.compile-from-grammar.trace
+$BPEXEC compile symbols.bpgr --traceout $FILENAME > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Add alphabets-file to test-grammar and generate trace-file (error fixed)
+export FILENAME=$RESULTSDIR/symbols.compile-from-grammar-and-alphabet-file.trace
+$BPEXEC compile symbols.bpgr symbols.bpho --traceout $FILENAME > $FILENAME.stdout 2> $FILENAME.stderror
+
+# Produce output from test-grammar to stdout
+export FILENAME=$RESULTSDIR/symbols.produce-from-grammar-and-alphabet
+$BPEXEC produce symbols.bpgr symbols.bpho > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Produce output from test-grammar, add trace-file and send "show production" to stdout
+export FILENAME=$RESULTSDIR/symbols.produce-from-grammar-and-alphabet.out
+$BPEXEC produce symbols.bpgr symbols.bpho -o $FILENAME --traceout $FILENAME.trace --show-production > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Produce output from test-grammar symbols, add trace-file and send "trace-production" to stdout
+export FILENAME=$RESULTSDIR/symbols.produce-from-grammar-and-alphabet-traced.out
+$BPEXEC produce symbols.bpgr symbols.bpho -o $FILENAME --traceout $FILENAME.trace --trace-production > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Next test-file produce-all.bpgr
+export FILENAME=$RESULTSDIR/produce-all.produce-from-grammar
+$BPEXEC produce produce-all.bpgr > $FILENAME.stdout 2> $FILENAME.stderr
+export FILENAME=$RESULTSDIR/produce-all.produce-all-from-grammar
+$BPEXEC produce-all produce-all.bpgr > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Midi
+export FILENAME=$RESULTSDIR/produce-all.produce-from-grammar.midi
+$BPEXEC produce produce-all.bpgr -d --midiout $FILENAME > $FILENAME.stdout 2> $FILENAME.stderr
+
+# Check alphabet indian, use for compilation, production with or without rtmidi
+export FILENAME=$RESULTSDIR/Nadaka.compile-from-grammar
+$BPEXEC compile -gr.Nadaka --traceout $FILENAME.trace > $FILENAME.stdout 2> $FILENAME.stderr
+export FILENAME=$RESULTSDIR/Nadaka-indian.compile-from-grammar
+$BPEXEC compile --indian -gr.Nadaka > $FILENAME.stdout 2> $FILENAME.stderr
+export FILENAME=$RESULTSDIR/Nadaka-indian.produce-from-grammar
+$BPEXEC produce --indian -gr.Nadaka > $FILENAME.stdout 2> $FILENAME.stderr
+export FILENAME=$RESULTSDIR/Nadaka-indian.produce-from-grammar-to-rtmidi
+$BOEXEC produce --indian -gr.Nadaka -d --rtmidi > $FILENAME.stdout 2> $FILENAME.stderr
+
+# remove empty error- and trace-files
+find $RESULTSDIR -name "*.stderr" -size 0 -delete
+find $RESULTSDIR -name "*.trace" -size 0 -delete
+echo Empty stderr- abd trace-files deleted
+
+# create archive of test-output
+tar czf $RESULTSDIR/../bp-ctests-$NOW-$SYSTEM.tar.gz $RESULTSDIR/* 2> /dev/null
+tar czf $RESULTSDIR/../bp-binary-$NOW-$SYSTEM.tar.gz $BPEXEC 2> /dev/null
+
+# list empty output-files
+echo Empty non-error output files:
+find $RESULTSDIR -name "*.stdout" -size 0 -print
+echo
+
+# list result-files
+echo All result-files in $RESULTSDIR:
+cd $RESULTSDIR
+du -ch *
+
+# END for now
+cd $WORKINGDIR
+echo DONE
+
