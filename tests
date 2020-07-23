@@ -1,51 +1,113 @@
 #!/bin/bash
-# This assumes a binary called "bp" built using the makefile provided. Xcode builds
-# will produce a binary called bp64 and/or bp32. Adjust "BINARY" and comment out
-# build step, if running from manual Xcode build.
+# This assumes a build using the makefile. Xcode builds require some adjustments.
+# This script is work in progress at a very basic stage. Provided the environment
+# is complete (gcc, git and csound (and ssh if upoad is enabled)), three steps should 
+# be enough to build and run tests: 
+#
+# - clone the repo:                 `https://github.com/bagong/bolprocessor`
+# - change into the project-folder: `cd bolprocessor`
+# - run "tests":                    `./tests <system>`
+#
+# The first step will become `git pull` (or something more considerate) on subsequent 
+# runs. Not sure if the script can be made to detect the environment by itself in a 
+# cross-platform manner, for now an argument is supported. It is not yet used yet 
+# though, except for the filename of archives of output-files. So we can be creative.
+# Examples:
+#
+# - `macos-catalina`
+# - `rpi-buster`
+# - `windows-msys2`
+# 
+# The bagong-repo is used because bpconsole and the php-frontend are folded into one,
+# the ctests-folder is provisionally put under version-control so that it can be cloned
+# as part of the reop, and because it contains this file ;-)
+# 
+# The archives of test-builds and output-files are uploaded to the domain 
+# bp.bagong.de/archives using scp. Downloads should be possible in a browser
+# from https://bp.bagong.de/archives/. Write access can be arranged by adding a
+# public certificate to the domain.
+#
+# I will try to make this more useful in the coming weeks. For example I do not know
+# what happens if a build fails - they never seem to fail! Generally it would be nice
+# to produce output that shows clearly if things work as expected. I am happy with any
+# input!
 
-export WORKINGDIR=$(pwd)
+export PROJECTDIR="$(pwd)"
 export NOW="$(date +'%Y.%m.%d-%H.%M.%S')"
-export PROJECTDIR="$HOME/Projects/bolprocessor"
-export SYSTEM=Catalina-make # Catalina-xcode, RPI-Buster, MSYS2
+export COMMIT="$(git rev-parse --short HEAD)"
+export SYSTEM="$1"
 export BINARY="bp"
 export BPEXEC="$PROJECTDIR/$BINARY"
-export CSEXEC="/usr/local/bin/csound"
+export CSEXEC="$(which csound)"
 export TESTSDIR="$PROJECTDIR/ctests"
-export RESULTSDIR="$TESTSDIR/output/ctests"
+export OUTPUTDIR="$PROJECTDIR/output"
+export RESULTSDIR="$OUTPUTDIR/ctests"
+export BACKUPDIR="$OUTPUTDIR/backups"
 export PHPDIR="$PROJECTDIR/php"
+export ENABLEUPLOAD=1
+export ENABLEBACKUP=0
+export KEEPLOCALARCHIVES=0
+export UPLOADSERVER="ssh-w01ad877@v079009.kasserver.com:/www/htdocs/w01ad877/bp.bagong.de/archives/"
+export TESTSARCHIVE="$OUTPUTDIR/bp-ctests-$NOW-$SYSTEM-$COMMIT.tar.gz"
+export BINARYARCHIVE="$OUTPUTDIR/bp-binary-$NOW-$SYSTEM-$COMMIT.tar.gz"
 
-# create (or clean) folder for output of tests
-if test -e "$RESULTSDIR"; then
-	tar czf $RESULTSDIR/../bp-ctests-$NOW-$SYSTEM.tar.gz $RESULTSDIR/* 2> /dev/null
-	rm $RESULTSDIR/*
-else
-    mkdir -p $RESULTSDIR
+# just in case
+cd $PROJECTDIR
+
+# optionally backup current tests and binary
+if [ "$ENABLEBACKUP" != "0"  -a ! -d "$BACKUPDIR" ]; then
+	mkdir -p $BACKUPDIR 
+fi
+	
+if [ "$ENABLEBACKUP" != "0" -a -d "$RESULTSDIR" ]; then
+	if [ ! -z "$(ls -A $RESULTSDIR)" ]; then
+		cd $RESULTSDIR
+		tar czf $BACKUPDIR/bp-ctests-$NOW-$SYSTEM.tar.gz *
+		cd $PROJECTDIR
+	fi
 fi
 
-# build
-cd $PROJECTDIR
-if test -f "$BPEXEC"; then
-	tar czf $RESULTSDIR/../bp-binary-$NOW-$SYSTEM.tar.gz $BPEXEC 2> /dev/null
+if [ "$ENABLEBACKUP" != "0" -a -f "$BPEXEC" ]; then
+	cd $PROJECTDIR
+	tar czf $BACKUPDIR/bp-binary-$NOW-$SYSTEM.tar.gz $BINARY
+fi
+
+# create (or clean) folder for output of tests
+if [ -d "$RESULTSDIR" -a -d "$RESULTSDIR" ]; then
+	if [ ! -z "$(ls -A $RESULTSDIR)" ]; then
+		rm $RESULTSDIR/*
+	fi
+else
+	mkdir -p $RESULTSDIR
+fi
+
+# BUILD
+
+## ggc-version - gcc sends versioninfo to stderror! Well, it is gcc, no need for an empty stdout file:
+gcc -v 2> $RESULTSDIR/versioninfo-gcc.stderr
+
+## remove binary first to get full build verbosity
+if [ -f "$BPEXEC" ]; then
 	rm $BPEXEC
 fi
 
-gcc -v 2> $RESULTSDIR/versioninfo-gcc.stdout
 make -d > $RESULTSDIR/bp-make.stdout 2> $RESULTSDIR/bp-make.stderr
 
-# Tests
-
-# change to ctests folder (tests don't run outside)
-cd $TESTSDIR
-
-# show versioninfo (verify if binary runs at all)
+## check selfreference ;-)
+### versioninfo (verify if binary runs at all)
 $BPEXEC --version > $RESULTSDIR/versioninfo-bp.stdout 2> $RESULTSDIR/versioninfo-bp.stderr
 
-# show help
+### output visionstatement
 $BPEXEC --help > $RESULTSDIR/helpinfo-bp.stdout 2> $RESULTSDIR/helpinfo-bp.stderr
+
+# TESTS
+
+# change to ctests folder (tests do not run outside)
+cd $TESTSDIR
 
 # NotReich
 
-## Output from produce grammar-file
+## Output of produce grammar-file
 export FILENAME=$RESULTSDIR/NotReich.produce-data-from-grammar
 $BPEXEC produce -gr.NotReich > $FILENAME.stdout 2> $FILENAME.stderr
 
@@ -111,23 +173,53 @@ $BOEXEC produce --indian -gr.Nadaka -d --rtmidi > $FILENAME.stdout 2> $FILENAME.
 # remove empty error- and trace-files
 find $RESULTSDIR -name "*.stderr" -size 0 -delete
 find $RESULTSDIR -name "*.trace" -size 0 -delete
+echo
 echo Empty stderr- abd trace-files deleted
 
 # create archive of test-output
-tar czf $RESULTSDIR/../bp-ctests-$NOW-$SYSTEM.tar.gz $RESULTSDIR/* 2> /dev/null
-tar czf $RESULTSDIR/../bp-binary-$NOW-$SYSTEM.tar.gz $BPEXEC 2> /dev/null
-
-# list empty output-files
-echo Empty non-error output files:
-find $RESULTSDIR -name "*.stdout" -size 0 -print
+cd $RESULTSDIR
+tar czf $TESTSARCHIVE *
+cd $PROJECTDIR
+tar czf $BINARYARCHIVE $BINARY
 echo
+echo Archives of output-file and binary created
+
+# optionally upload
+if [ "$ENABLEUPLOAD" != "0" ]; then
+	# copy tarbals to bp.bagong.de/archives/
+	scp $TESTSARCHIVE $UPLOADSERVER
+	scp $BINARYARCHIVE $UPLOADSERVER
+	echo Archives uploaded \(if no Errormessage appeared \;-\)\)
+fi
+
+if [ ! "$KEEPLOCALARCHIVES" == "1" ]; then
+	# delete local archives while it still is now 
+	rm $TESTSARCHIVE
+	rm $BINARYARCHIVE
+	echo Archives deleted
+fi
 
 # list result-files
+echo
 echo All result-files in $RESULTSDIR:
 cd $RESULTSDIR
 du -ch *
 
+# list empty output-files
+echo
+echo Empty non-error output files:
+find $RESULTSDIR -name "*.stdout" -size 0 -print
+
 # END for now
-cd $WORKINGDIR
-echo DONE
+echo
+echo DONE.
+echo The result-files are in folder "$RESULTSDIR"
+if [ "$KEEPLOCALARCHIVES" != "0" ]; then
+	echo Archives of the result-files are in folder "$OUTPUTDIR"
+fi
+if [ "$ENABLEBACKUP" != "0" ]; then
+	echo Archives of existing output-files before this testsrun are in "$BACKUPDIR"
+fi
+
+echo Bye! \;-\)
 
