@@ -9,7 +9,6 @@ $url_this_page = "grammar.php";
 if(isset($_GET['file'])) $grammar_file = $_GET['file'];
 else $grammar_file = '';
 if($grammar_file == '') die();
-// $file = $grammar_file;
 $url_this_page .= "?file=".$grammar_file;
 
 $table = explode('/',$grammar_file);
@@ -135,9 +134,15 @@ if(isset($_POST['compilegrammar'])) {
 	chdir($dir);
 	$command = $application_path."bp compile";
 	if($note_convention <> '') $command .= " --".$note_convention;
-	$command .= " ".$filename;
+	$thisgrammar = $filename;
+	if(is_integer(strpos($thisgrammar,' ')))
+		$thisgrammar = '"'.$thisgrammar.'"';
+	$command .= " ".$thisgrammar;
+	$thisalphabet = $alphabet_file;
+	if(is_integer(strpos($thisalphabet,' ')))
+		$thisalphabet = '"'.$thisalphabet.'"';
 	if($alphabet_file <> '')
-		$command .= " ".$alphabet_file;
+		$command .= " ".$thisalphabet;
 	$command .= " --traceout ".$tracefile;
 	echo "<p><small>".$command."</small></p>";
 	$no_error = FALSE;

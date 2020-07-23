@@ -45,7 +45,7 @@ Use buffer limit		1	1
 Time max	ms	1
 Seed for randomization	(integer)	1
 Use keyboard tokens		1	1
-Note convention	0 = English<br />1 = French<br />2 = Indian	1
+Note convention	0 = English<br />1 = French<br />2 = Indian<br />3 = Keys	1
 StartFromOne		1	1
 Smart cursor		0
 GraphicScaleP		0

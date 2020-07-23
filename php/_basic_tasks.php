@@ -501,7 +501,7 @@ function reformat_grammar($verbose,$grammar_file) {
 	$content = @file_get_contents($grammar_file,TRUE);
 	$new_content = $content;
 	$i_gram = $irul = 1;
-	$section_headers = array("RND","ORD","SUB","SUB1","TEM","POSLONG","LEFT","RIGHT","INIT:","TIMEPATTERNS:","DATA","COMMENTS:");
+	$section_headers = array("RND","ORD","LIN","SUB","SUB1","TEM","POSLONG","LEFT","RIGHT","INIT:","TIMEPATTERNS:","DATA:","COMMENTS:");
 	$table = explode(chr(10),$new_content);
 	$ignore_all = FALSE;
 	$i_line_max = count($table);
@@ -520,9 +520,10 @@ function reformat_grammar($verbose,$grammar_file) {
 		if(is_integer($pos=strpos($line,"_")) AND $pos == 0) $ignore = TRUE;
 		if(is_integer($pos=strpos($line,"[")) AND $pos == 0) $ignore = TRUE;
 		if(is_integer($pos=stripos($line,"gram#")) AND $pos == 0) {
-			$irul++;
 			$ignore = TRUE;
 			$line = preg_replace("/^GRAM#/u","gram#",$line);
+			$line = preg_replace("/^gram#([0-9]+)\[([0-9]+)\]/u","gram#".$i_gram."[".$irul."]",$line);
+			$irul++;
 			}
 		if(in_array($line_no_brackets,$section_headers)) $ignore = TRUE;
 		if($line_no_brackets == "TIMEPATTERNS:") {
@@ -546,6 +547,7 @@ function reformat_grammar($verbose,$grammar_file) {
 		$table[$i_line] = $line;
 		}
 	$new_content = implode(chr(10),$table);
+	// $grammar_file = "-gr._test";
 	$handle = fopen($grammar_file,"w");
 	fwrite($handle,$new_content);
 	fclose($handle);

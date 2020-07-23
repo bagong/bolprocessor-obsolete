@@ -21,6 +21,8 @@ else $grammar_path = '';
 if($grammar_path == '') die();
 if(isset($_GET['note_convention'])) $note_convention = $_GET['note_convention'];
 else $note_convention = '';
+if(isset($_GET['alphabet'])) $alphabet_file = $_GET['alphabet'];
+else $alphabet_file = '';
 if(isset($_GET['format'])) $file_format = $_GET['format'];
 else $file_format = '';
 if($file_format <> '' AND isset($_GET['output'])) $output = $_GET['output'];
@@ -37,7 +39,19 @@ $application_path = $root."bolprocessor/";
 
 if($output <> '') @unlink($output);
 if($tracefile <> '') @unlink($tracefile);
-$command = $application_path."bp ".$instruction." -gr ".$grammar_path;
+
+$thisgrammar = $grammar_path;
+if(is_integer(strpos($thisgrammar,' ')))
+	$thisgrammar = '"'.$thisgrammar.'"';
+$command = $application_path."bp ".$instruction." -gr ".$thisgrammar;
+
+$thisalphabet = $alphabet_file;
+if(is_integer(strpos($thisalphabet,' ')))
+	$thisalphabet = '"'.$thisalphabet.'"';
+$thisalphabet = $dir.$thisalphabet;
+	
+if($alphabet_file <> '') $command .= " -ho ".$thisalphabet;
+
 if($note_convention <> '') $command .= " --".$note_convention;
 switch($file_format) {
 	case "data":
