@@ -100,6 +100,10 @@ $BPEXEC --version > $RESULTSDIR/versioninfo-bp.stdout 2> $RESULTSDIR/versioninfo
 ### output visionstatement
 $BPEXEC --help > $RESULTSDIR/helpinfo-bp.stdout 2> $RESULTSDIR/helpinfo-bp.stderr
 
+### versioninfo csound - csound also sends versioninfo to stderr
+$CSEXEC --version 2> $RESULTSDIR/versioninfo-csound.stderr
+
+
 # TESTS
 
 # change to ctests folder (tests do not run outside)
