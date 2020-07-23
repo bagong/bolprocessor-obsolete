@@ -19,7 +19,7 @@ echo link_to_help();
 echo "<h3>Data file “".$filename."”</h3>";
 
 if(isset($_POST['savethisfile'])) {
-	echo "<p style=\"color:red;\">Saved file…</p>";
+	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
 	$content = $_POST['thistext'];
 	$handle = fopen($file,"w");
 	$file_header = $top_header."\n// Data file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');

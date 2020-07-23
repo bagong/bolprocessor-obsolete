@@ -17,16 +17,6 @@ echo link_to_help();
 
 echo "<h3>Settings file “".$filename."”</h3>";
 
-/* if(isset($_POST['savethisfile'])) {
-	echo "<p style=\"color:red;\">Saved file…</p>";
-	$content = $_POST['thistext'];
-	$handle = fopen($file,"w");
-	$file_header = $top_header."\n// Settings file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
-	fwrite($handle,$file_header."\n");
-	fwrite($handle,$content);
-	fclose($handle);
-	} */
-
 $bp_parameter_names = @file_get_contents("bp_parameter_names.txt",TRUE);
 if($bp_parameter_names === FALSE) echo "ERROR reading ‘bp_parameter_names.txt’";
 $table = explode(chr(10),$bp_parameter_names);
@@ -49,7 +39,7 @@ for($i = 0; $i < $imax; $i++) {
 	}
 
 if(isset($_POST['saveparameters'])) {
-	echo "<p style=\"color:red;\">Saved ".$imax_parameters." parameters…</p>";
+	echo "<p id=\"timespan\" style=\"color:red;\">Saved ".$imax_parameters." parameters…</p>";
 	$handle = fopen($file,"w");
 	$file_header = $top_header."\n// Settings file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
 	fwrite($handle,$file_header."\n");

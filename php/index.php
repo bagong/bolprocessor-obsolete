@@ -12,7 +12,7 @@ if(isset($_GET['path'])) {
 	$upper_dir = implode('/',$table);
 	$upper_dir = preg_replace("/\/$/u",'',$upper_dir);
 	$link = $this_page."?path=".$upper_dir;
-	echo "<p>[<a href=\"".$link."\">move up</a>]</p>";
+	if($upper_dir <> '') echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
 else {
 	chdir($root);
@@ -37,11 +37,12 @@ if(isset($_POST['createfile'])) {
 
 $folder = str_replace($root,'',$dir);
 require_once("_header.php");
-echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 
+echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
+echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if($extension <> "temp" AND !isset($_POST['createfile'])) {
+if(is_integer(strpos($dir,"/bolprocessor")) AND $folder <> "bolprocessor/php" AND $extension <> "temp" AND !isset($_POST['createfile'])) {
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"createfile\" value=\"CREATE NEW GRAMMAR IN THIS FOLDER\">&nbsp;➡&nbsp;";
@@ -59,19 +60,20 @@ foreach($dircontent as $thisfile) {
 	if($time_saved < $yesterday) $old = TRUE;
 	else $old = FALSE;
 	if(is_dir($dir."/".$thisfile)) {
-		if($old) {
-			$table = explode('_',$thisfile);
-			$extension = end($table);
-			if($extension == "temp" AND count($table) > 2) {
-				$id = $table[count($table) - 2];
+		$table = explode('_',$thisfile);
+		$extension = end($table);
+		$link = $this_page."?path=".$current_path.$dir."/".$thisfile;
+		if($extension == "temp" AND count($table) > 2) {
+			$id = $table[count($table) - 2];
+			if($old) {
 				if($id <> session_id()) {
 					my_rmdir($dir."/".$thisfile);
 					continue;
 					}
 				}
 			}
-		$link = $this_page."?path=".$current_path.$dir."/".$thisfile;
-		echo "<b><a href=\"".$link."\">".$thisfile."</a></b><br />";
+		if($extension <> "temp")
+			echo "<b><a href=\"".$link."\">".$thisfile."</a></b><br />";
 		continue;
 		}
 	$table = explode(".",$thisfile);
@@ -87,6 +89,9 @@ foreach($dircontent as $thisfile) {
 				}
 			}
 		}
+	$table = explode("_",$thisfile);
+	$prefix = $table[0];
+	if($prefix == "trace") continue;
 	$prefix = substr($thisfile,1,2);
 	switch($prefix) {
 		case 'gr':

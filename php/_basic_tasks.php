@@ -415,4 +415,50 @@ function my_rmdir($src) {
     rmdir($src);
     return;
 	}
+
+
+function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
+	global $top_header;
+	$handle = fopen($dir.$filename,"w");
+//	$handle = fopen($dir."essai.txt","w");
+	$file_header = $top_header."\n// Object prototypes file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
+	fwrite($handle,$file_header."\n");
+	$PrototypeTickKey = $_POST['PrototypeTickKey'];
+	fwrite($handle,$PrototypeTickKey."\n");
+	$PrototypeTickChannel = $_POST['PrototypeTickChannel'];
+	fwrite($handle,$PrototypeTickChannel."\n");
+	$PrototypeTickVelocity = $_POST['PrototypeTickVelocity'];
+	fwrite($handle,$PrototypeTickVelocity."\n");
+	$CsoundInstruments_filename = $_POST['CsoundInstruments_filename'];
+	fwrite($handle,$CsoundInstruments_filename."\n");
+	$maxsounds = $_POST['maxsounds'];
+	fwrite($handle,$maxsounds."\n");
+	$dircontent = scandir($temp_folder);
+	foreach($dircontent as $thisfile) {
+		if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
+		$table = explode(".",$thisfile);
+		$extension = end($table);
+		if($extension <> "txt") continue;
+		$object_label = str_replace(".".$extension,'',$thisfile);
+		if($verbose) echo $object_label." ";
+		$content = file_get_contents($temp_folder."/".$thisfile,TRUE);
+		$pick_up_headers = pick_up_headers($content);
+		$content = $pick_up_headers['content'];
+		$table = explode(chr(10),$content);
+		$line = "<HTML>".$object_label."</HTML>";
+		fwrite($handle,$line."\n");
+		for($i = 1; $i < count($table); $i++) {
+			$line = $table[$i];
+			fwrite($handle,$line."\n");
+			}
+		}
+	fwrite($handle,"DATA:\n");
+	$comment_on_file = $_POST['comment_on_file'];
+	$comment_on_file = recode_tags($comment_on_file);
+	fwrite($handle,"<HTML>".$comment_on_file."</HTML>\n");
+	fwrite($handle,"_endSoundObjectFile_\n");
+	fclose($handle);
+	if($verbose) echo "</font></p><hr>";
+	return;
+	}
 ?>

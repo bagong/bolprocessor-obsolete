@@ -28,33 +28,10 @@ $file_format = "csound";
 if(isset($_POST['output_file'])) $output_file = $_POST['output_file'];
 if(isset($_POST['file_format'])) $file_format = $_POST['file_format'];
 
-if(isset($_POST['change_output_folder'])) {
-	$output_folder = trim($_POST['output_folder']);
-	$output_folder = trim(str_replace('/',' ',$output_folder));
-	$output_folder = str_replace(' ','/',$output_folder);
-	$output = $root."bolprocessor/".$output_folder;
-	do $output = str_replace("//",'/',$output,$count);
-	while($count > 0);
-//	echo $output."<br />";
-	if(!file_exists($output)) {
-		echo "<p><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
-		$cmd = "mkdir ".$output;
-		echo "(".$cmd.")</p>";
-		exec($cmd);
-		}
-	$handle = fopen("_settings.php","w");
-	fwrite($handle,"<?php\n");
-	$line = "§output_folder = \"".$output_folder."\";\n";
-	$line = str_replace('§','$',$line);
-	fwrite($handle,$line);
-	$line = "§>\n";
-	$line = str_replace('§','?',$line);
-	fwrite($handle,$line);
-	fclose($handle);
-	}
+require_once("_header.php");
 
 if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
-//	echo "<p style=\"color:red;\">Saved file…</p>";
+	if(isset($_POST['savegrammar'])) echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
 	$content = $_POST['thisgrammar'];
 	$output_file = $_POST['output_file'];
 	$file_format = $_POST['file_format'];
@@ -112,7 +89,32 @@ if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 		} */
 	}
 
-require_once("_header.php");
+if(isset($_POST['change_output_folder'])) {
+	$output_folder = trim($_POST['output_folder']);
+	$output_folder = trim(str_replace('/',' ',$output_folder));
+	$output_folder = str_replace(' ','/',$output_folder);
+	$output = $root."bolprocessor/".$output_folder;
+	do $output = str_replace("//",'/',$output,$count);
+	while($count > 0);
+//	echo $output."<br />";
+	if(!file_exists($output)) {
+		echo "<p id=\"timespan\"><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
+		$cmd = "mkdir ".$output;
+		echo "(".$cmd.")</p>";
+		exec($cmd);
+		}
+	$handle = fopen("_settings.php","w");
+	fwrite($handle,"<?php\n");
+	$line = "§output_folder = \"".$output_folder."\";\n";
+	$line = str_replace('§','$',$line);
+	fwrite($handle,$line);
+	$line = "§>\n";
+	$line = str_replace('§','?',$line);
+	fwrite($handle,$line);
+	fclose($handle);
+	}
+
+// require_once("_header.php");
 echo "<p>Current directory = ".$here."</p>";
 echo link_to_help();
 
@@ -251,7 +253,7 @@ if($show_production > 0)
 	$link .= "&show_production=1";
 if($trace_production > 0)
 	$link .= "&trace_production=1";
-echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','trace','width=800,height=800'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
+echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','produce','width=800,height=800'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
 echo "</td></tr>";
 echo "<tr><td colspan=\"2\"><p style=\"text-align:center;\">➡ <i>You can change above settings, then save the grammar…</i></p></td></tr>";
 echo "</table>";
@@ -289,9 +291,9 @@ else {
 	$time_structure = '';
 	echo "<input type=\"hidden\" name=\"settings_file\" value=\"".$settings_file."\">";
 	}
-echo "<p>";
+// echo "<p>";
 if($note_convention <> '') {
-	echo "Note convention = <font color=\"blue\">".ucfirst($note_convention)."</font> found in ‘".$settings_file."’<br />";
+	echo "• Note convention = <font color=\"blue\">".ucfirst($note_convention)."</font> found in ‘".$settings_file."’<br />";
 	echo "<input type=\"hidden\" name=\"note_convention\" value=\"".$note_convention."\">";
 	}
 // echo "show_production = ".$show_production."<br />";

@@ -12,7 +12,6 @@ window.open('tracefile','trace','width=800,height=300');
 return;
 }\n";
 echo "</script>\n";
-
 echo "<script>\n";
 echo "function copyToClipboard(text) {
     var input = document.createElement('input');
@@ -25,6 +24,15 @@ echo "function copyToClipboard(text) {
     return result;
  }\n";
 echo "</script>\n";
+?>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js">
+</script>
+<script>
+setTimeout(function() {
+    $('#timespan').fadeOut('fast');
+	}, 2000); // <-- time in milliseconds
+</script>
+<?php
 echo "</head>";
 echo "<body>\n";
 ?>

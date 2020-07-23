@@ -10,7 +10,6 @@ $url_this_page = "produce.php";
 $this_title = "BP console";
 require_once("_header.php");
 
-
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
 if($instruction == '') {
@@ -31,19 +30,13 @@ else $show_production = FALSE;
 if(isset($_GET['trace_production'])) $trace_production = TRUE;
 else $trace_production = FALSE;
 
-/* $table = explode('/',$grammar_path);
-$filename = $table[count($table) - 1];
-$dir = str_replace($filename,'',$grammar_path); */
-
 $table = explode('/',$grammar_path);
 $grammar_name = $table[count($table) - 1];
 $dir = str_replace($grammar_name,'',$grammar_path);
 $application_path = $root."bolprocessor/";
 
-// chdir($dir); // Will be removed soon
 if($output <> '') @unlink($output);
 if($tracefile <> '') @unlink($tracefile);
-// $command = $application_path."bp ".$instruction." ".$grammar_name;
 $command = $application_path."bp ".$instruction." -gr ".$grammar_path;
 if($note_convention <> '') $command .= " --".$note_convention;
 switch($file_format) {
@@ -78,7 +71,7 @@ $output_link = str_replace($root,'',$output);
 $trace_link = str_replace($root,'',$dir.$tracefile);
 // echo $trace_link."<br />";
 if(!$no_error) {
-	echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
+	echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800'); return false;\" href=\"/".$trace_link."\">error trace file</a>!</p>";
 	}
 else {
 	if($output <> '') echo "<p><font color=\"red\">➡</font> Read the output file: <a onclick=\"window.open('/".$output_link."','".$file_format."','width=800,height=800'); return false;\" href=\"/".$output_link."\">click this link</a></p>";

@@ -8,7 +8,8 @@ if(isset($_POST['object_name'])) {
 	$temp_folder = $_POST['temp_folder'];
 	$object_file = $_POST['object_file'];
 //	echo $root."<br />";
-	echo "<p>Work directory: <font color=\"blue\">".str_replace($root,'',$temp_folder)."</font><br />Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font></p>";
+//	echo "<p>Work directory: <font color=\"blue\">".str_replace($root,'',$temp_folder)."</font></p>";
+	echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font></p>";
 	}
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
@@ -23,7 +24,7 @@ echo "<h2>Object prototype <big><font color=\"red\">".$object_name."</font></big
 
 if(isset($_POST['savethisprototype'])) {
 	$source_file = $_POST['source_file'];
-	echo "<p style=\"color:red;\">Saved file…</p>";
+	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
 //	$prototype_file = $temp_folder."/"."test.txt";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
