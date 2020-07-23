@@ -30,8 +30,10 @@ if(isset($_POST['file_format'])) $file_format = $_POST['file_format'];
 
 require_once("_header.php");
 
+echo "<p>Current directory = ".$here;
+
 if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
-	if(isset($_POST['savegrammar'])) echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
+	if(isset($_POST['savegrammar'])) echo "…&nbsp;<span id=\"timespan\" style=\"color:red;\"> Saved “".$filename."” file…</span>";
 	$content = $_POST['thisgrammar'];
 	$output_file = $_POST['output_file'];
 	$file_format = $_POST['file_format'];
@@ -67,6 +69,7 @@ if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 		}
 	if($file_format == '') $output_file = '';
 	$handle = fopen($grammar_file,"w");
+	$content = recode_entities($content);
 	$file_header = $top_header."\n// Grammar file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
 	fwrite($handle,$file_header."\n");
 	fwrite($handle,$content);
@@ -88,6 +91,7 @@ if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 		die();
 		} */
 	}
+echo "</p>";
 
 if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
@@ -115,7 +119,6 @@ if(isset($_POST['change_output_folder'])) {
 	}
 
 // require_once("_header.php");
-echo "<p>Current directory = ".$here."</p>";
 echo link_to_help();
 
 echo "<h3>Grammar file “".$filename."”</h3>";
@@ -125,7 +128,7 @@ if(isset($_POST['compilegrammar'])) {
 	else $alphabet_file = '';
 	if(isset($_POST['note_convention'])) $note_convention = $_POST['note_convention'];
 	else $note_convention = '';
-	echo "<p style=\"color:red;\">Compiling ‘".$filename."’</p>";
+	echo "<p id=\"timespan\" style=\"color:red;\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
 	$application_path = $root."bolprocessor/";
@@ -143,40 +146,19 @@ if(isset($_POST['compilegrammar'])) {
 	if($n_messages > 0) {
 		for($i=0; $i < $n_messages; $i++) {
 			$mssg = $o[$i];
-			$mssg = clean_up_encoding($mssg);
+			$mssg = clean_up_encoding(TRUE,$mssg);
 			if(is_integer($pos=strpos($mssg,"Errors: 0")) AND $pos == 0) $no_error = TRUE;
 			}
 		}
 	if(!$no_error) {
+		$tracefile_html = clean_up_file($tracefile);
+		$trace_link = str_replace($tracefile,$tracefile_html,$trace_link);
 		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
 		}
-	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error. The trace file is empty.</font></p>";
-/*	if($n_messages > 0) {
-		for($i=0; $i < $n_messages; $i++) {
-			$mssg = $o[$i];
-			$mssg = clean_up_encoding($mssg);
-			if($i < 4) echo $mssg."<br />";
-			}
-		} */
-	
-/*		sleep(5); echo ".";
-		$wait = 0;
-		while(TRUE) {
-			if(file_exists($grammar_file) AND is_readable($grammar_file)) {
-				$time_saved = filemtime($grammar_file) - $initial_time;
-				if($time_saved > 0) {
-					echo "<br />".$time_saved; break;
-					}
-				}
-			sleep(5);
-			echo ".";
-			$wait++;
-			if($wait > 1) {
-				 echo "?"; break;
-				}
-			}
-		echo "<br />"; */
+	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error.</font></p>";
 		
+	// Now reformat the grammar
+	reformat_grammar(FALSE,$grammar_file);
 	}
 else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";

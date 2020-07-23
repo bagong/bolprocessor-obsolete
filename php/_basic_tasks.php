@@ -13,7 +13,7 @@ function pick_up_headers($content) {
 	$content = str_replace(chr(13).chr(10),chr(10),$content);
 	$content = str_replace(chr(13),chr(10),$content);
 	$content = str_replace(chr(9),' ',$content); // Remove tabulations
-	$content = clean_up_encoding($content);
+	$content = clean_up_encoding(TRUE,$content);
 	do $content = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$content,$count);
 	while($count > 0);
 	$table = explode(chr(10),$content);
@@ -337,8 +337,8 @@ function gcd ($a, $b) {
     return $b ? gcd($b, $a % $b) : $a;
 	}
 
-function clean_up_encoding($text) {
-	$text = mb_convert_encoding($text, "UTF-8", mb_detect_encoding($text, "UTF-8, ISO-8859-1, ISO-8859-15", true));
+function clean_up_encoding($convert,$text) {
+	if($convert) $text = mb_convert_encoding($text, "UTF-8", mb_detect_encoding($text, "UTF-8, ISO-8859-1, ISO-8859-15", true));
 	$text = str_replace("¥","•",$text);
 	$text = str_replace("Ô","‘",$text);
 	$text = str_replace("Õ","’",$text);
@@ -347,6 +347,7 @@ function clean_up_encoding($text) {
 	$text = str_replace("É","…",$text);
 	$text = str_replace("Â","¬",$text);
 	$text = str_replace("¤","•",$text);
+	$text = str_replace("â¢","•",$text);
 	$text = str_replace(" "," ",$text);
 	return $text;
 	}
@@ -356,6 +357,38 @@ function recode_tags($text) {
 	$text = str_replace(">","&gt;",$text);
 	$text = str_replace('"',"&quot;",$text);
 	return $text;
+	}
+	
+function recode_entities($text) {
+	$text = str_replace("•","&bull;",$text);
+	$text = str_replace(" … "," _rest ",$text);
+	return $text;
+	}
+
+function clean_up_file($file) {
+	if(!file_exists($file)) {
+		echo "<p style=\"color:red;\">ERROR file not found: ".$file."</p>";
+		return '';
+		}
+	$tracefile_html = str_replace(".txt",".html",$file);
+	$text = @file_get_contents($file,TRUE);
+	$text = str_replace(chr(13).chr(10),chr(10),$text);
+	$text = str_replace(chr(13),chr(10),$text);
+	$text = str_replace(chr(9),' ',$text);
+	$text = trim($text);
+	$text = clean_up_encoding(TRUE,$text);
+	do $text = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$text,$count);
+	while($count > 0);
+	$text = str_replace(chr(10),"<br />",$text);
+	$handle = fopen($tracefile_html,"w");
+	$header = "<head>\n";
+	$header .= "<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\" />\n";
+	$header .= "</head><body>\n";
+	fwrite($handle,$header."\n");
+	fwrite($handle,$text."\n");
+	fwrite($handle,"</body>\n");
+	fclose($handle);
+	return $tracefile_html;
 	}
 
 function get_setting($parameter,$settings_file) {
@@ -416,7 +449,6 @@ function my_rmdir($src) {
     return;
 	}
 
-
 function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 	global $top_header;
 	$handle = fopen($dir.$filename,"w");
@@ -443,6 +475,8 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		if($verbose) echo $object_label." ";
 		$content = file_get_contents($temp_folder."/".$thisfile,TRUE);
 		$pick_up_headers = pick_up_headers($content);
+		$headers = $pick_up_headers['headers'];
+		if(!is_integer($pos=strpos($headers,"//"))) continue;
 		$content = $pick_up_headers['content'];
 		$table = explode(chr(10),$content);
 		$line = "<HTML>".$object_label."</HTML>";
@@ -459,6 +493,62 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 	fwrite($handle,"_endSoundObjectFile_\n");
 	fclose($handle);
 	if($verbose) echo "</font></p><hr>";
+	return;
+	}
+
+function reformat_grammar($verbose,$grammar_file) {
+	if(!file_exists($grammar_file)) return;
+	$content = @file_get_contents($grammar_file,TRUE);
+	$new_content = $content;
+	$i_gram = $irul = 1;
+	$section_headers = array("RND","ORD","SUB","SUB1","TEM","POSLONG","LEFT","RIGHT","INIT:","TIMEPATTERNS:","DATA","COMMENTS:");
+	$table = explode(chr(10),$new_content);
+	$ignore_all = FALSE;
+	$i_line_max = count($table);
+	for($i_line = 0; $i_line < $i_line_max; $i_line++) {
+		$line = trim($table[$i_line]);
+		$line_no_brackets = preg_replace("/\s*?\[.*\]/u",'',$line);
+		$ignore = FALSE;
+		if($line_no_brackets == '') $ignore = TRUE;
+		if(!is_integer(strpos($line,"-->")) AND !is_integer(strpos($line,"<->")) AND !is_integer(strpos($line,"<--"))) $ignore = TRUE;
+		if(is_integer($pos=strpos($line,"//")) AND $pos == 0) $ignore = TRUE;
+		if(is_integer($pos=strpos($line,"--")) AND $pos == 0) {
+			$i_gram++; $irul = 1;
+			$ignore = TRUE;
+			}
+		if(is_integer($pos=strpos($line,"-")) AND $pos == 0) $ignore = TRUE;
+		if(is_integer($pos=strpos($line,"_")) AND $pos == 0) $ignore = TRUE;
+		if(is_integer($pos=strpos($line,"[")) AND $pos == 0) $ignore = TRUE;
+		if(is_integer($pos=stripos($line,"gram#")) AND $pos == 0) {
+			$irul++;
+			$ignore = TRUE;
+			$line = preg_replace("/^GRAM#/u","gram#",$line);
+			}
+		if(in_array($line_no_brackets,$section_headers)) $ignore = TRUE;
+		if($line_no_brackets == "TIMEPATTERNS:") {
+			if($verbose) echo $line."<br />";
+			$i_line++;
+			do {
+				$line = trim($table[$i_line]);
+				$table[$i_line] = $line;
+				if($verbose) echo $line."<br />";
+				$i_line++;
+				}
+			while(!is_integer($pos=strpos($line,"--")) AND $i_line < $i_line_max);
+			continue;
+			}
+		if($line_no_brackets == "DATA:" OR $line_no_brackets == "COMMENTS:") $ignore_all = TRUE;
+		if(!$ignore AND !$ignore_all) {
+			$line = "gram#".$i_gram."[".$irul."] ".$line;
+			$irul++;
+			}
+		if($verbose) echo $line."<br />";
+		$table[$i_line] = $line;
+		}
+	$new_content = implode(chr(10),$table);
+	$handle = fopen($grammar_file,"w");
+	fwrite($handle,$new_content);
+	fclose($handle);
 	return;
 	}
 ?>

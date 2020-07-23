@@ -83,7 +83,7 @@ foreach($dircontent as $thisfile) {
 		$prefix = $table[0];
 		if($prefix == "trace") {
 			$id = $table[1];
-			if($extension == "txt" AND $id <> session_id()) {
+			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
 				unlink($dir."/".$thisfile);
 				continue;
 				}

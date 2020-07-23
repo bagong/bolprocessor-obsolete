@@ -9,7 +9,6 @@ if(isset($_POST['object_name'])) {
 	$object_file = $_POST['object_file'];
 //	echo $root."<br />";
 //	echo "<p>Work directory: <font color=\"blue\">".str_replace($root,'',$temp_folder)."</font></p>";
-	echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font></p>";
 	}
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
@@ -18,16 +17,15 @@ else {
 $this_title = $object_name;
 require_once("_header.php");
 
-echo link_to_help();
-	
-echo "<h2>Object prototype <big><font color=\"red\">".$object_name."</font></big></h2>";
+echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
+
 
 if(isset($_POST['savethisprototype'])) {
-	$source_file = $_POST['source_file'];
-	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
+	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">Saved this file…</font></span>";
 //	$prototype_file = $temp_folder."/"."test.txt";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
+	$source_file = $_POST['source_file'];
 	$file_header = $top_header."\n// Object prototype saved as \"".$object_name."\". Date: ".gmdate('Y-m-d H:i:s');
 	$file_header .= "\n".$source_file;
 	fwrite($handle,$file_header."\n");
@@ -56,8 +54,6 @@ if(isset($_POST['savethisprototype'])) {
 	switch($_POST['Rescale']) {
 		case "okrescale":
 			$okrescale = 1;
-		/*	$OkExpand = 1;
-			$OkCompress = 1; */
 			break;
 		case "neverrescale":
 			$FixScale = 1;
@@ -192,8 +188,6 @@ if(isset($_POST['savethisprototype'])) {
 	fwrite($handle,$CoverEndMode."\n");
 	fwrite($handle,$MaxCoverEnd."\n");
 	
-	
-	
 	if(isset($_POST['TruncBegMode'])) $TruncBegMode = $_POST['TruncBegMode'];
 	else $TruncBegMode = 1;
 	$MaxTruncBeg = '';
@@ -314,10 +308,6 @@ if(isset($_POST['savethisprototype'])) {
 	fwrite($handle,"65535\n");
 	fwrite($handle,"65535\n");
 	fwrite($handle,"65535\n");
-	
-	
-// $$$$$$
-
 	$jmax = $_POST['jmax'];
 	for($j = $j; $j < $jmax; $j++) {
 		if(isset($_POST["object_param_".$j])) {
@@ -335,8 +325,19 @@ if(isset($_POST['savethisprototype'])) {
 	$line = "<HTML>".$object_comment."</HTML>\n";
 	fwrite($handle,$line."\n");
 	fclose($handle);
+/*	$table = explode('/',$temp_folder);
+	$temp_folder_name = end($table);
+	$dir = str_replace($temp_folder_name,'',$temp_folder);
+	echo "dir = ".$dir."<br />";
+	echo "source_file = ".$source_file."<br />";
+	echo "temp_folder = ".$temp_folder."<br />";
+	SaveObjectPrototypes(TRUE,$dir,$source_file,$temp_folder); */
 	}
 
+echo "</p>";
+echo link_to_help();
+
+echo "<h2>Object prototype <big><font color=\"red\">".$object_name."</font></big></h2>";
 
 $content = file_get_contents($object_file,TRUE);
 $pick_up_headers = pick_up_headers($content);
@@ -836,7 +837,6 @@ else $value = '';
 echo ">Post-roll";
 echo "&nbsp;<input type=\"text\" name=\"PostRoll2\" size=\"5\" value=\"".$value."\"> % of duration<br />";
 
-
 echo "<br /><br />PERIOD<br />";
 // echo "PeriodMode = ".$PeriodMode."<br />";
 
@@ -906,7 +906,7 @@ echo "&nbsp;<input type=\"text\" name=\"CsoundInstr\" size=\"5\" value=\"".$valu
 echo "<p>Tpict = ".$Tpict." ???</p>";
 echo "<input type=\"hidden\" name=\"Tpict\" value=\"".$Tpict."\">";
 
-echo "<p>CSOUND SCORE</p>";
+echo "<p>CSOUND SCORE:</p>";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
 $text = str_replace("<HTML>",'',$object_param[$j]);
 $text = str_replace("</HTML>",'',$text);
@@ -919,7 +919,7 @@ $kmax = $object_param[$j];
 // echo $j.") kmax = ".$kmax."<br />";
 echo "<input type=\"hidden\" name=\"object_param_".$j++."\" value=\"".$kmax."\">";
 
-echo "<p>MIDI CODES ➡ <i>Later I will add the “convert MIDI to Csound” and the “import MIDI file” procedures…</i></p>";
+echo "<p>MIDI CODES:<br />➡ <i>Later I will add the “convert MIDI to Csound” and the “import MIDI file” procedures…</i></p>";
 echo "<p>";
 echo "<font color=\"blue\">";
 for($k = 0; $k < $kmax; $k++) {

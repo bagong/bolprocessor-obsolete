@@ -13,12 +13,13 @@ $dir = str_replace($filename,'',$file);
 $here = str_replace($root,'',$dir);
 // $page_title = 
 require_once("_header.php");
-echo "<p>Current directory = ".$here."</p>";
+echo "<p>Current directory = ".$here;
+echo "<span id='message1' style=\"margin-bottom:1em;\"></span>";
+echo "</p>";
 echo link_to_help();
 
 echo "<h2>Object prototypes file “".$filename."”</h2>";
 
-echo "<div id='message1' style=\"margin-bottom:1em;\"></div>";
 
 $iObj = -1;
 foreach($_POST as $key => $value) {
@@ -31,7 +32,7 @@ foreach($_POST as $key => $value) {
 $temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
 // echo $temp_folder;
 if(!file_exists($temp_folder)) {
-	echo "<p style=\"color:red;\">Created folder: ".$temp_folder."</p>";
+	echo "<p id=\"timespan\" style=\"color:red;\">Created folder: ".$temp_folder."</p>";
 	$cmd = "mkdir ".$temp_folder;
 	exec($cmd);
 	}

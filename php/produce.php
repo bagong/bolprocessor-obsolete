@@ -67,19 +67,22 @@ for($i=0; $i < $n_messages; $i++) {
 	}
 echo "<hr>";
 $output_link = str_replace($root,'',$output);
-// echo $dir."<br />";
-$trace_link = str_replace($root,'',$dir.$tracefile);
-// echo $trace_link."<br />";
+// echo "dir = ".$dir."<br />";
+// echo "tracefile = ".$tracefile."<br />";
+$tracefile_html = clean_up_file($dir.$tracefile);
+// echo "tracefile_html = ".$tracefile_html."<br />";
+$trace_link = str_replace($root,'',$tracefile_html);
+// echo "trace_link = ".$trace_link."<br />";
 if(!$no_error) {
-	echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800'); return false;\" href=\"/".$trace_link."\">error trace file</a>!</p>";
+	echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800'); return false;\" href=\"/".$trace_link."\">error trace file</a>!</p>";
 	}
 else {
 	if($output <> '') echo "<p><font color=\"red\">➡</font> Read the output file: <a onclick=\"window.open('/".$output_link."','".$file_format."','width=800,height=800'); return false;\" href=\"/".$output_link."\">click this link</a></p>";
-	if($trace_production) echo "<p><font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
+	if($trace_production) echo "<p><font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file produced</a>!</p>";
 	}
 for($i=0; $i < $n_messages; $i++) {
 	$mssg = $o[$i];
-	$mssg = clean_up_encoding($mssg);
+	$mssg = clean_up_encoding(TRUE,$mssg);
 	echo $mssg."<br />";
 	}
 if($n_messages == 0) echo "No message produced…";
