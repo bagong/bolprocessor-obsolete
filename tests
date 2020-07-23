@@ -10,9 +10,16 @@
 #
 # The first step will become `git pull` (or something more considerate) on subsequent 
 # runs. Not sure if the script can be made to detect the environment by itself in a 
-# cross-platform manner, for now an argument is supported. It is not yet used yet 
-# though, except for the filename of archives of output-files. So we can be creative.
-# Examples:
+# cross-platform manner, for now an argument is required. Apart from file-name
+# generation, this is so far only used in MinGW-MSYS2 builds on Windows though. Here
+# the "make" command needs to be replaced by `mingw32-make` and the csound-binary 
+# cannot be queried with `which` or `where`. Build and tests run in the MinGW64-shell,
+# to run tests in the native console has not been attempted yet, but manual tests look
+# very promising. Note that the builds have to be done in the MinGW 32 or 64 shell, 
+# not the MSYS2 one. It might be possible to build with the later as well, but the 
+# resulting binary will not work in the native Windows environment. Below are the
+# proposed arguments. You can be creative with other environment-names in a unixy
+# console, but `windows-msys2` is relied upon in the script:
 #
 # - `macos-catalina`
 # - `rpi-buster`
@@ -36,9 +43,19 @@ export PROJECTDIR="$(pwd)"
 export NOW="$(date +'%Y.%m.%d-%H.%M.%S')"
 export COMMIT="$(git rev-parse --short HEAD)"
 export SYSTEM="$1"
-export BINARY="bp"
+if [ "$SYSTEM" == "windows-msys2" ]; then
+	export MAKECMD="mingw32-make"
+	export BINARY="bp.exe"
+	# This is the standard install in the native environment.
+	# Note the 8.3 filename for Program Files to avoid the space.
+	# This might not work or support needs to be configured on some systems.
+	export CSEXEC="/c/PROGRA~1/Csound6_x64/bin/csound.exe"
+else
+	export MAKECMD="make"
+	export BINARY="bp"
+	export CSEXEC="$(which csound)"
+fi
 export BPEXEC="$PROJECTDIR/$BINARY"
-export CSEXEC="$(which csound)"
 export TESTSDIR="$PROJECTDIR/ctests"
 export OUTPUTDIR="$PROJECTDIR/output"
 export RESULTSDIR="$OUTPUTDIR/ctests"
@@ -62,14 +79,14 @@ fi
 if [ "$ENABLEBACKUP" != "0" -a -d "$RESULTSDIR" ]; then
 	if [ ! -z "$(ls -A $RESULTSDIR)" ]; then
 		cd $RESULTSDIR
-		tar czf $BACKUPDIR/bp-ctests-$NOW-$SYSTEM.tar.gz *
+		tar -czf $BACKUPDIR/bp-ctests-$NOW-$SYSTEM.tar.gz *
 		cd $PROJECTDIR
 	fi
 fi
 
 if [ "$ENABLEBACKUP" != "0" -a -f "$BPEXEC" ]; then
 	cd $PROJECTDIR
-	tar czf $BACKUPDIR/bp-binary-$NOW-$SYSTEM.tar.gz $BINARY
+	tar -czf $BACKUPDIR/bp-binary-$NOW-$SYSTEM.tar.gz $BINARY
 fi
 
 # create (or clean) folder for output of tests
@@ -91,7 +108,7 @@ if [ -f "$BPEXEC" ]; then
 	rm $BPEXEC
 fi
 
-make -d > $RESULTSDIR/bp-make.stdout 2> $RESULTSDIR/bp-make.stderr
+$MAKECMD -d > $RESULTSDIR/bp-make.stdout 2> $RESULTSDIR/bp-make.stderr
 
 ## check selfreference ;-)
 ### versioninfo (verify if binary runs at all)
@@ -100,8 +117,8 @@ $BPEXEC --version > $RESULTSDIR/versioninfo-bp.stdout 2> $RESULTSDIR/versioninfo
 ### output visionstatement
 $BPEXEC --help > $RESULTSDIR/helpinfo-bp.stdout 2> $RESULTSDIR/helpinfo-bp.stderr
 
-### versioninfo csound - csound also sends versioninfo to stderr
-$CSEXEC --version 2> $RESULTSDIR/versioninfo-csound.stderr
+### versioninfo csound - csound also sends versioninfo to stderr - on Windows though to stdout
+$CSEXEC --version > $RESULTSDIR/versioninfo.stdout 2> $RESULTSDIR/versioninfo-csound.stderr
 
 
 # TESTS
@@ -182,9 +199,9 @@ echo Empty stderr- abd trace-files deleted
 
 # create archive of test-output
 cd $RESULTSDIR
-tar czf $TESTSARCHIVE *
+tar -czf $TESTSARCHIVE *
 cd $PROJECTDIR
-tar czf $BINARYARCHIVE $BINARY
+tar -czf $BINARYARCHIVE $BINARY
 echo
 echo Archives of output-file and binary created
 

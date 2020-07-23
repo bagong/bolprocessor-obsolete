@@ -17,6 +17,7 @@ DerivedData/
 bp32
 bp64
 bpconsole
+bp.exe
 
 # Command-line build artifacts
 *.o
