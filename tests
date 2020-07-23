@@ -39,6 +39,23 @@
 # to produce output that shows clearly if things work as expected. I am happy with any
 # input!
 
+if [ ! $1 ]; then
+	echo
+	echo "### Please add an argument describing the build-environment!"
+	echo "### Example:" 
+	echo "###          ./tests windows-msys2"
+	echo "### or" 
+	echo "###          ./tests debian-jessie"
+	echo "###"
+	echo "### In case of windows-msys2 the script will fail if the argument"
+	echo "### is misspelled. On Unixy consoles the argument is used for"
+	echo "### archive-name generation only."
+	echo "###"
+	echo "### Stopping script-execution..."
+	echo
+	exit 1
+fi
+
 export PROJECTDIR="$(pwd)"
 export NOW="$(date +'%Y.%m.%d-%H.%M.%S')"
 export COMMIT="$(git rev-parse --short HEAD)"
@@ -195,7 +212,7 @@ $BOEXEC produce --indian -gr.Nadaka -d --rtmidi > $FILENAME.stdout 2> $FILENAME.
 find $RESULTSDIR -name "*.stderr" -size 0 -delete
 find $RESULTSDIR -name "*.trace" -size 0 -delete
 echo
-echo Empty stderr- abd trace-files deleted
+echo "Empty stderr- abd trace-files deleted"
 
 # create archive of test-output
 cd $RESULTSDIR
@@ -203,44 +220,44 @@ tar -czf $TESTSARCHIVE *
 cd $PROJECTDIR
 tar -czf $BINARYARCHIVE $BINARY
 echo
-echo Archives of output-file and binary created
+echo "Archives of output-file and binary created"
 
 # optionally upload
 if [ "$ENABLEUPLOAD" != "0" ]; then
 	# copy tarbals to bp.bagong.de/archives/
 	scp $TESTSARCHIVE $UPLOADSERVER
 	scp $BINARYARCHIVE $UPLOADSERVER
-	echo Archives uploaded \(if no Errormessage appeared \;-\)\)
+	echo "Archives uploaded (if no Errormessage appeared ;-))"
 fi
 
 if [ ! "$KEEPLOCALARCHIVES" == "1" ]; then
 	# delete local archives while it still is now 
 	rm $TESTSARCHIVE
 	rm $BINARYARCHIVE
-	echo Archives deleted
+	echo "Archives deleted"
 fi
 
 # list result-files
 echo
-echo All result-files in $RESULTSDIR:
+echo "All result-files in $RESULTSDIR:"
 cd $RESULTSDIR
 du -ch *
 
 # list empty output-files
 echo
-echo Empty non-error output files:
+echo "Empty non-error output files:"
 find $RESULTSDIR -name "*.stdout" -size 0 -print
 
 # END for now
 echo
-echo DONE.
-echo The result-files are in folder "$RESULTSDIR"
+echo "DONE."
+echo "The result-files are in folder $RESULTSDIR"
 if [ "$KEEPLOCALARCHIVES" != "0" ]; then
-	echo Archives of the result-files are in folder "$OUTPUTDIR"
+	echo "Archives of the result-files are in folder $OUTPUTDIR"
 fi
 if [ "$ENABLEBACKUP" != "0" ]; then
-	echo Archives of existing output-files before this testsrun are in "$BACKUPDIR"
+	echo "Archives of existing output-files before this testsrun are in $BACKUPDIR"
 fi
 
-echo Bye! \;-\)
+echo "Bye! ;-)"
 
