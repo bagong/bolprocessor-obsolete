@@ -57,10 +57,7 @@ if(isset($_POST['saveparameters'])) {
 			$value = "<no input device>";
 		if($i == 53 AND $value == '')
 			$value = "<no output device>";
-	//	echo $value." = ";
 		if(strlen($value) == 0) $value = ' ';
-	//	echo $value." ";
-	//	echo $binary.$parameter_name[$i]." = ".str_replace(">",']',str_replace("<",'[',$value))."<br />";
 		fwrite($handle,$value."\n");
 		}
 	fclose($handle);

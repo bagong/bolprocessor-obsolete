@@ -21,13 +21,13 @@ echo link_to_help();
 echo "<h2>Object prototypes file “".$filename."”</h2>";
 
 
-$iObj = -1;
+/* $iObj = -1;
 foreach($_POST as $key => $value) {
 	if(is_integer(strpos($key,"display_"))) {
 		$iObj = str_replace("display_",'',$key);
 		break;
 		}
-	}
+	} */
 
 $temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
 // echo $temp_folder;
@@ -98,33 +98,51 @@ for($i = 0; $i < count($table); $i++) {
 		$object_name[$iobj] = trim($clean_line);
 		
 		$object_file[$iobj] = $temp_folder."/".$object_name[$iobj].".txt";
-		if($handle_object) fclose($handle_object);
+		$object_foldername = clean_folder_name($object_name[$iobj]);
+		$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
+		if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
+
 		$handle_object = fopen($object_file[$iobj],"w");
+		$midi_bytes = $save_codes_dir."/midibytes.txt";
+		$handle_bytes = fopen($midi_bytes,"w");
+		
 		$file_header = $top_header."\n// Object prototype saved as \"".$object_name[$iobj]."\". Date: ".gmdate('Y-m-d H:i:s');
 		$file_header .= "\n".$filename;
 		fwrite($handle_object,$file_header."\n");
 		echo "<input type=\"hidden\" name=\"object_name_".$iobj."\" value=\"".$object_name[$iobj]."\">";
-		$j = 0;
+		$j = $i_start_midi = $n = 0; $first = TRUE; 
 		do {
 			$i++; $line = $table[$i];
 			if(is_integer($pos=strpos($line,"_beginCsoundScore_"))) {
-				if($handle_object) fwrite($handle_object,$line."\n");
+				fwrite($handle_object,$line."\n");
 				$i++; $line = $table[$i];
 				if(is_integer($pos=strpos($line,"_endCsoundScore_"))) {
 					// CsoundScore is empty; create 1 empty line
 					$score = "<HTML></HTML>";
-					if($handle_object) fwrite($handle_object,$score."\n");
+					fwrite($handle_object,$score."\n");
 					}
 				else while(!is_integer($pos=strpos($line,"_endCsoundScore_"))) {
-					if($handle_object) fwrite($handle_object,$line."\n");
+					fwrite($handle_object,$line."\n");
 					$i++; $line = $table[$i];
 					}
+				$i_start_midi = $i;
 				}
-			if($handle_object) fwrite($handle_object,$line."\n");
+			// We send MIDI codes to separate file"midibytes.txt"
+			$number_codes = FALSE;
+			if($i_start_midi > 0 AND $i > $i_start_midi AND !is_integer(strpos($line,"<HTML>"))) {
+				if($first) {
+					$nmax = intval($line);
+					$first = FALSE;
+				//	echo $object_name[$iobj]." nmax = ".$nmax."<br />";
+					$number_codes = TRUE;
+					}
+				if($n <= $nmax) fwrite($handle_bytes,$line."\n");
+				$n++;
+				}
+			else if(!$number_codes) fwrite($handle_object,$line."\n");
 			if(is_integer($pos=strpos($line,"<HTML>"))) break;
-			
-			if($iobj <> $iObj)
-				echo "<input type=\"hidden\" name=\"object_param_".$j."_".$iobj."\" value=\"".$line."\">";
+	/*		if($iobj <> $iObj)
+				echo "<input type=\"hidden\" name=\"object_param_".$j."_".$iobj."\" value=\"".$line."\">"; */
 			$j++;
 			continue;
 			}
@@ -132,11 +150,12 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_replace("<HTML>",'',$line);
 		$clean_line = str_replace("</HTML>",'',$clean_line);
 		$object_comment[$iobj] = $clean_line;
-		if($iobj <> $iObj)
-			echo "<input type=\"hidden\" name=\"object_comment_".$iobj."\" value=\"".$object_comment[$iobj]."\">";
+		fclose($handle_bytes);
+	/*	if($iobj <> $iObj)
+			echo "<input type=\"hidden\" name=\"object_comment_".$iobj."\" value=\"".$object_comment[$iobj]."\">"; */
 		}
 	}
-if($handle_object) fclose($handle_object);
+fclose($handle_object);
 echo "<p style=\"color:blue;\">".$comment_on_file."</p>";
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’ INCLUDING ALL CHANGES TO PROTOTYPES\"><br />";
 echo "➡ <i>This file is autosaved every 20 seconds. Still, it is safe to save it before quitting the editor.</i></p>";
@@ -159,12 +178,6 @@ for($i = 0; $i <= $iobj; $i++) {
 	echo "</form>";
 	}
 echo "</table>";
-
-/* echo "<hr>";
-echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
-echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’\"></p>";
-echo "<textarea name=\"thistext\" rows=\"15\" style=\"width:700px; background-color:Cornsilk;\">".$content."</textarea>";
-echo "</form>"; */
 
 display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound_file,$alphabet_file,$settings_file,$orchestra_file,$interaction_file,$midisetup_file,$timebase_file,$keyboard_file,$glossary_file);
 

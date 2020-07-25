@@ -2,13 +2,12 @@
 require_once("_basic_tasks.php");
 $path = getcwd();
 $url_this_page = $path."/prototype.php";
+define('MAXFILESIZE',1000000);
 
 if(isset($_POST['object_name'])) {
 	$object_name = $_POST['object_name'];
 	$temp_folder = $_POST['temp_folder'];
 	$object_file = $_POST['object_file'];
-//	echo $root."<br />";
-//	echo "<p>Work directory: <font color=\"blue\">".str_replace($root,'',$temp_folder)."</font></p>";
 	}
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
@@ -17,12 +16,40 @@ else {
 $this_title = $object_name;
 require_once("_header.php");
 
-echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
+$object_foldername = clean_folder_name($object_name);
+$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
+if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
+$midi_file = $save_codes_dir."/midicodes.mid";
+$midi_text = $save_codes_dir."/midicodes.txt";
+$midi_bytes = $save_codes_dir."/midibytes.txt";
+$midi_text_code = array();
+if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
+	$upload_filename = $_FILES['mid_upload']['name'];
+	if($_FILES["mid_upload"]["size"] > MAXFILESIZE) {
+		echo "<h3><font color=\"red\">Uploading failed:</font> <font color=\"blue\">".$upload_filename."</font> <font color=\"red\">is larger than ".MAXFILESIZE." bytes</font></h3>";
+		}
+	else {
+		$tmpFile = $_FILES['mid_upload']['tmp_name'];
+		copy($tmpFile,$midi_file) or die('Problems uploading this MIDI file');
+		@chmod($midi_file,0666);
+		$table = explode('.',$upload_filename);
+		$extension = end($table);
+		if($extension <> "mid" and $extension <> "midi") {
+			echo "<h3><font color=\"red\">Uploading failed:</font> <font color=\"blue\">".$upload_filename."</font> <font color=\"red\">is not a MIDI file!</font></h3>";
+			unlink($midi_file);
+			}
+		else {
+			echo "<h3 id=\"timespan\"><font color=\"red\">Converting MIDI file:</font> <font color=\"blue\">".$upload_filename."</font> <font color=\"red\">...</font></h3>";
+			$midi = new Midi();
+			$midi_text_code = convert_midi_to_text(TRUE
+			,$midi,$midi_file);
+			}
+		}
+	}
+else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
 
-
-if(isset($_POST['savethisprototype'])) {
-	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">Saved this file…</font></span>";
-//	$prototype_file = $temp_folder."/"."test.txt";
+if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume'])) {
+	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
 	$source_file = $_POST['source_file'];
@@ -32,7 +59,6 @@ if(isset($_POST['savethisprototype'])) {
 	$object_type = 0;
 	if(isset($_POST['object_type1'])) $object_type += 1;
 	if(isset($_POST['object_type4'])) $object_type += 4;
-	// echo "object_type = ".$object_type."<br />";
 	fwrite($handle,$object_type."\n");
 	$j = 1;
 	$resolution = $_POST["object_param_".$j++];
@@ -44,7 +70,6 @@ if(isset($_POST['savethisprototype'])) {
 	$j++;
 	$quantization = $_POST["object_param_".$j++];
 	fwrite($handle,$quantization."\n"); // Quantization
-	
 	$pivot_mode = $_POST['Pivot_mode'];
 	$string = "00000000000000000000";
 	$string[$pivot_mode] = "1";
@@ -275,7 +300,6 @@ if(isset($_POST['savethisprototype'])) {
 	fwrite($handle,$PreRollMode."\n");
 	fwrite($handle,$PostRollMode."\n");
 	
-	
 	$PeriodMode = $_POST['PeriodMode'];
 	$BeforePeriod = '';
 	if($PeriodMode == -1) $BeforePeriod = $_POST['BeforePeriod1'];
@@ -293,7 +317,6 @@ if(isset($_POST['savethisprototype'])) {
 	fwrite($handle,$DiscardNoteOffs."\n");
 	
 	$StrikeAgain = $_POST['StrikeAgain'];
-	// echo "StrikeAgain = ".$StrikeAgain."<br />";
 	fwrite($handle,$StrikeAgain."\n");
 
 	$CsoundAssignedInstr = $_POST['CsoundAssignedInstr'];
@@ -325,13 +348,6 @@ if(isset($_POST['savethisprototype'])) {
 	$line = "<HTML>".$object_comment."</HTML>\n";
 	fwrite($handle,$line."\n");
 	fclose($handle);
-/*	$table = explode('/',$temp_folder);
-	$temp_folder_name = end($table);
-	$dir = str_replace($temp_folder_name,'',$temp_folder);
-	echo "dir = ".$dir."<br />";
-	echo "source_file = ".$source_file."<br />";
-	echo "temp_folder = ".$temp_folder."<br />";
-	SaveObjectPrototypes(TRUE,$dir,$source_file,$temp_folder); */
 	}
 
 echo "</p>";
@@ -344,11 +360,9 @@ $pick_up_headers = pick_up_headers($content);
 $source_file = $pick_up_headers['objects'];
 echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."<br />// Source: ".$source_file."</p>";
 $content = $pick_up_headers['content'];
-// echo str_replace("\n","<br />",$content);
 
 $table = explode(chr(10),$content);
 $object_param = array();
-// $cs_score = '';
 $i = 0;
 $j = 0; $cscore = FALSE;
 do {
@@ -369,7 +383,7 @@ $object_comment = $clean_line;
 
 echo "<form method=\"post\" action=\"prototype.php\" enctype=\"multipart/form-data\">";
 
-echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE “".$object_name."”\"></p>";
+echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\"></p>";
 
 echo "<input type=\"hidden\" name=\"object_name\" value=\"".$object_name."\">";
 echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
@@ -387,8 +401,6 @@ echo "<input type=\"checkbox\" name=\"object_type1\"";
 echo "<input type=\"checkbox\" name=\"object_type4\"";
    if($object_type > 3) echo " checked";
    echo "> Csound score<br /><br />";
-   
-// echo "Resolution = ".$object_param[$j]." ms<br />";
 
 $resolution = $object_param[$j];
 if($resolution == '' OR $resolution == 0) $resolution = 1;
@@ -597,7 +609,6 @@ echo "> Accept velocity changes<br />";
 
 
 echo "<br />LOCATION<br />";
-// echo "OkRelocate = ".$OkRelocate."<br />";
 echo "<input type=\"radio\" name=\"OkRelocate\" value=\"1\"";
 if($OkRelocate == 1) echo " checked";
 echo ">Relocate at will<br />";
@@ -683,7 +694,6 @@ echo ">Do not force<br />";
 echo "<input type=\"radio\" name=\"ContEnd\" value=\"1\"";
 if($ContEnd == 1) echo " checked";
 echo ">Force<br />";
-// echo "ContEndMode = ".$ContEndMode."<br />";
 
 echo "<input type=\"radio\" name=\"ContEndMode\" value=\"-1\"";
 if($ContEnd AND $ContEndMode == -1) {
@@ -838,8 +848,6 @@ echo ">Post-roll";
 echo "&nbsp;<input type=\"text\" name=\"PostRoll2\" size=\"5\" value=\"".$value."\"> % of duration<br />";
 
 echo "<br /><br />PERIOD<br />";
-// echo "PeriodMode = ".$PeriodMode."<br />";
-
 echo "<input type=\"radio\" name=\"PeriodMode\" value=\"-2\"";
 if($PeriodMode == -2) {
 	echo " checked";
@@ -871,8 +879,6 @@ echo ">Discard NoteOff’s except in last period<br />";
 
 
 echo "<br /><br />STRIKE MODE<br />";
-// echo "StrikeAgain = ".$StrikeAgain."<br />";
-
 echo "<input type=\"radio\" name=\"StrikeAgain\" value=\"1\"";
 if($StrikeAgain == 1) echo " checked";
 echo ">Strike again NoteOn’s<br />";
@@ -884,14 +890,10 @@ if($StrikeAgain == -1) echo " checked";
 echo ">Strike NoteOn’s according to default<br />";
 
 echo "<br /><br />MIDI TO CSOUND CONVERSION<br />";
-// echo "CsoundAssignedInstr = ".$CsoundAssignedInstr."<br />";
-// echo "CsoundInstr = ".$CsoundInstr."<br />";
-
 echo "<input type=\"radio\" name=\"CsoundAssignedInstr\" value=\"0\"";
 if($CsoundAssignedInstr == 0) echo " checked";
 echo ">Force to current instrument<br />";
 echo "<input type=\"radio\" name=\"CsoundAssignedInstr\" value=\"-1\"";
-// if($CsoundAssignedInstr == -1 OR $CsoundInstr == -1) echo " checked";
 if($CsoundAssignedInstr == -1 AND $CsoundInstr == -1) echo " checked";
 echo ">Do not change instrument<br />";
 echo "<input type=\"radio\" name=\"CsoundAssignedInstr\" value=\"-1\"";
@@ -903,37 +905,208 @@ else $value = '';
 echo ">Force to instrument";
 echo "&nbsp;<input type=\"text\" name=\"CsoundInstr\" size=\"5\" value=\"".$value."\"><br />";
 
-echo "<p>Tpict = ".$Tpict." ???</p>";
+echo "<small><p>Tpict = ".$Tpict." ???</p></small>";
 echo "<input type=\"hidden\" name=\"Tpict\" value=\"".$Tpict."\">";
 
-echo "<p>CSOUND SCORE:</p>";
+echo "<br />CSOUND SCORE:<br />";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
 $text = str_replace("<HTML>",'',$object_param[$j]);
 $text = str_replace("</HTML>",'',$text);
 $text = str_replace("<BR>","\n",$text);
 echo "<textarea name=\"object_param_".($j++)."\" rows=\"20\" style=\"width:700px; background-color:Cornsilk;\">".$text."</textarea><br />";
-// echo $j.") ".$object_param[$j]."<br />";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
 
-$kmax = $object_param[$j];
-// echo $j.") kmax = ".$kmax."<br />";
-echo "<input type=\"hidden\" name=\"object_param_".$j++."\" value=\"".$kmax."\">";
-
-echo "<p>MIDI CODES:<br />➡ <i>Later I will add the “convert MIDI to Csound” and the “import MIDI file” procedures…</i></p>";
-echo "<p>";
-echo "<font color=\"blue\">";
-for($k = 0; $k < $kmax; $k++) {
-	$code = $object_param[$j];
-	echo "<input type=\"hidden\" name=\"object_param_".$j++."\" value=\"".$code."\">";
-	$code = $code % 256;
-	$code = str_replace("144","&nbsp;NoteOn",$code);
-	$code = str_replace("208","&nbsp;ChPress =",$code);
-	echo $code." ";
+$kmax = 0;
+$new_midi = FALSE;
+if(count($midi_text_code) > 0) $new_midi = TRUE;
+else {
+	$all_bytes = @file_get_contents($midi_bytes,TRUE);
+	$table_bytes = explode(chr(10),$all_bytes);
+	$midi_text_code = array();
+	for($k = 1; $k < count($table_bytes); $k++) {
+		$byte = trim($table_bytes[$k]);
+		if($byte == '') break;
+		$midi_text_code[$k-1] = $byte;
+		}
 	}
-echo "<input type=\"hidden\" name=\"jmax\" value=\"".$j."\">";
-echo "</font>";
-echo "</p>";
+$kmax = count($midi_text_code);
+// echo "kmax = ".$kmax."<br />";
 
-echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE “".$object_name."”\"></p>";
+if(isset($_POST['suppress_pressure'])) {
+	$new_midi_code = array();
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $midi_text_code[$k];
+		$code = $byte % 256;
+		if($code >= 208 AND $code < 224) {
+			$k += 1;
+			}
+		else $new_midi_code[] = $byte;
+		}
+	$kmax = count($new_midi_code);
+	$midi_text_code = array();
+	$handle_bytes = fopen($midi_bytes,"w");
+	fwrite($handle_bytes,$kmax."\n");
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $new_midi_code[$k];
+		fwrite($handle_bytes,$byte."\n");
+		$midi_text_code[$k] = $byte;
+		}
+	fclose($handle_bytes);
+	unlink($midi_text);
+	}
+
+if(isset($_POST['suppress_pitchbend'])) {
+	$new_midi_code = array();
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $midi_text_code[$k];
+		$code = $byte % 256;
+		if($code >= 240 AND $code < 256) {
+			$k += 3;
+			}
+		else $new_midi_code[] = $byte;
+		}
+	$kmax = count($new_midi_code);
+	$midi_text_code = array();
+	$handle_bytes = fopen($midi_bytes,"w");
+	fwrite($handle_bytes,$kmax."\n");
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $new_midi_code[$k];
+		fwrite($handle_bytes,$byte."\n");
+		$midi_text_code[$k] = $byte;
+		}
+	fclose($handle_bytes);
+	unlink($midi_text);
+	}
+
+if(isset($_POST['suppress_polyphonic_pressure'])) {
+	$new_midi_code = array();
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $midi_text_code[$k];
+		$code = $byte % 256;
+		if($code >= 160 AND $code < 176) {
+			$k += 3;
+			}
+		else $new_midi_code[] = $byte;
+		}
+	$kmax = count($new_midi_code);
+	$midi_text_code = array();
+	$handle_bytes = fopen($midi_bytes,"w");
+	fwrite($handle_bytes,$kmax."\n");
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $new_midi_code[$k];
+		fwrite($handle_bytes,$byte."\n");
+		$midi_text_code[$k] = $byte;
+		}
+	fclose($handle_bytes);
+	unlink($midi_text);
+	}
+
+if(isset($_POST['suppress_volume'])) {
+	$new_midi_code = array();
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $midi_text_code[$k];
+		$code = $byte % 256;
+		$time = ($byte - $code) / 256;
+		if($code >= 176 AND $code < 192) {
+			$ctrl = $midi_text_code[$k + 1];
+			$ctrl = $ctrl % 256;
+			if($ctrl == 7) $k += 3;
+			else $new_midi_code[] = $byte;
+			}
+		else $new_midi_code[] = $byte;
+		}
+	$kmax = count($new_midi_code);
+	$midi_text_code = array();
+	$handle_bytes = fopen($midi_bytes,"w");
+	fwrite($handle_bytes,$kmax."\n");
+	for($k = 0; $k < $kmax; $k++) {
+		$byte = $new_midi_code[$k];
+		fwrite($handle_bytes,$byte."\n");
+		$midi_text_code[$k] = $byte;
+		}
+	fclose($handle_bytes);
+	unlink($midi_text);
+	}
+
+$handle_text = fopen($midi_text,"w");
+if($new_midi) $handle_bytes = fopen($midi_bytes,"w");
+$more = 0; $code_line = '';
+if($new_midi) fwrite($handle_bytes,$kmax."\n");
+for($k = 0; $k < $kmax; $k++) {
+	$byte = $midi_text_code[$k];
+	if($new_midi) fwrite($handle_bytes,$byte."\n");
+	$code = $byte % 256;
+	$time = ($byte - $code) / 256;
+	if($code >= 144 AND $code < 160) {
+		$channel = $code - 144 + 1;
+		$code_line = $time." (ch ".$channel.") NoteOn ";
+		$more = 2;
+		}
+	else if($code >= 128 AND $code < 144) {
+		$channel = $code - 128 + 1;
+		$code_line = $time." (ch ".$channel.") NoteOff ";
+		$more = 2;
+		}
+	else if($code >= 160 AND $code < 176) {
+		$channel = $code - 160 + 1;
+		$code_line = $time." (ch ".$channel.") Poly pressure key ";
+		$more = 2;
+		}
+	else if($code >= 176 AND $code < 192) {
+		$channel = $code - 176 + 1;
+		$code_line = $time." (ch ".$channel.") Parameter ctrl ";
+		$ctrl = $midi_text_code[$k + 1];
+		$ctrl = $ctrl % 256;
+		if($ctrl > 64)
+			$more = 2; // 7-bit controller/switch
+		else $more = 3; // 14-bit controller/switch
+		}
+	else if($code >= 208 AND $code < 224) {
+		$channel = $code - 208 + 1;
+		$code_line = $time." (ch ".$channel.") Channel pressure ";
+		$more = 1;
+		}
+	else if($code >= 240 AND $code < 256) {
+		$channel = $code - 240 + 1;
+		$code_line = $time." (ch ".$channel.") Pitchbend ";
+		$more = 2;
+		}
+	else if($code >= 192 AND $code < 208) {
+		$channel = $code - 208 + 1;
+		$code_line = $time." (ch ".$channel.") Prog change ";
+		$more = 1;
+		}
+	else {
+		$more--;
+		if($more == 0) {
+			$code_line .= $code." ";
+			fwrite($handle_text,$code_line."\n");
+			}
+		else $code_line .= $code." ";
+		}
+	}
+fclose($handle_text);
+if($new_midi) fclose($handle_bytes);
+	
+echo "<input type=\"hidden\" name=\"jmax\" value=\"".$j."\">";
+echo "<br />MIDI CODES<br />";
+if(file_exists($midi_text)) {
+	$text_link = "/".str_replace($root,'',$midi_text);
+	$bytes_link = "/".str_replace($root,'',$midi_bytes);
+	echo "Click to display <a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">explicit MIDI codes</a> or <a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500'); return false;\" href=\"".$bytes_link."\">time-stamped MIDI codes</a>";
+	if($new_midi) echo " ... <font color=\"blue\">from the file you have just loaded</font>";
+	echo "<br />";
+echo "<i>If changes are not shown on the pop-up window, juste clear the cache!</i><br /><br />";
+	}
+else "No codes in this sound-object prototype<br />";
+if($new_midi) {
+	echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
+	}
+echo "<font color=\"red\">➡</font> Create or replace these codes loading a MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
+if(!$new_midi) {
+	echo "<p style=\"text-align:left;\"><input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pressure\" value=\"SUPPRESS channel pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_polyphonic_pressure\" value=\"SUPPRESS polyphonic pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pitchbend\" value=\"SUPPRESS pitchbend\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_volume\" value=\"SUPPRESS volume control\"></p>";
+	echo "<p style=\"text-align:center;\"><i>I am working on the “convert MIDI to Csound” procedure…</i></p>";
+	echo "<p style=\"text-align:center;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\">&nbsp;<big> = <b><font color=\"red\">".$object_name."</font></b></big></p>";
+	}
 echo "</form>";
 ?>

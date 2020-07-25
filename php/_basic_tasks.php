@@ -1,5 +1,7 @@
 <?php
 session_start();
+require('midi.class.php');
+// Siurce: https://github.com/robbie-cao/midi-class-php
 $root = getcwd();
 $root = preg_replace("/bolprocessor\/php.*/u",'',$root);
 $text_help_file = $root."bolprocessor/BP2_help.txt";
@@ -484,6 +486,19 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		for($i = 1; $i < count($table); $i++) {
 			$line = $table[$i];
 			fwrite($handle,$line."\n");
+			if($line == "_endCsoundScore_") {
+				// We fetch MIDI codes from a separate "midibytes.txt" file
+				$object_foldername = clean_folder_name($object_label);
+				$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
+				$midi_bytes = $save_codes_dir."/midibytes.txt";
+			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
+				$all_bytes = @file_get_contents($midi_bytes,TRUE);
+				$table_bytes = explode(chr(10),$all_bytes);
+				for($j = 0; $j < count($table_bytes); $j++) {
+					$byte = trim($table_bytes[$j]);
+					if($byte <> '') fwrite($handle,$byte."\n");
+					}
+				}
 			}
 		}
 	fwrite($handle,"DATA:\n");
@@ -552,5 +567,97 @@ function reformat_grammar($verbose,$grammar_file) {
 	fwrite($handle,$new_content);
 	fclose($handle);
 	return;
+	}
+
+function clean_folder_name($name) {
+	// It shouldn't create trouble when part of PHP, Javascript or command-line arguments
+	$name = str_replace('_','-',$name);
+	$name = str_replace(' ','-',$name);
+	$name = str_replace("'",'-',$name);
+	$name = str_replace('"','-',$name);
+	return $name;
+	}
+
+function convert_midi_to_text($verbose,$midi,$midi_file) {
+	// midi_file contains the code in MIDI format
+	$midi->importMid($midi_file);
+	$midi_text = array();
+	$jcode = 0;
+	$tt = 0; // We need absolute time stamps
+	$text = $midi->getTxt($tt);
+	$table = explode(chr(10),$text);
+	for($i = 0; $i < count($table); $i++) {
+		$line = $table[$i];
+		$table2 = explode(" ",$line);
+		if(count($table2) < 4) continue;
+		$time = intval($table2[0]);
+		$chan = str_replace("ch=",'',$table2[2]);
+		$code[0] = $code[1] = $code[2] = $code[3] = -1;
+		if(isset($table2[1]) AND $table2[1] == "ChPr") {
+			$val = str_replace("v=",'',$table2[3]);
+			if($verbose) echo $time." (ch ".$chan.") Channel pressure ".$val."<br />";
+			$code[0] = 208 + $chan - 1;
+			$code[1] = $val;
+			}
+		else if(isset($table2[1]) AND $table2[1] == "Pb") {
+			$val = str_replace("v=",'',$table2[3]);
+			if($verbose) echo $time." (ch ".$chan.") Pitchbend ".$val."<br />";
+			$code[0] = 240 + $chan - 1;
+			$code[1] = $val % 256;
+			$code[2] = ($val - $code[1]) / 256;
+			}
+		else if(isset($table2[1]) AND $table2[1] == "PrCh") {
+			$prog = str_replace("p=",'',$table2[3]);
+			if($verbose) echo $time." (ch ".$chan.") Prog change ".$prog."<br />";
+			$code[0] = 192 + $chan - 1;
+			$code[1] = $prog;
+			}
+		else if(isset($table2[1]) AND $table2[1] == "On") {
+			$key = str_replace("n=",'',$table2[3]);
+			$vel = str_replace("v=",'',$table2[4]);
+			if($verbose) echo $time." (ch ".$chan.") NoteOn ".$key." ".$vel."<br />";
+			$code[0] = 144 + $chan - 1;
+			$code[1] = $key;
+			$code[2] = $vel;
+			}
+		else if(isset($table2[1]) AND $table2[1] == "Off") {
+			$key = str_replace("n=",'',$table2[3]);
+			$vel = str_replace("v=",'',$table2[4]);
+			if($verbose) echo $time." (ch ".$chan.") NoteOff key ".$key." ".$vel."<br />";
+			$code[0] = 128 + $chan - 1;
+			$code[1] = $key;
+			$code[2] = $vel;
+			}
+		else if(isset($table2[1]) AND $table2[1] == "Par") {
+			$ctrl = str_replace("c=",'',$table2[3]);
+			$val = str_replace("v=",'',$table2[4]);
+			if($verbose) echo $time." (ch ".$chan.") Parameter ctrl ".$ctrl." ".$val."<br />";
+			$code[0] = 176 + $chan - 1;
+			$code[1] = $ctrl;
+			if($ctrl > 64) { // 7-bit controller/switch
+				$code[2] = $val;
+				}
+			else { // 14-bit controller
+				$code[2] = $val % 256;
+				$code[3] = ($val - $code[2]) / 256;
+				}
+			}
+		else if(isset($table2[1]) AND $table2[1] == "PoPr") {
+			$key = str_replace("n=",'',$table2[3]);
+			$val = str_replace("v=",'',$table2[4]);
+			if($verbose) echo $time." (ch ".$chan.") Poly pressure key ".$key." ".$val."<br />";
+			$code[0] = 160 + $chan - 1;
+			$code[1] = $key;
+			$code[2] = $val;
+			}
+		$time_signature = 256 * $time;
+		for($j = 0; $j < 4; $j++) {
+			if($code[$j] >= 0) {
+				$byte = $time_signature + $code[$j];
+				$midi_text[$jcode++] = $byte;
+				}
+			}
+		}
+	return $midi_text;
 	}
 ?>

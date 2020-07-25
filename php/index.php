@@ -1,7 +1,7 @@
 <?php
 require_once("_basic_tasks.php");
 $current_path = $root;
-echo "<p>root = ".$root."</p>";
+// echo "<p>root = ".$root."</p>";
 echo "<h2>This is on-line Bol Processor</h2>";
 $this_page = "index.php";
 if(isset($_GET['path'])) {
@@ -39,7 +39,7 @@ $folder = str_replace($root,'',$dir);
 require_once("_header.php");
 
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
-echo "dir = ".$dir."<br />";
+// echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
 if(is_integer(strpos($dir,"/bolprocessor")) AND $folder <> "bolprocessor/php" AND $extension <> "temp" AND !isset($_POST['createfile'])) {
