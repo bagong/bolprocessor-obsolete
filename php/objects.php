@@ -11,7 +11,6 @@ $table = explode('/',$file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$file);
 $here = str_replace($root,'',$dir);
-// $page_title = 
 require_once("_header.php");
 echo "<p>Current directory = ".$here;
 echo "<span id='message1' style=\"margin-bottom:1em;\"></span>";
@@ -19,15 +18,6 @@ echo "</p>";
 echo link_to_help();
 
 echo "<h2>Object prototypes file “".$filename."”</h2>";
-
-
-/* $iObj = -1;
-foreach($_POST as $key => $value) {
-	if(is_integer(strpos($key,"display_"))) {
-		$iObj = str_replace("display_",'',$key);
-		break;
-		}
-	} */
 
 $temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
 // echo $temp_folder;
@@ -39,7 +29,6 @@ if(!file_exists($temp_folder)) {
 	
 if(isset($_POST['savethisfile'])) {
 	echo "<p id=\"timespan\"><font color=\"red\">Saved file:</font> <font color=\"blue\">";
-//	$handle = fopen($dir."-mi_my_test.bpmi","w");
 	SaveObjectPrototypes(TRUE,$dir,$filename,$temp_folder);
 	}
 
@@ -85,23 +74,23 @@ for($i = 0; $i < count($table); $i++) {
 	if($line == "TABLE:") break;
 	if($line == "DATA:") {
 		$comment_on_file = $table[$i+1];
-		$comment_on_file = str_replace("<HTML>",'',$comment_on_file);
-		$comment_on_file = str_replace("</HTML>",'',$comment_on_file);
+		$comment_on_file = str_ireplace("<HTML>",'',$comment_on_file);
+		$comment_on_file = str_ireplace("</HTML>",'',$comment_on_file);
 		echo "Comment on this file = <input type=\"text\" name=\"comment_on_file\" size=\"80\" value=\"".$comment_on_file."\"><br />";
 		break;
 		}
-	if(!is_integer($pos=strpos($line,"<HTML>"))) continue;
+	if(!is_integer($pos=stripos($line,"<HTML>"))) continue;
 	else {
 		$iobj++;
-		$clean_line = str_replace("<HTML>",'',$line);
-		$clean_line = str_replace("</HTML>",'',$clean_line);
+		$clean_line = str_ireplace("<HTML>",'',$line);
+		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
 		
 		$object_file[$iobj] = $temp_folder."/".$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
 		$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
 		if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
-
+		if($handle_object) fclose($handle_object);
 		$handle_object = fopen($object_file[$iobj],"w");
 		$midi_bytes = $save_codes_dir."/midibytes.txt";
 		$handle_bytes = fopen($midi_bytes,"w");
@@ -129,7 +118,7 @@ for($i = 0; $i < count($table); $i++) {
 				}
 			// We send MIDI codes to separate file"midibytes.txt"
 			$number_codes = FALSE;
-			if($i_start_midi > 0 AND $i > $i_start_midi AND !is_integer(strpos($line,"<HTML>"))) {
+			if($i_start_midi > 0 AND $i > $i_start_midi AND !is_integer(stripos($line,"<HTML>"))) {
 				if($first) {
 					$nmax = intval($line);
 					$first = FALSE;
@@ -140,25 +129,21 @@ for($i = 0; $i < count($table); $i++) {
 				$n++;
 				}
 			else if(!$number_codes) fwrite($handle_object,$line."\n");
-			if(is_integer($pos=strpos($line,"<HTML>"))) break;
-	/*		if($iobj <> $iObj)
-				echo "<input type=\"hidden\" name=\"object_param_".$j."_".$iobj."\" value=\"".$line."\">"; */
+			if(is_integer($pos=stripos($line,"<HTML>"))) break;
 			$j++;
 			continue;
 			}
 		while(TRUE);
-		$clean_line = str_replace("<HTML>",'',$line);
-		$clean_line = str_replace("</HTML>",'',$clean_line);
+		$clean_line = str_ireplace("<HTML>",'',$line);
+		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_comment[$iobj] = $clean_line;
 		fclose($handle_bytes);
-	/*	if($iobj <> $iObj)
-			echo "<input type=\"hidden\" name=\"object_comment_".$iobj."\" value=\"".$object_comment[$iobj]."\">"; */
 		}
 	}
-fclose($handle_object);
+if($handle_object) fclose($handle_object);
 echo "<p style=\"color:blue;\">".$comment_on_file."</p>";
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’ INCLUDING ALL CHANGES TO PROTOTYPES\"><br />";
-echo "➡ <i>This file is autosaved every 20 seconds. Still, it is safe to save it before quitting the editor.</i></p>";
+echo "➡ <i>This file is autosaved every 30 seconds. Still, it is safe to save it before quitting the editor.</i></p>";
 echo "<script type=\"text/javascript\" src=\"autosave.js\"></script>";
 echo "</form>";
  echo "<hr>";

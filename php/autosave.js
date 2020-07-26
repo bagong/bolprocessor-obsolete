@@ -38,4 +38,4 @@ function savePost() {
 			}
 		}
 	}
-var myVar = setInterval(savePost, 20000); 
+var myVar = setInterval(savePost, 30000); 

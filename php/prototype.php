@@ -48,7 +48,7 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 	}
 else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
 
-if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume'])) {
+if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration'])) {
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
@@ -369,13 +369,13 @@ do {
 	$i++; $line = $table[$i];
 	if(is_integer($pos=strpos($line,"_beginCsoundScore_"))) $cscore = TRUE;
 	if(is_integer($pos=strpos($line,"_endCsoundScore_"))) $cscore = FALSE;
-	if(!$cscore AND is_integer($pos=strpos($line,"<HTML>"))) break;
+	if(!$cscore AND is_integer($pos=stripos($line,"<HTML>"))) break;
 	$object_param[$j++] = $line;
 	continue;
 	}
 while(TRUE);
-$clean_line = str_replace("<HTML>",'',$line);
-$clean_line = str_replace("</HTML>",'',$clean_line);
+$clean_line = str_ireplace("<HTML>",'',$line);
+$clean_line = str_ireplace("</HTML>",'',$clean_line);
 $object_comment = $clean_line;
 
 // ---------- EDIT THIS PROTOTYPE ------------
@@ -392,7 +392,7 @@ echo "<input type=\"hidden\" name=\"source_file\" value=\"".$source_file."\">";
 
 $size = strlen($object_comment);
 echo "Comment on this prototype = <input type=\"text\" name=\"object_comment\" size=\"".$size."\" value=\"".$object_comment."\"><br /><br />";
-echo "OBJECT TYPE:<br/>";
+echo "OBJECT TYPE<br/>";
 $j = 0;
 $object_type = $object_param[$j++];
 echo "<input type=\"checkbox\" name=\"object_type1\"";
@@ -410,7 +410,9 @@ echo "Resolution = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"
 echo "Default channel = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"><br />";
 
 $Tref = $object_param[$j++] * $object_param[1];
-echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ this is NOT the duration!<br />";
+echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ ";
+if($Tref > 0) echo "this object is <font color=\"blue\">striated</font> (it has a pivot)<br />";
+else echo "this object is <font color=\"blue\">smooth</font> (it has no pivot)<br />";
 
 $object_quantization = $object_param[$j];
 if(intval($object_quantization) == $object_quantization) $object_quantization = intval($object_quantization);
@@ -426,6 +428,8 @@ $pivendoff = $string[$k++];
 $pivcent = $string[$k++];
 $pivcentonoff = $string[$k++];
 echo "<p>PIVOT<br />";
+if($Tref > 0) echo "This object has a pivot — it is <i>striated</i> — because Tref > 0<br />";
+else echo "This object has NO pivot — it is <i>smooth</i> — because Tref = 0<br /><i>This pivot setting is therefore irrelevant.</i><br />";
 echo "<input type=\"radio\" name=\"Pivot_mode\" value=\"0\"";
 if($pivbeg == 1) echo " checked";
 echo ">Beginning<br />";
@@ -519,10 +523,13 @@ $CsoundAssignedInstr = $object_param[$j++];
 $CsoundInstr = $object_param[$j++];
 
 $Tpict = $object_param[$j++];
+if(!is_numeric($Tpict)) {
+	echo "<p style=\"color:red;\">WARNING: you are trying to edit an obsolete version of the ‘-mi’ file. Load and save it again in BP2.9.8!</p>";
+	$j -= 4;
+	}
 $red = $object_param[$j++];
 $green = $object_param[$j++];
 $blue = $object_param[$j++];
-
 
 echo "<input type=\"radio\" name=\"Pivot_mode\" value=\"18\"";
 if($pivspec == 1) echo " checked";
@@ -606,7 +613,6 @@ echo "> Accept key changes<br />";
 echo "<input type=\"checkbox\" name=\"OkVelocity\"";
 if($OkVelocity) echo " checked";
 echo "> Accept velocity changes<br />";
-
 
 echo "<br />LOCATION<br />";
 echo "<input type=\"radio\" name=\"OkRelocate\" value=\"1\"";
@@ -908,11 +914,11 @@ echo "&nbsp;<input type=\"text\" name=\"CsoundInstr\" size=\"5\" value=\"".$valu
 echo "<small><p>Tpict = ".$Tpict." ???</p></small>";
 echo "<input type=\"hidden\" name=\"Tpict\" value=\"".$Tpict."\">";
 
-echo "<br />CSOUND SCORE:<br />";
+echo "<p>CSOUND SCORE</p>";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
-$text = str_replace("<HTML>",'',$object_param[$j]);
-$text = str_replace("</HTML>",'',$text);
-$text = str_replace("<BR>","\n",$text);
+$text = str_ireplace("<HTML>",'',$object_param[$j]);
+$text = str_ireplace("</HTML>",'',$text);
+$text = str_ireplace("<BR>","\n",$text);
 echo "<textarea name=\"object_param_".($j++)."\" rows=\"20\" style=\"width:700px; background-color:Cornsilk;\">".$text."</textarea><br />";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
 
@@ -960,8 +966,8 @@ if(isset($_POST['suppress_pitchbend'])) {
 	for($k = 0; $k < $kmax; $k++) {
 		$byte = $midi_text_code[$k];
 		$code = $byte % 256;
-		if($code >= 240 AND $code < 256) {
-			$k += 3;
+		if($code >= 224 AND $code < 240) {
+			$k += 2;
 			}
 		else $new_midi_code[] = $byte;
 		}
@@ -984,7 +990,7 @@ if(isset($_POST['suppress_polyphonic_pressure'])) {
 		$byte = $midi_text_code[$k];
 		$code = $byte % 256;
 		if($code >= 160 AND $code < 176) {
-			$k += 3;
+			$k += 2;
 			}
 		else $new_midi_code[] = $byte;
 		}
@@ -1028,18 +1034,55 @@ if(isset($_POST['suppress_volume'])) {
 	unlink($midi_text);
 	}
 
+if(isset($_POST['adjust_duration'])) {
+	$NewDuration = intval($_POST['NewDuration']);
+	$Duration = intval($_POST['Duration']);
+	if($Duration > 0) {
+		$alpha = $NewDuration / $Duration;
+		$new_midi_code = array();
+		for($k = 0; $k < $kmax; $k++) {
+			$byte = $midi_text_code[$k];
+			$code = $byte % 256;
+			$time = ($byte - $code) / 256;
+			$newtime = intval($alpha * $time); 
+			$new_midi_code[$k] = $code + (256 * $newtime);
+			}
+		$kmax = count($new_midi_code);
+		$midi_text_code = array();
+		$handle_bytes = fopen($midi_bytes,"w");
+		fwrite($handle_bytes,$kmax."\n");
+		for($k = 0; $k < $kmax; $k++) {
+			$byte = $new_midi_code[$k];
+			fwrite($handle_bytes,$byte."\n");
+			$midi_text_code[$k] = $byte;
+			}
+		fclose($handle_bytes);
+		unlink($midi_text);
+		$Duration = $NewDuration;
+		}
+	else echo "<p style=\"color:red;\">No resizing occured because duration is equal to zero.</p>";
+	}
+
 $handle_text = fopen($midi_text,"w");
 if($new_midi) $handle_bytes = fopen($midi_bytes,"w");
 $more = 0; $code_line = '';
 if($new_midi) fwrite($handle_bytes,$kmax."\n");
+$time_max = 0;
 for($k = 0; $k < $kmax; $k++) {
 	$byte = $midi_text_code[$k];
 	if($new_midi) fwrite($handle_bytes,$byte."\n");
 	$code = $byte % 256;
 	$time = ($byte - $code) / 256;
+	if($time > $time_max) $time_max = $time;
+//	echo "(".$time.") ".$code."<br />";
 	if($code >= 144 AND $code < 160) {
 		$channel = $code - 144 + 1;
-		$code_line = $time." (ch ".$channel.") NoteOn ";
+		$byte = $midi_text_code[$k + 2];
+		$velocity = $byte % 256;
+		if($velocity > 0)
+			$code_line = $time." (ch ".$channel.") NoteOn ";
+		else
+			$code_line = $time." (ch ".$channel.") NoteOff ";
 		$more = 2;
 		}
 	else if($code >= 128 AND $code < 144) {
@@ -1066,8 +1109,8 @@ for($k = 0; $k < $kmax; $k++) {
 		$code_line = $time." (ch ".$channel.") Channel pressure ";
 		$more = 1;
 		}
-	else if($code >= 240 AND $code < 256) {
-		$channel = $code - 240 + 1;
+	else if($code >= 224 AND $code < 240) {
+		$channel = $code - 224 + 1;
 		$code_line = $time." (ch ".$channel.") Pitchbend ";
 		$more = 2;
 		}
@@ -1087,9 +1130,15 @@ for($k = 0; $k < $kmax; $k++) {
 	}
 fclose($handle_text);
 if($new_midi) fclose($handle_bytes);
+$Duration = $time_max;
 	
 echo "<input type=\"hidden\" name=\"jmax\" value=\"".$j."\">";
 echo "<br />MIDI CODES<br />";
+echo "<p>Object duration = ".$Duration." ms";
+if($Tref > 0) echo " = ".($Duration/$Tref)." beats (striated object)";
+echo "</p>";
+echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
+echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_duration\" value=\"Adjust duration\"> to <input type=\"text\" name=\"NewDuration\" size=\"8\" value=\"".$Duration."\"> ms</p>";
 if(file_exists($midi_text)) {
 	$text_link = "/".str_replace($root,'',$midi_text);
 	$bytes_link = "/".str_replace($root,'',$midi_bytes);

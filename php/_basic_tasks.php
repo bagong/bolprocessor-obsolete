@@ -1,7 +1,7 @@
 <?php
 session_start();
 require('midi.class.php');
-// Siurce: https://github.com/robbie-cao/midi-class-php
+// Source: https://github.com/robbie-cao/midi-class-php
 $root = getcwd();
 $root = preg_replace("/bolprocessor\/php.*/u",'',$root);
 $text_help_file = $root."bolprocessor/BP2_help.txt";
@@ -602,7 +602,7 @@ function convert_midi_to_text($verbose,$midi,$midi_file) {
 		else if(isset($table2[1]) AND $table2[1] == "Pb") {
 			$val = str_replace("v=",'',$table2[3]);
 			if($verbose) echo $time." (ch ".$chan.") Pitchbend ".$val."<br />";
-			$code[0] = 240 + $chan - 1;
+			$code[0] = 224 + $chan - 1;
 			$code[1] = $val % 256;
 			$code[2] = ($val - $code[1]) / 256;
 			}
