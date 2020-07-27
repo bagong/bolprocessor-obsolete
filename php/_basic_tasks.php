@@ -2,9 +2,15 @@
 session_start();
 require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
-$root = getcwd();
-$root = preg_replace("/bolprocessor\/php.*/u",'',$root);
-$text_help_file = $root."bolprocessor/BP2_help.txt";
+
+$root = $_SERVER['DOCUMENT_ROOT']."/";
+// echo "root = ".$root."<br />";
+$current_path = getcwd();
+// echo "current_path = ".$current_path."<br />";
+$path_to_bp = str_replace($root,'',$current_path);
+$path_to_bp = str_replace("bolprocessor/php",'',$path_to_bp);
+// echo "path_to_bp = ".$path_to_bp."<br />";
+$text_help_file = $root.$path_to_bp."bolprocessor/BP2_help.txt";
 $html_help_file = "BP2_help.html";
 $help = compile_help($text_help_file,$html_help_file);
 $tracefile = "trace_".session_id().".txt";
@@ -197,6 +203,8 @@ function try_create_new_file($file,$filename) {
 	}
 
 function compile_help($text_help_file,$html_help_file) {
+//	echo "text_help_file = ".$text_help_file."<br />";
+//	echo "html_help_file = ".$html_help_file."<br />";
 	$help = array();
 	$help[0] = '';
 	$no_entry = array("ON","OFF","vel");

@@ -1,10 +1,6 @@
 <?php
 require_once("_basic_tasks.php");
 
-$cwd = getcwd();
-// echo "cwd = ".$cwd."<br />";
-$root = preg_replace("/bolprocessor\/php.*/u",'',$cwd);
-// echo "root = ".$root."<br />";
 $url_this_page = "produce.php";
 
 $this_title = "BP console";
@@ -35,7 +31,7 @@ else $trace_production = FALSE;
 $table = explode('/',$grammar_path);
 $grammar_name = $table[count($table) - 1];
 $dir = str_replace($grammar_name,'',$grammar_path);
-$application_path = $root."bolprocessor/";
+$application_path = $root.$path_to_bp."bolprocessor/";
 
 if($output <> '') @unlink($output);
 if($tracefile <> '') @unlink($tracefile);
@@ -67,7 +63,7 @@ switch($file_format) {
 		$command .= " -d --rtmidi";
 		break;
 	}
-if($tracefile <> '') $command .= " --traceout ".$dir."/".$tracefile;
+if($tracefile <> '') $command .= " --traceout ".$dir.$tracefile;
 if($show_production) $command .= " --show-production";
 if($trace_production) $command .= " --trace-production";
 echo "<p><small>command = ".$command."</small></p>";
@@ -80,9 +76,11 @@ for($i=0; $i < $n_messages; $i++) {
 	if(is_integer($pos=strpos($mssg,"Errors: 0")) AND $pos == 0) $no_error = TRUE;
 	}
 echo "<hr>";
+/* echo "dir = ".$dir."<br />";
+echo "output = ".$output."<br />"; */
 $output_link = str_replace($root,'',$output);
-// echo "dir = ".$dir."<br />";
-// echo "tracefile = ".$tracefile."<br />";
+/* echo "output_link = ".$output_link."<br />";
+echo "tracefile = ".$tracefile."<br />"; */
 $tracefile_html = clean_up_file($dir.$tracefile);
 // echo "tracefile_html = ".$tracefile_html."<br />";
 $trace_link = str_replace($root,'',$tracefile_html);

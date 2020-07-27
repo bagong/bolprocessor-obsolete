@@ -16,6 +16,8 @@ else {
 $this_title = $object_name;
 require_once("_header.php");
 
+// echo "url_this_page = ".$url_this_page."<br />";
+
 $object_foldername = clean_folder_name($object_name);
 $save_codes_dir = $temp_folder."/".$object_foldername."_codes";
 if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
@@ -1291,16 +1293,23 @@ echo "</p>"; */
 if(file_exists($midi_text)) {
 	$text_link = "/".str_replace($root,'',$midi_text);
 	$bytes_link = "/".str_replace($root,'',$midi_bytes);
-	echo "Click to display <a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">explicit MIDI codes</a> or <a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500'); return false;\" href=\"".$bytes_link."\">time-stamped MIDI codes</a>";
+/*	echo "midi_text = ".$midi_text."<br />";
+	echo "midi_bytes = ".$midi_bytes."<br />";
+	echo "text_link = ".$text_link."<br />";
+	echo "bytes_link = ".$bytes_link."<br />"; */
+	
+//	$text_link = str_replace("/Applications/MAMP/htdocs",'',$midi_text);
+	
+	echo "• <a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a><br />• <a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a>";
 	if($new_midi) echo " ... <font color=\"blue\">from the file you have just loaded</font>";
 	echo "<br />";
-echo "<i>If changes are not visible on the pop-up window, juste clear the cache!</i><br />";
+echo "<br /><i>If changes are not visible on these pop-up windows, juste clear the cache!</i><br />";
 	}
 else "No codes in this sound-object prototype<br />";
 
 echo "<p>DURATION</p>";
 $real_duration = $Duration - $PreRoll + $PostRoll;
-echo "Real duration of this object will be: <b>event duration - pre-roll + post-roll</b><br />= ".$Duration." - (".$PreRoll.") + (".$PostRoll.") = ".$real_duration." ms<br />for a metronome period Tref = ".$Tref." ms";
+echo "Real duration of this object will be:<br /><b>event duration - pre-roll + post-roll</b> = ".$Duration." - (".$PreRoll.") + (".$PostRoll.") = ".$real_duration." ms<br />for a metronome period Tref = ".$Tref." ms";
 
 
 if($duration_warning <> '') echo $duration_warning;

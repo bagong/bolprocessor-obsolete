@@ -1,7 +1,7 @@
 <?php
 require_once("_basic_tasks.php");
+require_once("_header.php");
 $current_path = $root;
-// echo "<p>root = ".$root."</p>";
 echo "<h2>This is on-line Bol Processor</h2>";
 $this_page = "index.php";
 if(isset($_GET['path'])) {
@@ -15,9 +15,11 @@ if(isset($_GET['path'])) {
 	if($upper_dir <> '') echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
 else {
-	chdir($root);
-	$dir = "bolprocessor";
+	$dir = getcwd();
+	$dir = str_replace("/php",'',$dir);
 	}
+
+// echo "dir = ".$dir."<br />";
 
 $new_file = '';
 if(isset($_POST['createfile'])) {
@@ -35,8 +37,7 @@ if(isset($_POST['createfile'])) {
 	else unset($_POST['createfile']);
 	}
 
-$folder = str_replace($root,'',$dir);
-require_once("_header.php");
+$folder = str_replace($root.$path_to_bp,'',$dir);
 
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
@@ -62,7 +63,7 @@ foreach($dircontent as $thisfile) {
 	if(is_dir($dir."/".$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
-		$link = $this_page."?path=".$current_path.$dir."/".$thisfile;
+		$link = $this_page."?path=".$dir."/".$thisfile;
 		if($extension == "temp" AND count($table) > 2) {
 			$id = $table[count($table) - 2];
 			if($old) {
@@ -139,7 +140,6 @@ foreach($dircontent as $thisfile) {
 		$link = $type.".php?file=".$dir."/".$thisfile;
 		if($new_file == $thisfile) echo "<font color=\"red\">➡</font> ";
 		echo "<a target=\"_blank\" href=\"".$link."\">";
-	//	if($type == "grammar") echo "⚪️ ";
 		echo $thisfile."</a> ";
 		if($type == "grammar") echo "<font color=\"red\">";
 		else if($type == "data") echo "<font color=\"gold\">";

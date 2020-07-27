@@ -19,9 +19,9 @@ $here = str_replace($root,'',$dir);
 $trace_link = $here.$tracefile;
 // echo "<br />".$trace_link."<br />";
 if($output_folder <> '')
-	$output = $root."bolprocessor/".$output_folder;
+	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
 else
-	$output = $root."bolprocessor";
+	$output = $root.$path_to_bp."bolprocessor";
 $output_file = "out.sco";
 $file_format = "csound";
 if(isset($_POST['output_file'])) $output_file = $_POST['output_file'];
@@ -32,7 +32,7 @@ require_once("_header.php");
 echo "<p>Current directory = ".$here;
 
 if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
-	if(isset($_POST['savegrammar'])) echo "…&nbsp;<span id=\"timespan\" style=\"color:red;\"> Saved “".$filename."” file…</span>";
+	if(isset($_POST['savegrammar'])) echo "<span id=\"timespan\" style=\"color:red;\">&nbsp;…&nbsp;Saved “".$filename."” file…</span>";
 	$content = $_POST['thisgrammar'];
 	$output_file = $_POST['output_file'];
 	$file_format = $_POST['file_format'];
@@ -73,22 +73,6 @@ if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 	fwrite($handle,$file_header."\n");
 	fwrite($handle,$content);
 	fclose($handle);
-/*	if(isset($_POST['produce'])) {
-		if($produce_all_items > 0) $action = "produce-all";
-		else $action = "produce";
-		$link = "produce.php?instruction=".$action."&grammar=".$grammar_file;
-		if($alphabet_file <> '')
-			$link .= "&alphabet=".$alphabet_file;
-		if($note_convention <> '')
-			$link .= "&note_convention=".$note_convention;
-		$link .= "&output=".$output."/".$output_file."&format=".$file_format;
-		if($show_production > 0)
-			$link .= "&show_production=1";
-		if($trace_production > 0)
-			$link .= "&trace_production=1";
-		header("Location: ".$link);
-		die();
-		} */
 	}
 echo "</p>";
 
@@ -96,15 +80,13 @@ if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
 	$output_folder = trim(str_replace('/',' ',$output_folder));
 	$output_folder = str_replace(' ','/',$output_folder);
-	$output = $root."bolprocessor/".$output_folder;
+	$output = $root.$here.$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 //	echo $output."<br />";
 	if(!file_exists($output)) {
-		echo "<p id=\"timespan\"><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
-		$cmd = "mkdir ".$output;
-		echo "(".$cmd.")</p>";
-		exec($cmd);
+		echo "<p><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
+		mkdir($output);
 		}
 	$handle = fopen("_settings.php","w");
 	fwrite($handle,"<?php\n");
@@ -116,8 +98,16 @@ if(isset($_POST['change_output_folder'])) {
 	fwrite($handle,$line);
 	fclose($handle);
 	}
+else {
+	$output = $root.$here.$output_folder;
+	do $output = str_replace("//",'/',$output,$count);
+	while($count > 0);
+	if(!file_exists($output)) {
+		echo "<p><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
+		mkdir($output);
+		}
+	}
 
-// require_once("_header.php");
 echo link_to_help();
 
 echo "<h3>Grammar file “".$filename."”</h3>";
@@ -130,7 +120,7 @@ if(isset($_POST['compilegrammar'])) {
 	echo "<p id=\"timespan\" style=\"color:red;\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
-	$application_path = $root."bolprocessor/";
+	$application_path = $root.$path_to_bp."bolprocessor/";
 	chdir($dir);
 	$command = $application_path."bp compile";
 	if($note_convention <> '') $command .= " --".$note_convention;
@@ -169,7 +159,7 @@ else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
-	echo "Location of output files: <font color=\"blue\">/bolprocessor/</font>";
+	echo "Location of output files: <font color=\"blue\">".$here."</font>";
 	echo "<input type=\"text\" name=\"output_folder\" size=\"25\" value=\"".$output_folder."\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"change_output_folder\" value=\"SAVE THIS LOCATION\"><br />➡ global setting for all projects in this session.<br /><i>Folder will be created if necessary…</i>";
 	echo "</form>";

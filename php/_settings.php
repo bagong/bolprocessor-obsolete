@@ -1,3 +1,3 @@
 <?php
-$output_folder = "sortie";
+$output_folder = "my_output";
 ?>
