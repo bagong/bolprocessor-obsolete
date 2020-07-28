@@ -208,6 +208,10 @@ function compile_help($text_help_file,$html_help_file) {
 	$help = array();
 	$help[0] = '';
 	$no_entry = array("ON","OFF","vel");
+	if(!file_exists($text_help_file)) {
+		echo "<p style=\"color:red;\">WARNING: file “BP2_helt.txt” has not been found. It should be placed at the same level as the “php” folder.</p>";
+		return '';
+		}
 	$content = @file_get_contents($text_help_file,TRUE);
 	if($content) {
 		$file_header = "<!DOCTYPE HTML>\n";
@@ -667,5 +671,17 @@ function convert_midi_to_text($verbose,$midi,$midi_file) {
 			}
 		}
 	return $midi_text;
+	}
+
+function rcopy($src,$dst) {
+	if(file_exists($dst)) my_rmdir($dst);
+	if(is_dir($src)) {
+		mkdir($dst);
+		$files = scandir($src);
+		foreach($files as $file)
+			if($file <> "." AND $file <> "..") rcopy("$src/$file","$dst/$file");
+		}
+	else if(file_exists($src)) copy($src,$dst);
+	return;
 	}
 ?>

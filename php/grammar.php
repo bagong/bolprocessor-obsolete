@@ -16,12 +16,11 @@ $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$grammar_file);
 
 $here = str_replace($root,'',$dir);
+// echo $dir."<br />".$here."<br />";
 $trace_link = $here.$tracefile;
 // echo "<br />".$trace_link."<br />";
-if($output_folder <> '')
-	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
-else
-	$output = $root.$path_to_bp."bolprocessor";
+if($output_folder == '') $output_folder = "my_output";
+// $output = $dir.$output_folder;
 $output_file = "out.sco";
 $file_format = "csound";
 if(isset($_POST['output_file'])) $output_file = $_POST['output_file'];
@@ -80,7 +79,8 @@ if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
 	$output_folder = trim(str_replace('/',' ',$output_folder));
 	$output_folder = str_replace(' ','/',$output_folder);
-	$output = $root.$here.$output_folder;
+	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
+	// $output = $root.$here.$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 //	echo $output."<br />";
@@ -99,7 +99,8 @@ if(isset($_POST['change_output_folder'])) {
 	fclose($handle);
 	}
 else {
-	$output = $root.$here.$output_folder;
+//	$output = $root.$here.$output_folder;
+	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 	if(!file_exists($output)) {
@@ -159,7 +160,7 @@ else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
-	echo "Location of output files: <font color=\"blue\">".$here."</font>";
+	echo "Location of output files: <font color=\"blue\">".$path_to_bp."bolprocessor/"."</font>";
 	echo "<input type=\"text\" name=\"output_folder\" size=\"25\" value=\"".$output_folder."\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"change_output_folder\" value=\"SAVE THIS LOCATION\"><br />➡ global setting for all projects in this session.<br /><i>Folder will be created if necessary…</i>";
 	echo "</form>";
@@ -270,13 +271,13 @@ else {
 	}
 // echo "<p>";
 if($note_convention <> '') {
-	echo "• Note convention = <font color=\"blue\">".ucfirst($note_convention)."</font> found in ‘".$settings_file."’<br />";
+	echo "• Note convention = <font color=\"blue\">".ucfirst($note_convention)."</font> found in <font color=\"blue\">‘".$settings_file."’</font><br />";
 	echo "<input type=\"hidden\" name=\"note_convention\" value=\"".$note_convention."\">";
 	}
 // echo "show_production = ".$show_production."<br />";
-if($produce_all_items == 1) echo "• Produce all items has been set in ‘".$settings_file."’<br />";
-if($show_production == 1) echo "• Show production has been set in ‘".$settings_file."’<br />";
-if($trace_production == 1) echo "• Trace production has been set in ‘".$settings_file."’<br />";
+if($produce_all_items == 1) echo "• Produce all items has been set in <font color=\"blue\">‘".$settings_file."’</font><br />";
+if($show_production == 1) echo "• Show production has been set in <font color=\"blue\">‘".$settings_file."’</font><br />";
+if($trace_production == 1) echo "• Trace production has been set ON in <font color=\"blue\">‘".$settings_file."’</font><br />";
 echo "</p>";
 
 echo "<input type=\"hidden\" name=\"produce_all_items\" value=\"".$produce_all_items."\">";

@@ -22,7 +22,7 @@ else {
 // echo "dir = ".$dir."<br />";
 
 $new_file = '';
-if(isset($_POST['createfile'])) {
+if(isset($_POST['create_grammar'])) {
 	$filename = trim($_POST['filename']);
 	if($filename <> '') {
 		if(!is_integer($pos=strpos($filename,"-gr")) OR $pos > 0) {
@@ -34,7 +34,21 @@ if(isset($_POST['createfile'])) {
 		$handle = fopen($dir."/".$filename,"w");
 		fclose($handle);
 		}
-	else unset($_POST['createfile']);
+	else unset($_POST['create_grammar']);
+	}
+if(isset($_POST['create_alphabet'])) {
+	$filename = trim($_POST['filename']);
+	if($filename <> '') {
+		if(!is_integer($pos=strpos($filename,"-ho")) OR $pos > 0) {
+			$filename = trim(str_replace("-ho",'',$filename));
+			$filename = "-ho.".$filename;
+			}
+		echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
+		$new_file = $filename;
+		$handle = fopen($dir."/".$filename,"w");
+		fclose($handle);
+		}
+	else unset($_POST['create_alphabet']);
 	}
 
 $folder = str_replace($root.$path_to_bp,'',$dir);
@@ -43,12 +57,18 @@ echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,"/bolprocessor")) AND $folder <> "bolprocessor/php" AND $extension <> "temp" AND !isset($_POST['createfile'])) {
+if(is_integer(strpos($dir,"/bolprocessor")) AND $folder <> "bolprocessor/php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
-	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"createfile\" value=\"CREATE NEW GRAMMAR IN THIS FOLDER\">&nbsp;➡&nbsp;";
+	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 	echo "<font color=\"blue\">".$folder."/</font>";
 	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
+	echo "</form>";
+	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
+	echo "<p style=\"text-align:left;\">";
+	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+	echo "<font color=\"blue\">".$folder."/</font>";
+	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
 	echo "</form>";
 	}
 	
@@ -93,31 +113,31 @@ foreach($dircontent as $thisfile) {
 	$table = explode("_",$thisfile);
 	$prefix = $table[0];
 	if($prefix == "trace") continue;
-	$prefix = substr($thisfile,1,2);
+	$prefix = substr($thisfile,0,3);
 	switch($prefix) {
-		case 'gr':
+		case '-gr':
 			$type = "grammar"; break;
-		case 'da':
+		case '-da':
 			$type = "data"; break;
-		case 'ho':
+		case '-ho':
 			$type = "alphabet"; break;
-		case 'se':
+		case '-se':
 			$type = "settings"; break;
-		case 'cs':
+		case '-cs':
 			$type = "csound"; break;
-		case 'mi':
+		case '-mi':
 			$type = "objects"; break;
-		case 'or':
+		case '-or':
 			$type = "orchestra"; break;
-		case 'in':
+		case '-in':
 			$type = "interaction"; break;
-		case 'md':
+		case '-md':
 			$type = "midisetup"; break;
-		case 'tb':
+		case '-tb':
 			$type = "timebase"; break;
-		case 'kb':
+		case '-kb':
 			$type = "keyboard"; break;
-		case 'gl':
+		case '-gl':
 			$type = "glossary"; break;
 		default:
 			$type = ''; break;

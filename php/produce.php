@@ -54,7 +54,7 @@ switch($file_format) {
 		$command .= " -d -o ".$output;
 		break;
 	case "midi":
-		$command .= " -d --midiout ".$output;
+		$command .= " -d --midiout ";
 		break;
 	case "csound":
 		$command .= " -d --csoundout ".$output;
@@ -86,11 +86,13 @@ $tracefile_html = clean_up_file($dir.$tracefile);
 $trace_link = str_replace($root,'',$tracefile_html);
 // echo "trace_link = ".$trace_link."<br />";
 if(!$no_error) {
-	echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800'); return false;\" href=\"/".$trace_link."\">error trace file</a>!</p>";
+	echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">error trace</a> file!</p>";
 	}
 else {
-	if($output <> '') echo "<p><font color=\"red\">➡</font> Read the output file: <a onclick=\"window.open('/".$output_link."','".$file_format."','width=800,height=800'); return false;\" href=\"/".$output_link."\">click this link</a></p>";
-	if($trace_production) echo "<p><font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file produced</a>!</p>";
+	echo "<p>";
+	if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$output_link."','".$file_format."','width=800,height=800,left=200'); return false;\" href=\"/".$output_link."\">output file</a><br />";
+	if($trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">trace file</a>";
+	echo "</p>";
 	}
 for($i=0; $i < $n_messages; $i++) {
 	$mssg = $o[$i];
