@@ -1,22 +1,17 @@
 <?php
 require_once("_basic_tasks.php");
 require_once("_header.php");
-$current_path = $root;
 echo "<h2>This is on-line Bol Processor</h2>";
 $this_page = "index.php";
 if(isset($_GET['path'])) {
-	$dir = $_GET['path'];
-	$current_path = '';
-	$table = explode('/',$dir);
-	$table[count($table)-1] = '';
-	$upper_dir = implode('/',$table);
-	$upper_dir = preg_replace("/\/$/u",'',$upper_dir);
+	$dir = realpath($_GET['path']);
+	$table = explode(DIRECTORY_SEPARATOR,$dir);
+	$upper_dir = dirname($dir);
 	$link = $this_page."?path=".$upper_dir;
-	if($upper_dir <> '') echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
+	if($table[count($table)-1]) echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
 else {
-	$dir = getcwd();
-	$dir = str_replace("/php",'',$dir);
+	$dir = $bp_application_dir;
 	}
 
 // echo "dir = ".$dir."<br />";
@@ -51,27 +46,26 @@ if(isset($_POST['create_alphabet'])) {
 	else unset($_POST['create_alphabet']);
 	}
 
-$folder = str_replace($root.$path_to_bp,'',$dir);
-
+$folder = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$dir);
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,"/bolprocessor")) AND $folder <> "bolprocessor/php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
+if(is_integer(strpos($dir,DIRECTORY_SEPARATOR."bolprocessor")) AND $folder <> "bolprocessor".DIRECTORY_SEPARATOR."php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-	echo "<font color=\"blue\">".$folder."/</font>";
+	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
 	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
 	echo "</form>";
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-	echo "<font color=\"blue\">".$folder."/</font>";
+	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
 	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
 	echo "</form>";
 	}
-	
+
 $dircontent = scandir($dir);
 $now = time();
 $yesterday = $now - (24 * 3600);

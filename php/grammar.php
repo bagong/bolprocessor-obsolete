@@ -4,18 +4,15 @@ require_once("_settings.php");
 
 $url_this_page = "grammar.php";
 
-// echo $root;
-
 if(isset($_GET['file'])) $grammar_file = $_GET['file'];
 else $grammar_file = '';
 if($grammar_file == '') die();
 $url_this_page .= "?file=".$grammar_file;
 
-$table = explode('/',$grammar_file);
+$table = explode(DIRECTORY_SEPARATOR,$grammar_file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$grammar_file);
-
-$here = str_replace($root,'',$dir);
+$here = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$dir);
 // echo $dir."<br />".$here."<br />";
 $trace_link = $here.$tracefile;
 // echo "<br />".$trace_link."<br />";
@@ -77,11 +74,10 @@ echo "</p>";
 
 if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
-	$output_folder = trim(str_replace('/',' ',$output_folder));
-	$output_folder = str_replace(' ','/',$output_folder);
-	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
-	// $output = $root.$here.$output_folder;
-	do $output = str_replace("//",'/',$output,$count);
+	$output_folder = trim(str_replace(DIRECTORY_SEPARATOR,' ',$output_folder));
+	$output_folder = str_replace(' ',DIRECTORY_SEPARATOR,$output_folder);
+	$output = $bp_application_dir.DIRECTORY_SEPARATOR.$output_folder;
+	do $output = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$output,$count);
 	while($count > 0);
 //	echo $output."<br />";
 	if(!file_exists($output)) {
@@ -99,8 +95,7 @@ if(isset($_POST['change_output_folder'])) {
 	fclose($handle);
 	}
 else {
-//	$output = $root.$here.$output_folder;
-	$output = $root.$path_to_bp."bolprocessor/".$output_folder;
+	$output = $bp_application_dir.DIRECTORY_SEPARATOR.$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 	if(!file_exists($output)) {
@@ -121,7 +116,7 @@ if(isset($_POST['compilegrammar'])) {
 	echo "<p id=\"timespan\" style=\"color:red;\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
-	$application_path = $root.$path_to_bp."bolprocessor/";
+	$application_path = $bp_application_dir.DIRECTORY_SEPARATOR;
 	chdir($dir);
 	$command = $application_path."bp compile";
 	if($note_convention <> '') $command .= " --".$note_convention;
@@ -152,7 +147,7 @@ if(isset($_POST['compilegrammar'])) {
 		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
 		}
 	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error.</font></p>";
-		
+
 	// Now reformat the grammar
 	reformat_grammar(FALSE,$grammar_file);
 	}
@@ -286,7 +281,7 @@ echo "<input type=\"hidden\" name=\"trace_production\" value=\"".$trace_producti
 echo "<input type=\"hidden\" name=\"metronome\" value=\"".$metronome."\">";
 echo "<input type=\"hidden\" name=\"time_structure\" value=\"".$time_structure."\">";
 echo "<input type=\"hidden\" name=\"alphabet_file\" value=\"".$alphabet_file."\">";
-	
+
 echo "<textarea name=\"thisgrammar\" rows=\"25\" style=\"width:700px; background-color:Cornsilk;\">".$content."</textarea>";
 echo "</form>";
 

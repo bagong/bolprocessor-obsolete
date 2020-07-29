@@ -7,10 +7,10 @@ else $file = '';
 if($file == '') die();
 
 $url_this_page .= "?file=".$file;
-$table = explode('/',$file);
+$table = explode(DIRECTORY_SEPARATOR,$file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$file);
-$here = str_replace($root,'',$dir);
+$here = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$dir);
 require_once("_header.php");
 echo "<p>Current directory = ".$here."</p>";
 echo link_to_help();
@@ -26,7 +26,7 @@ if(isset($_POST['savethisfile'])) {
 	fwrite($handle,$content);
 	fclose($handle);
 	}
-	
+
 try_create_new_file($file,$filename);
 $content = @file_get_contents($file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);

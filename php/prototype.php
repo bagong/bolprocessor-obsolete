@@ -14,7 +14,7 @@ if(isset($_POST['object_name'])) {
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
 	}
-	
+
 $this_title = $object_name;
 require_once("_header.php");
 
@@ -68,7 +68,7 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			}
 		}
 	}
-else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
+else echo "<p>Object file: <font color=\"blue\">".str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$object_file)."</font>";
 
 if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats']) OR isset($_POST['adjust_duration']) OR isset($_POST['silence_before']) OR isset($_POST['silence_after']) OR isset($_POST['add_allnotes_off']) OR isset($_POST['suppress_allnotes_off']) OR isset($_POST['quantize_NoteOn']) OR isset($_POST['delete_midi']) OR isset($_POST['cancel'])) {
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
@@ -111,56 +111,56 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 			$okrescale = 0;
 			break;
 		}
-	
+
 	if($FixScale == 0 AND isset($_POST['OkExpand'])) $OkExpand = 1;
 	if($FixScale == 0 AND isset($_POST['OkCompress'])) $OkCompress = 1;
-	
+
 	$string[$k++] = $okrescale;
 	$string[$k++] = $FixScale;
 	$string[$k++] = $OkExpand;
 	$string[$k++] = $OkCompress;
-	
+
 	$BreakTempo = $_POST['BreakTempo'];
 	$OkRelocate = $_POST['OkRelocate'];
-	
+
 	$string[$k++] = $OkRelocate;
 	$string[$k++] = $BreakTempo;
-	
+
 	$ContBeg = $_POST['ContBeg'];
 	$ContEnd = $_POST['ContEnd'];
-	
+
 	$string[$k++] = $ContBeg;
 	$string[$k++] = $ContEnd;
-	
+
 	$CoverBeg = $_POST['CoverBeg'];
 	$CoverEnd = $_POST['CoverEnd'];
 	$string[$k++] = $CoverBeg;
 	$string[$k++] = $CoverEnd;
-	
+
 	$TruncBeg = $_POST['TruncBeg'];
 	$TruncEnd = $_POST['TruncEnd'];
 	$string[$k++] = $TruncBeg;
 	$string[$k++] = $TruncEnd;
-	
+
 	$pivspec = 0;
 	if($_POST['Pivot_mode'] == 18) $pivspec = 1;
 	$string[$k++] = $pivspec;
-	
+
 	if(isset($_POST['AlphaCtrl'])) $AlphaCtrl = 1;
 	else $AlphaCtrl = 0;
 	$string[$k++] = $AlphaCtrl;
 
 	fwrite($handle,$string."\n");
 	$j++;
-	
+
 	$RescaleMode = $_POST['RescaleMode']; // ???
 	fwrite($handle,$RescaleMode."\n");
-	
+
 	$AlphaMin = $_POST['AlphaMin']; if($AlphaMin == '') $AlphaMin = "0.0000";
 	fwrite($handle,$AlphaMin."\n");
 	$AlphaMax = $_POST['AlphaMax']; if($AlphaMax == '') $AlphaMax = "0.0000";
 	fwrite($handle,$AlphaMax."\n");
-	
+
 	if(isset($_POST['DelayMode'])) $DelayMode = $_POST['DelayMode'];
 	else $DelayMode = 1;
 	$MaxDelay = '';
@@ -172,7 +172,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$DelayMode."\n");
 	fwrite($handle,$MaxDelay."\n");
-	
+
 	if(isset($_POST['ForwardMode'])) $ForwardMode = $_POST['ForwardMode'];
 	else $ForwardMode = 1;
 	$MaxForward = '';
@@ -184,11 +184,11 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$ForwardMode."\n");
 	fwrite($handle,$MaxForward."\n");
-	
+
 	$BreakTempoMode = $_POST['BreakTempoMode'];
 	fwrite($handle,$BreakTempoMode."\n");
 	fwrite($handle,"1\n"); // $x ???
-	
+
 	if(isset($_POST['ContBegMode'])) $ContBegMode = $_POST['ContBegMode'];
 	else $ContBegMode = 1;
 	$MaxBegGap = '';
@@ -200,7 +200,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$ContBegMode."\n");
 	fwrite($handle,$MaxBegGap."\n");
-	
+
 	if(isset($_POST['ContEndMode'])) $ContEndMode = $_POST['ContEndMode'];
 	else $ContEndMode = 1;
 	$MaxEndGap = '';
@@ -212,7 +212,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$ContEndMode."\n");
 	fwrite($handle,$MaxEndGap."\n");
-	
+
 	if(isset($_POST['CoverBegMode'])) $CoverBegMode = $_POST['CoverBegMode'];
 	else $CoverBegMode = 0;
 	$MaxCoverBeg = '';
@@ -224,7 +224,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$CoverBegMode."\n");
 	fwrite($handle,$MaxCoverBeg."\n");
-	
+
 	if(isset($_POST['CoverEndMode'])) $CoverEndMode = $_POST['CoverEndMode'];
 	else $CoverEndMode = 0;
 	$MaxCoverEnd = '';
@@ -236,7 +236,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$CoverEndMode."\n");
 	fwrite($handle,$MaxCoverEnd."\n");
-	
+
 	if(isset($_POST['TruncBegMode'])) $TruncBegMode = $_POST['TruncBegMode'];
 	else $TruncBegMode = 1;
 	$MaxTruncBeg = '';
@@ -248,7 +248,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$TruncBegMode."\n");
 	fwrite($handle,$MaxTruncBeg."\n");
-	
+
 	if(isset($_POST['TruncEndMode'])) $TruncEndMode = $_POST['TruncEndMode'];
 	else $TruncEndMode = 1;
 	$MaxTruncEnd = '';
@@ -260,7 +260,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$TruncEndMode."\n");
 	fwrite($handle,$MaxTruncEnd."\n");
-	
+
 	if(isset($_POST['PivMode'])) $PivMode = $_POST['PivMode'];
 	else $PivMode = -1;
 	$PivPos = '';
@@ -271,7 +271,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 		}
 	fwrite($handle,$PivMode."\n");
 	fwrite($handle,$PivPos."\n");
-	
+
 	$AlphaCtrlNr = $_POST['AlphaCtrlNr'];
 	if($AlphaCtrlNr == '') $AlphaCtrlNr = -1;
 	$AlphaCtrlChan = $_POST['AlphaCtrlChan'];
@@ -295,14 +295,14 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	else $OkMap = 0;
 	if(isset($_POST['OkVelocity'])) $OkVelocity = 1;
 	else $OkVelocity = 0;
-	
+
 	fwrite($handle,$OkTransp."\n");
 	fwrite($handle,$OkArticul."\n");
 	fwrite($handle,$OkVolume."\n");
 	fwrite($handle,$OkPan."\n");
 	fwrite($handle,$OkMap."\n");
 	fwrite($handle,$OkVelocity."\n");
-	
+
 	$PreRollMode = $_POST['PreRollMode'];
 	$PreRoll = '';
 	if($PreRollMode == -1) $PreRoll = $_POST['PreRoll1'];
@@ -323,7 +323,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	fwrite($handle,$PostRoll."\n");
 	fwrite($handle,$PreRollMode."\n");
 	fwrite($handle,$PostRollMode."\n");
-	
+
 	$PeriodMode = $_POST['PeriodMode'];
 	$BeforePeriod = '';
 	if($PeriodMode == -1) $BeforePeriod = $_POST['BeforePeriod1'];
@@ -331,8 +331,8 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	if($BeforePeriod == '') $BeforePeriod = "0.0000";
 	fwrite($handle,$PeriodMode."\n");
 	fwrite($handle,$BeforePeriod."\n");
-	
-	
+
+
 	if(isset($_POST['ForceIntegerPeriod'])) $ForceIntegerPeriod = 1;
 	else $ForceIntegerPeriod = 0;
 	if(isset($_POST['DiscardNoteOffs'])) $DiscardNoteOffs = 1;
@@ -348,7 +348,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	fwrite($handle,$CsoundInstr."\n");
 	$Tpict = $_POST['Tpict'];
 	fwrite($handle,$Tpict."\n");
-	
+
 	fwrite($handle,"65535\n");
 	fwrite($handle,"65535\n");
 	fwrite($handle,"65535\n");
@@ -421,7 +421,7 @@ if(isset($_POST['playexpression'])) {
 	$handle = fopen($startup_file,"w");
 	fwrite($handle,$expression."\n");
 	fclose($handle);
-	$application_path = $root.$path_to_bp."bolprocessor/";
+	$application_path = $bp_application_dir.DIRECTORY_SEPARATOR;
 //	echo "application_path = ".$application_path."<br />";
 	$command = $application_path."bp play";
 	$command .= " --startup ".$startup_file;
@@ -647,7 +647,7 @@ if(!$FixScale AND !$OkExpand AND !$OkCompress) {
 	if($AlphaMin > 0) $value_min = intval($AlphaMin);
 	if($AlphaMax > 0) $value_max = intval($AlphaMax);
 	}
-	
+
 $scalable = FALSE;
 if(($okrescale OR $OkExpand OR $OkCompress OR $dilation_ok) AND !$FixScale) $scalable = TRUE;
 
@@ -853,7 +853,7 @@ if(!$CoverEnd AND $CoverEndMode == 0) {
 else $value = '';
 echo ">Not more than";
 echo "&nbsp;<input type=\"text\" name=\"MaxCoverEnd2\" size=\"5\" value=\"".$value."\"> % of duration";
-	
+
 echo "<p>TRUNCATE BEGINNING</p>";
 echo "<input type=\"radio\" name=\"TruncBeg\" value=\"1\"";
 if($TruncBeg == 1) echo " checked";
@@ -921,7 +921,7 @@ if($PreRollMode == 0) {
 else $value = '';
 echo ">Pre-roll";
 echo "&nbsp;<input type=\"text\" name=\"PreRoll2\" size=\"5\" value=\"".$value."\"> % of duration<br />";
-	
+
 echo "<input type=\"radio\" name=\"PostRollMode\" value=\"-1\"";
 if($PostRollMode == -1) {
 	echo " checked";
@@ -1161,7 +1161,7 @@ if(isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats'])) {
 	if(isset($_POST['adjust_duration']) AND $NewDuration == 0) $flatten_all = TRUE;
 	if(isset($_POST['adjust_beats']) AND $NewBeats == 0) $flatten_all = TRUE;
 	}
-	
+
 if($flatten_all OR isset($_POST['suppress_pressure'])) {
 	$new_midi_code = array();
 	for($k = 0; $k < $kmax; $k++) {
@@ -1272,7 +1272,7 @@ if($change_beats OR isset($_POST['adjust_duration'])) {
 			$byte = $midi_text_bytes[$k];
 			$code = $byte % 256;
 			$time = ($byte - $code) / 256;
-			$newtime = intval($alpha * $time); 
+			$newtime = intval($alpha * $time);
 			$new_midi_code[$k] = $code + (256 * $newtime);
 			}
 		}
@@ -1562,7 +1562,7 @@ if(!$no_midi) {
 	if($new_midi) fclose($handle_bytes);
 	}
 $Duration = $time_max;
-	
+
 echo "<input type=\"hidden\" name=\"jmax\" value=\"".$j."\">";
 if(!$no_midi) {
 	echo "<p>MIDI CODES</p>";
@@ -1577,9 +1577,9 @@ if(!$no_midi) {
 	}
 
 if(!$no_midi AND file_exists($midi_text)) {
-	$text_link = "/".str_replace($root,'',$midi_text);
-	$bytes_link = "/".str_replace($root,'',$midi_bytes);
-	$mf2t_link = "/".str_replace($root,'',$mf2t);
+	$text_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$midi_text);
+	$bytes_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$midi_bytes);
+	$mf2t_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$mf2t);
 /*	echo "midi_text = ".$midi_text."<br />";
 	echo "midi_bytes = ".$midi_bytes."<br />";
 	echo "text_link = ".$text_link."<br />";
@@ -1588,11 +1588,11 @@ if(!$no_midi AND file_exists($midi_text)) {
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500,left=400'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = ".$division."</small></div></td>";
-	$table = explode('/',$here);
+	$table = explode(DIRECTORY_SEPARATOR,$here);
 	$this_data_folder = $table[count($table) - 2];
 //	echo "this_data_folder = ".$this_data_folder."<br />";
-	$midi_file_link = str_replace($root.$here,'',$midi_file);
-	$midi_file_link = "../".$this_data_folder."/".$midi_file_link;
+	$midi_file_link = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR.$here,'',$midi_file);
+	$midi_file_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$midi_file_link;
 	if(file_exists($midi_file_link)) {
 		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\">Play MIDI file</a>";
 		echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)</td>";
@@ -1612,10 +1612,10 @@ if(!$no_midi) {
 	echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_duration\" value=\"Adjust event time duration\"> to <input type=\"text\" name=\"NewDuration\" size=\"8\" value=\"".$Duration."\"> ms<br />";
 	if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref * $resolution),2)."\"> beats (striated object with Tref = ".$Tref." ticks of ".$resolution." ms, i.e. ".($Tref * $resolution)." ms)";
 	echo "</p>";
-	
+
 	if($silence_before_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_before_warning."<br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_before\" value=\"Insert silence before this object\"> = <input type=\"text\" name=\"SilenceBefore\" size=\"8\" value=\"\"> ms ➡ current pre-roll = ".$PreRoll." ms<br />";
-	
+
 	if($silence_after_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_after_warning."<br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
 
