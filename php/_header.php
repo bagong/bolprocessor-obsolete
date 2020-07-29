@@ -21,6 +21,9 @@ echo "function copyToClipboard(text) {
  }\n";
 echo "</script>\n";
 
+// https://www.midijs.net/
+echo "<script type='text/javascript' src='https://www.midijs.net/lib/midi.js'></script>";
+
 echo "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js\">\n";
 echo "</script>\n";
 

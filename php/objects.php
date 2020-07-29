@@ -13,7 +13,7 @@ $dir = str_replace($filename,'',$file);
 $here = str_replace($root,'',$dir);
 require_once("_header.php");
 echo "<p>Current directory = ".$here;
-echo "<span id='message1' style=\"margin-bottom:1em;\"></span>";
+echo "   <span id='message1' style=\"margin-bottom:1em;\"></span>";
 echo "</p>";
 echo link_to_help();
 
@@ -234,6 +234,7 @@ echo "<table style=\"background-color:lightgrey;\">";
 for($i = 0; $i <= $iobj; $i++) {
 	echo "<tr><td>";
 	echo "<form method=\"post\" action=\"prototype.php\" enctype=\"multipart/form-data\">";
+	echo "<input type=\"hidden\" name=\"here\" value=\"".$here."\">";
 	echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 	echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file[$i]."\">";
 	echo "<input style=\"background-color:azure; font-size:larger;\" type=\"submit\" onclick=\"this.form.target='_blank';return true;\" name=\"object_name\" value=\"".$object_name[$i]."\">";

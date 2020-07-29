@@ -286,7 +286,8 @@ function compile_help($text_help_file,$html_help_file) {
 	
 function link_to_help() {
 	global $html_help_file;
-	$link = "<p>➡ <a onclick=\"window.open('".$html_help_file."','Help','width=800,height=500'); return false;\" href=\"".$html_help_file."\">Display complete help file</a></p>";
+	$console_link = "produce.php?instruction=help";
+	$link = "<p>➡ <a onclick=\"window.open('".$html_help_file."','Help','width=800,height=500'); return false;\" href=\"".$html_help_file."\">Display complete help file</a> or the console's <a href=\"".$console_link."\" onclick=\"window.open('".$console_link."','help','width=800,height=800,left=200'); return false;\">help file</a></p>";
 	return $link;
 	}
 	
@@ -590,22 +591,27 @@ function clean_folder_name($name) {
 	return $name;
 	}
 
-function convert_midi_to_text($verbose,$midi,$midi_file) {
+function convert_mf2t_to_bytes($verbose,$midi,$midi_file) {
 	// midi_file contains the code in MIDI format
 	$midi->importMid($midi_file);
-	$midi_text = array();
+	$midi_text_bytes = array();
 	$jcode = 0;
-	$tt = 0; // We need absolute time stamps
+	$tt = 0; // We ask for absolute time stamps
 	$text = $midi->getTxt($tt);
 	$table = explode(chr(10),$text);
 	for($i = 0; $i < count($table); $i++) {
 		$line = $table[$i];
+	//	echo $line."<br />";
 		$table2 = explode(" ",$line);
 		if(count($table2) < 4) continue;
 		$time = intval($table2[0]);
 		$chan = str_replace("ch=",'',$table2[2]);
 		$code[0] = $code[1] = $code[2] = $code[3] = -1;
-		if(isset($table2[1]) AND $table2[1] == "ChPr") {
+		if(isset($table2[3]) AND $table2[0] == "MFile") {
+			$division = $table2[3];
+			$midi_text_bytes[$jcode++] = intval($division);
+			}
+		else if(isset($table2[1]) AND $table2[1] == "ChPr") {
 			$val = str_replace("v=",'',$table2[3]);
 			if($verbose) echo $time." (ch ".$chan.") Channel pressure ".$val."<br />";
 			$code[0] = 208 + $chan - 1;
@@ -666,11 +672,11 @@ function convert_midi_to_text($verbose,$midi,$midi_file) {
 		for($j = 0; $j < 4; $j++) {
 			if($code[$j] >= 0) {
 				$byte = $time_signature + $code[$j];
-				$midi_text[$jcode++] = $byte;
+				$midi_text_bytes[$jcode++] = $byte;
 				}
 			}
 		}
-	return $midi_text;
+	return $midi_text_bytes;
 	}
 
 function rcopy($src,$dst) {
