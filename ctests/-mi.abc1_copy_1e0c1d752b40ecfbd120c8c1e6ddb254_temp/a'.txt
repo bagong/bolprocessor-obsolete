@@ -1,0 +1,59 @@
+// Bol Processor BP3 compatible with version BP2.9.8
+// Object prototype saved as "a'". Date: 2020-07-27 20:22:19
+-mi.abc1 copy
+5
+1
+0
+1500
+0.0000
+10000000100100110000
+0
+0.0000
+0.0000
+-1
+0
+-1
+0
+1
+1
+-1
+0
+-1
+0
+0
+100
+0
+100
+0
+0
+0
+0
+-1
+0.0000
+255
+-1
+1
+1
+1
+1
+1
+1
+0
+0
+-1
+-1
+-2
+0.0000
+0
+0
+-1
+-1
+-1
+711
+65535
+65535
+65535
+_beginCsoundScore_
+<HTML>t 0.000 40.000<BR>i1 0.000 0.550 8.00 90.000 90.000 0.000 0.000 0.000 0.000 ; C4<BR>i1 0.536 0.464 8.02 90.000 90.000 0.000 0.000 0.000 0.000 ; D4<BR>e</HTML>
+_endCsoundScore_
+<HTML>This object has also a Csound score which is not used in the demo.</HTML>

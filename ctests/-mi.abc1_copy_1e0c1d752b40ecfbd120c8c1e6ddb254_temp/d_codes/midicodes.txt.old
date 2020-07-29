@@ -1,0 +1,15 @@
+0 (ch 1) NoteOn 65 59 
+218 (ch 1) Channel pressure 0 
+266 (ch 1) Channel pressure 0 
+344 (ch 1) Channel pressure 1 
+393 (ch 1) Channel pressure 2 
+423 (ch 1) Channel pressure 3 
+443 (ch 1) Channel pressure 4 
+473 (ch 1) Channel pressure 5 
+494 (ch 1) Channel pressure 6 
+524 (ch 1) Channel pressure 7 
+583 (ch 1) Channel pressure 5 
+593 (ch 1) Channel pressure 3 
+603 (ch 1) Channel pressure 0 
+614 (ch 1) Channel pressure 0 
+617 (ch 1) NoteOff 65 0 

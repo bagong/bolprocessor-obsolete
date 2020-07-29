@@ -1,0 +1,114 @@
+0 (ch -15) Prog change 11 
+0 (ch 1) NoteOn 60 36 
+42 (ch 1) Channel pressure 0 
+666 (ch 1) Channel pressure 0 
+804 (ch 1) NoteOn 62 38 
+825 (ch 1) NoteOff 60 0 
+884 (ch 1) Channel pressure 0 
+983 (ch 1) Channel pressure 1 
+1061 (ch 1) Channel pressure 2 
+1328 (ch 1) Channel pressure 3 
+1469 (ch 1) Channel pressure 2 
+1477 (ch 1) Channel pressure 0 
+1484 (ch 1) Channel pressure 0 
+1500 (ch 1) NoteOff 62 0 
+1520 (ch 1) Parameter ctrl 7 89 0 
+1540 (ch 1) Parameter ctrl 7 88 0 
+1560 (ch 1) Parameter ctrl 7 87 0 
+1580 (ch 1) Parameter ctrl 7 86 0 
+1600 (ch 1) Parameter ctrl 7 85 0 
+1620 (ch 1) Parameter ctrl 7 84 0 
+1640 (ch 1) Parameter ctrl 7 83 0 
+1660 (ch 1) Parameter ctrl 7 82 0 
+1680 (ch 1) Parameter ctrl 7 81 0 
+1700 (ch 1) Parameter ctrl 7 81 0 
+1720 (ch 1) Parameter ctrl 7 80 0 
+1740 (ch 1) Parameter ctrl 7 79 0 
+1760 (ch 1) Parameter ctrl 7 78 0 
+1780 (ch 1) Parameter ctrl 7 77 0 
+1800 (ch 1) Parameter ctrl 7 76 0 
+1820 (ch 1) Parameter ctrl 7 75 0 
+1840 (ch 1) Parameter ctrl 7 74 0 
+1860 (ch 1) Parameter ctrl 7 73 0 
+1880 (ch 1) Parameter ctrl 7 72 0 
+1900 (ch 1) Parameter ctrl 7 72 0 
+1920 (ch 1) Parameter ctrl 7 71 0 
+1940 (ch 1) Parameter ctrl 7 70 0 
+1960 (ch 1) Parameter ctrl 7 69 0 
+1980 (ch 1) Parameter ctrl 7 68 0 
+2000 (ch 1) Parameter ctrl 7 67 0 
+2020 (ch 1) Parameter ctrl 7 66 0 
+2040 (ch 1) Parameter ctrl 7 65 0 
+2060 (ch 1) Parameter ctrl 7 64 0 
+2080 (ch 1) Parameter ctrl 7 63 0 
+2100 (ch 1) Parameter ctrl 7 63 0 
+2120 (ch 1) Parameter ctrl 7 62 0 
+2140 (ch 1) Parameter ctrl 7 61 0 
+2160 (ch 1) Parameter ctrl 7 60 0 
+2180 (ch 1) Parameter ctrl 7 59 0 
+2200 (ch 1) Parameter ctrl 7 58 0 
+2220 (ch 1) Parameter ctrl 7 57 0 
+2240 (ch 1) Parameter ctrl 7 56 0 
+2260 (ch 1) Parameter ctrl 7 55 0 
+2280 (ch 1) Parameter ctrl 7 54 0 
+2300 (ch 1) Parameter ctrl 7 54 0 
+2320 (ch 1) Parameter ctrl 7 53 0 
+2340 (ch 1) Parameter ctrl 7 52 0 
+2360 (ch 1) Parameter ctrl 7 51 0 
+2380 (ch 1) Parameter ctrl 7 50 0 
+2400 (ch 1) Parameter ctrl 7 49 0 
+2420 (ch 1) Parameter ctrl 7 48 0 
+2440 (ch 1) Parameter ctrl 7 47 0 
+2460 (ch 1) Parameter ctrl 7 46 0 
+2480 (ch 1) Parameter ctrl 7 45 0 
+2500 (ch 1) Parameter ctrl 7 45 0 
+2520 (ch 1) Parameter ctrl 7 44 0 
+2540 (ch 1) Parameter ctrl 7 43 0 
+2560 (ch 1) Parameter ctrl 7 42 0 
+2580 (ch 1) Parameter ctrl 7 41 0 
+2600 (ch 1) Parameter ctrl 7 40 0 
+2620 (ch 1) Parameter ctrl 7 39 0 
+2640 (ch 1) Parameter ctrl 7 38 0 
+2660 (ch 1) Parameter ctrl 7 37 0 
+2680 (ch 1) Parameter ctrl 7 36 0 
+2700 (ch 1) Parameter ctrl 7 36 0 
+2720 (ch 1) Parameter ctrl 7 35 0 
+2740 (ch 1) Parameter ctrl 7 34 0 
+2760 (ch 1) Parameter ctrl 7 33 0 
+2780 (ch 1) Parameter ctrl 7 32 0 
+2800 (ch 1) Parameter ctrl 7 31 0 
+2820 (ch 1) Parameter ctrl 7 30 0 
+2840 (ch 1) Parameter ctrl 7 29 0 
+2860 (ch 1) Parameter ctrl 7 28 0 
+2880 (ch 1) Parameter ctrl 7 27 0 
+2900 (ch 1) Parameter ctrl 7 27 0 
+2920 (ch 1) Parameter ctrl 7 26 0 
+2940 (ch 1) Parameter ctrl 7 25 0 
+2960 (ch 1) Parameter ctrl 7 24 0 
+2980 (ch 1) Parameter ctrl 7 23 0 
+3000 (ch 1) Parameter ctrl 7 22 0 
+3020 (ch 1) Parameter ctrl 7 21 0 
+3040 (ch 1) Parameter ctrl 7 20 0 
+3060 (ch 1) Parameter ctrl 7 19 0 
+3080 (ch 1) Parameter ctrl 7 18 0 
+3100 (ch 1) Parameter ctrl 7 18 0 
+3120 (ch 1) Parameter ctrl 7 17 0 
+3140 (ch 1) Parameter ctrl 7 16 0 
+3160 (ch 1) Parameter ctrl 7 15 0 
+3180 (ch 1) Parameter ctrl 7 14 0 
+3200 (ch 1) Parameter ctrl 7 13 0 
+3220 (ch 1) Parameter ctrl 7 12 0 
+3240 (ch 1) Parameter ctrl 7 11 0 
+3260 (ch 1) Parameter ctrl 7 10 0 
+3280 (ch 1) Parameter ctrl 7 9 0 
+3300 (ch 1) Parameter ctrl 7 9 0 
+3320 (ch 1) Parameter ctrl 7 8 0 
+3340 (ch 1) Parameter ctrl 7 7 0 
+3360 (ch 1) Parameter ctrl 7 6 0 
+3380 (ch 1) Parameter ctrl 7 5 0 
+3400 (ch 1) Parameter ctrl 7 4 0 
+3420 (ch 1) Parameter ctrl 7 3 0 
+3440 (ch 1) Parameter ctrl 7 2 0 
+3460 (ch 1) Parameter ctrl 7 1 0 
+3480 (ch 1) Parameter ctrl 7 0 0 
+3500 (ch 1) Parameter ctrl 7 0 0 

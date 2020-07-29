@@ -1,0 +1,12 @@
+// Bol Processor BP3 compatible with version BP2.9.8
+// Grammar file saved as "-gr.xxx". Date: 2020-07-23 19:25:52
+_randomize
+
+gram#1[1] S --> A B C D
+
+gram#1[2] LEFT A --> E4
+gram#1[3] LEFT C <-- B3
+gram#1[4] RIGHT B <-> C5
+
+COMMENT:
+This is an empty grammar…
