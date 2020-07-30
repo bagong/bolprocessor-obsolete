@@ -34,9 +34,9 @@ if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
 $midi_file = $save_codes_dir."/midicodes.mid";
 $midi_text = $save_codes_dir."/midicodes.txt";
 $midi_bytes = $save_codes_dir."/midibytes.txt";
+$midi_import = $save_codes_dir."/midi_import.txt";
 $mf2t = $save_codes_dir."/mf2t.txt";
 $midi_text_bytes = array();
-$division = $new_resolution = 0;
 if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 	$upload_filename = $_FILES['mid_upload']['name'];
 	if($_FILES["mid_upload"]["size"] > MAXFILESIZE) {
@@ -55,12 +55,9 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 		else {
 			echo "<h3 id=\"timespan\"><font color=\"red\">Converting MIDI file:</font> <font color=\"blue\">".$upload_filename."</font></h3>";
 			$midi = new Midi();
-			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi,$midi_file);
-			$division = $midi_text_bytes[0];
-		//	$new_resolution = 480 / $division;
-			$Tref = $_POST['Tref'];
-			$new_resolution = $division / (0.48 * $Tref);
-		//	echo "<p>(division = ".$division." ; new_resolution = ".$new_resolution.")</p>";
+			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi_import,$midi,$midi_file);
+			$division = $_POST['division'] = $midi_text_bytes[0];
+		//	$Tref = $_POST['Tref'] = $division / 0.48;
 			$temp_bytes = array();
 			for($i = 1; $i < count($midi_text_bytes); $i++)
 				$temp_bytes[] = $midi_text_bytes[$i];
@@ -82,15 +79,16 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	if(isset($_POST['object_type1'])) $object_type += 1;
 	if(isset($_POST['object_type4'])) $object_type += 4;
 	fwrite($handle,$object_type."\n");
+	$Tref = $_POST['Tref'];
 	if(isset($_POST['division'])) $division = $_POST['division'];
-	else $division = 0;
+	else $division = round(0.48 * $Tref);
 	$j = 1;
 	$resolution = $_POST["object_param_".$j++];
 	fwrite($handle,$resolution."\n");
 	$default_channel = $_POST["object_param_".$j++];
 	fwrite($handle,$default_channel."\n");
-	$Tref = $_POST['Tref'] / $resolution;
-	fwrite($handle,$Tref."\n");
+	$Trefc = $_POST['Tref'] / $resolution;
+	fwrite($handle,$Trefc."\n");
 	$j++;
 	$quantization = $_POST["object_param_".$j++];
 	fwrite($handle,$quantization."\n"); // Quantization
@@ -461,7 +459,6 @@ echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file."\">";
 echo "<input type=\"hidden\" name=\"source_file\" value=\"".$source_file."\">";
 echo "<input type=\"hidden\" name=\"here\" value=\"".$here."\">";
-echo "<input type=\"hidden\" name=\"division\" value=\"".$division."\">";
 
 $object_comment = recode_tags($object_comment);
 $size = strlen($object_comment);
@@ -479,15 +476,21 @@ echo "<input type=\"checkbox\" name=\"object_type4\"";
 echo "<p>GLOBAL PARAMETERS</p>";
 $resolution = $object_param[$j];
 if($resolution == '' OR $resolution == 0) $resolution = 1;
-if($new_resolution > 0) $resolution = $new_resolution; // MIDIfile has been loaded
 // $resolution = intval($resolution);
 if($resolution == 0) $resolution = 1;
 echo "Resolution: 1 tick = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"5\" value=\"".$resolution."\"> ms<br />";
 
 echo "Default channel = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"><br />";
 
-$Tref = $object_param[$j++] * $object_param[1];
-echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ticks ➡ ";
+$Trefc = $object_param[$j++];
+$Tref = $Trefc * $object_param[1];
+// $division = round(0.12 * $Tref);
+if(isset($_POST['Tref'])) $Tref = $_POST['Tref'];
+if(isset($_POST['division'])) $division = $_POST['division'];
+else $division = 480; // round(0.48 * $Tref);
+echo "<p>division = ".$division."</p>";
+echo "<input type=\"hidden\" name=\"division\" value=\"".$division."\">";
+echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ ";
 if($Tref > 0) echo "this object is <font color=\"blue\">striated</font> (it has a pivot) and Tref is the period of its reference metronome.<br /><i>Set this value to zero if the object is smooth (no pivot).</i><br />";
 else echo "this object is <font color=\"blue\">smooth</font> (it has no pivot)<br />";
 
@@ -1156,7 +1159,7 @@ if(isset($_POST['quantize_NoteOn'])) {
 
 $flatten_all = FALSE;
 if(isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats'])) {
-	$NewDuration = intval($_POST['NewDuration']);
+	$NewDuration = round($_POST['NewDuration']);
 	$NewBeats = $_POST['NewBeats'];
 	if(isset($_POST['adjust_duration']) AND $NewDuration == 0) $flatten_all = TRUE;
 	if(isset($_POST['adjust_beats']) AND $NewBeats == 0) $flatten_all = TRUE;
@@ -1258,13 +1261,14 @@ $duration_warning = '';
 $change_beats = FALSE;
 if(isset($_POST['adjust_beats'])) {
 	$NewBeats = $_POST['NewBeats'];
-	$NewDuration = intval($Tref * $NewBeats * $resolution);
-	echo "NewDuration = ".$NewDuration."<br />";
+//	$NewDuration = round($Tref * $NewBeats * $resolution);
+	$NewDuration = round($Tref * $NewBeats);
+//	echo "NewDuration = ".$NewDuration." ms<br />";
 	$change_beats = TRUE;
 	}
 if($change_beats OR isset($_POST['adjust_duration'])) {
-	if(!$change_beats) $NewDuration = intval($_POST['NewDuration']);
-	$Duration = intval($_POST['Duration']);
+	if(!$change_beats) $NewDuration = $_POST['NewDuration'];
+	$Duration = $_POST['Duration'];
 	if($Duration > 0) {
 		$alpha = $NewDuration / $Duration;
 		$new_midi_code = array();
@@ -1272,7 +1276,7 @@ if($change_beats OR isset($_POST['adjust_duration'])) {
 			$byte = $midi_text_bytes[$k];
 			$code = $byte % 256;
 			$time = ($byte - $code) / 256;
-			$newtime = intval($alpha * $time); 
+			$newtime = round($alpha * $time); 
 			$new_midi_code[$k] = $code + (256 * $newtime);
 			}
 		}
@@ -1330,9 +1334,6 @@ if(!$no_midi) {
 	$trk = 1;
 	$handle_text = fopen($midi_text,"w");
 	$handle_mf2t = fopen($mf2t,"w");
-//	fwrite($handle_mf2t,"MFile 1 5 480\n");
-	$division = intval(0.48 * $Tref * $resolution);
-//	$division = intval(480 / $resolution);
 	fwrite($handle_mf2t,"MFile 1 ".$number_of_tracks." ".$division."\n");
 	fwrite($handle_mf2t,"MTrk\n");
 	$track_name = $object_name."_track_".$trk;
@@ -1568,12 +1569,13 @@ if(!$no_midi) {
 	echo "<p>MIDI CODES</p>";
 	$mf2t_content = @file_get_contents($mf2t,TRUE);
 	$size_mf2t = strlen($mf2t_content);
-	if($size_mf2t < 100000) {
+	if($size_mf2t < 1000000) {
+		echo "<p>Creating MIDI file for listening…</p>";
 		$midi = new Midi();
 		$midi->importTxt($mf2t_content);
 		$midi->saveMidFile($midi_file);
 		}
-	else echo "Size of mf2t_content = ".$size_mf2t." bytes<br />";
+	else echo "<p>Size of mf2t_content = ".$size_mf2t." bytes</p>";
 	}
 
 if(!$no_midi AND file_exists($midi_text)) {
@@ -1610,7 +1612,7 @@ if(!$no_midi) {
 	if($duration_warning <> '') echo $duration_warning;
 	echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
 	echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_duration\" value=\"Adjust event time duration\"> to <input type=\"text\" name=\"NewDuration\" size=\"8\" value=\"".$Duration."\"> ms<br />";
-	if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref * $resolution),2)."\"> beats (striated object with Tref = ".$Tref." ticks of ".$resolution." ms, i.e. ".($Tref * $resolution)." ms)";
+	if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref),2)."\"> beats (striated object with Tref = ".($Tref / $resolution)." ticks of ".$resolution." ms, i.e. ".($Tref)." ms)";
 	echo "</p>";
 	
 	if($silence_before_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_before_warning."<br />";
@@ -1627,7 +1629,18 @@ if(!$new_midi AND !$no_midi) {
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"add_allnotes_off\" value=\"APPEND AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_allnotes_off\" value=\"SUPPRESS AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"delete_midi\" value=\"SUPPRESS all MIDI codes\"><br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"quantize_NoteOn\" value=\"QUANTIZE NoteOns\"> = 1 / <input type=\"text\" name=\"NoteOnQuantize\" size=\"4\" value=\"64\"> beat";
 	}
+
+$link = "prototype_image.php?object_name=".$object_name."&Duration=".$Duration;
+
+echo "<div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$link."','".$object_name."_image','width=805,height=605,left=100'); return false;\" href=\"".$link."\">IMAGE</a></div>";
+
 echo "<p style=\"text-align:center;\"><i>I am working on the “convert MIDI to Csound” procedure…</i></p>";
 echo "<p style=\"text-align:center;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\">&nbsp;<big> = <b><font color=\"red\">".$object_name."</font></b></big></p>";
 echo "</form>";
+
+/* echo "<form method=\"post\" action=\"prototype_image.php\" enctype=\"multipart/form-data\">";
+echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
+echo "<input type=\"hidden\" name=\"division\" value=\"".$division."\">";
+echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','image','width=800,height=800'); return false;\" type=\"submit\" name=\"draw\" value=\"IMAGE\">";
+echo "</form>"; */
 ?>

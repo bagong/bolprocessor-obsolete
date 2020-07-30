@@ -591,17 +591,19 @@ function clean_folder_name($name) {
 	return $name;
 	}
 
-function convert_mf2t_to_bytes($verbose,$midi,$midi_file) {
+function convert_mf2t_to_bytes($verbose,$midi_import,$midi,$midi_file) {
 	// midi_file contains the code in MIDI format
 	$midi->importMid($midi_file);
 	$midi_text_bytes = array();
 	$jcode = 0;
 	$tt = 0; // We ask for absolute time stamps
 	$text = $midi->getTxt($tt);
+	$handle = fopen($midi_import,"w");
 	$table = explode(chr(10),$text);
 	for($i = 0; $i < count($table); $i++) {
 		$line = $table[$i];
 	//	echo $line."<br />";
+		fwrite($handle,$line."\n");
 		$table2 = explode(" ",$line);
 		if(count($table2) < 4) continue;
 		$time = intval($table2[0]);
@@ -676,6 +678,7 @@ function convert_mf2t_to_bytes($verbose,$midi,$midi_file) {
 				}
 			}
 		}
+	fclose($handle);
 	return $midi_text_bytes;
 	}
 
