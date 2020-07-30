@@ -4,16 +4,16 @@ require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
 
 // take bottom-up approach
-$bp_php_dir = getcwd();
-$bp_application_dir = dirname($bp_php_dir);
-$bp_parent_dir = dirname($bp_application_dir);
+$bp_php_path = getcwd();
+$bp_application_path = dirname($bp_php_path);
+$bp_parent_path = dirname($bp_application_path);
 
 // previous $root and $path_to_root must be replaced
-// $root.$path_to_bp is $bp_parent_dir
-// $root.$path_to_bp."/"."bolprocessor" is $bp_application_dir
-// $root.$path_to_bp."/"."bolprocessor/php" is $bp_php_dir
+// $root.$path_to_bp is $bp_parent_path
+// $root.$path_to_bp."/"."bolprocessor" is $bp_application_path
+// $root.$path_to_bp."/"."bolprocessor/php" is $bp_php_path
 
-$text_help_file = $bp_application_dir.DIRECTORY_SEPARATOR."BP2_help.txt";
+$text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
 $html_help_file = "BP2_help.html";
 $help = compile_help($text_help_file,$html_help_file);
 $tracefile = "trace_".session_id().".txt";

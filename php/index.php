@@ -11,7 +11,7 @@ if(isset($_GET['path'])) {
 	if($table[count($table)-1]) echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
 else {
-	$dir = $bp_application_dir;
+	$dir = $bp_application_path;
 	}
 
 // echo "dir = ".$dir."<br />";
@@ -46,7 +46,7 @@ if(isset($_POST['create_alphabet'])) {
 	else unset($_POST['create_alphabet']);
 	}
 
-$folder = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$dir);
+$folder = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);

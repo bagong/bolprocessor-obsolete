@@ -20,7 +20,7 @@ function getData() {
 	fd.append('comment_on_file',comment_on_file);
 	return fd;
 	}
-	
+
 function savePost() {
 	try {
 		var xhttp = new XMLHttpRequest();
@@ -29,7 +29,7 @@ function savePost() {
 		console.log(e);
 		}
 	var data1 = getData();
-	xhttp.open('POST','autosave.php?save=1'); 
+	xhttp.open('POST','autosave.php?save=1');
 	xhttp.send(data1);
 	xhttp.onreadystatechange = function() {
 		if(this.status == 200 && this.readyState == 4) {
@@ -38,4 +38,4 @@ function savePost() {
 			}
 		}
 	}
-var myVar = setInterval(savePost, 30000); 
+var myVar = setInterval(savePost, 30000);

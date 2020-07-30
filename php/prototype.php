@@ -68,7 +68,7 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			}
 		}
 	}
-else echo "<p>Object file: <font color=\"blue\">".str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$object_file)."</font>";
+else echo "<p>Object file: <font color=\"blue\">".str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$object_file)."</font>";
 
 if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats']) OR isset($_POST['adjust_duration']) OR isset($_POST['silence_before']) OR isset($_POST['silence_after']) OR isset($_POST['add_allnotes_off']) OR isset($_POST['suppress_allnotes_off']) OR isset($_POST['quantize_NoteOn']) OR isset($_POST['delete_midi']) OR isset($_POST['cancel'])) {
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
@@ -421,7 +421,7 @@ if(isset($_POST['playexpression'])) {
 	$handle = fopen($startup_file,"w");
 	fwrite($handle,$expression."\n");
 	fclose($handle);
-	$application_path = $bp_application_dir.DIRECTORY_SEPARATOR;
+	$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
 //	echo "application_path = ".$application_path."<br />";
 	$command = $application_path."bp play";
 	$command .= " --startup ".$startup_file;
@@ -1577,9 +1577,9 @@ if(!$no_midi) {
 	}
 
 if(!$no_midi AND file_exists($midi_text)) {
-	$text_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$midi_text);
-	$bytes_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$midi_bytes);
-	$mf2t_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$mf2t);
+	$text_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$midi_text);
+	$bytes_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$midi_bytes);
+	$mf2t_link = DIRECTORY_SEPARATOR.str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$mf2t);
 /*	echo "midi_text = ".$midi_text."<br />";
 	echo "midi_bytes = ".$midi_bytes."<br />";
 	echo "text_link = ".$text_link."<br />";
@@ -1591,7 +1591,7 @@ if(!$no_midi AND file_exists($midi_text)) {
 	$table = explode(DIRECTORY_SEPARATOR,$here);
 	$this_data_folder = $table[count($table) - 2];
 //	echo "this_data_folder = ".$this_data_folder."<br />";
-	$midi_file_link = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR.$here,'',$midi_file);
+	$midi_file_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR.$here,'',$midi_file);
 	$midi_file_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$midi_file_link;
 	if(file_exists($midi_file_link)) {
 		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\">Play MIDI file</a>";

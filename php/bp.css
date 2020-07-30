@@ -22,7 +22,7 @@ table {
 	}
 .triangle:hover {
 	color:red;
- //   background-color: inherit !important; 
+ //   background-color: inherit !important;
 	}
 #partage1:hover, #partage2:hover {
 	box-shadow: -2px -2px Aqua;
@@ -125,7 +125,7 @@ input[type=submit] {
 	margin: 2px;
 //	box-shadow: -4px -2px Gold;
 	}
-	
+
 h1 {
 	text-align:center;
 	}
@@ -202,10 +202,10 @@ snowflakeContainer {
 	body, td, th, p, h1, h2, h3, div, span, a {
   //      text-size-adjust: 100%;
      	}
-	.bouton {	
+	.bouton {
 		font-size: small !important;
 		}
-	.clickrectangle {	
+	.clickrectangle {
 		font-size: small !important;
 		}
      }

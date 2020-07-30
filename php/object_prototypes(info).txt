@@ -13,7 +13,7 @@ Resolution (default 1)
 DefaultChannel
 k => Tref = k * Resolution
 Quan
-line (binary): 
+line (binary):
 
 	pivbeg = (*p_line)[i++]-'0';
 	pivend = (*p_line)[i++]-'0';
@@ -85,4 +85,3 @@ Tpict
 ObjectColor.red = -1
 ObjectColor.green = -1
 ObjectColor.blue = -2
-

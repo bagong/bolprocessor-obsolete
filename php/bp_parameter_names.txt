@@ -1,5 +1,5 @@
 Port		0	
-(none)		0	
+(none)		0
 Quantization	ms	1
 Time resolution	ms	1
 Set-up time	ms	1

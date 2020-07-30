@@ -6,7 +6,7 @@ $url_this_page = "produce.php";
 $this_title = "BP console";
 require_once("_header.php");
 
-$application_path = $bp_application_dir.DIRECTORY_SEPARATOR;
+$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
 
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
@@ -84,9 +84,9 @@ for($i=0; $i < $n_messages; $i++) {
 echo "<hr>";
 
 if($instruction <> "help") {
-	$output_link = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$output);
+	$output_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$output);
 	$tracefile_html = clean_up_file($dir.$tracefile);
-	$trace_link = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$tracefile_html);
+	$trace_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$tracefile_html);
 
 	if(!$no_error) {
 		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">error trace</a> file!</p>";

@@ -12,7 +12,7 @@ $url_this_page .= "?file=".$grammar_file;
 $table = explode(DIRECTORY_SEPARATOR,$grammar_file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$grammar_file);
-$here = str_replace($bp_parent_dir.DIRECTORY_SEPARATOR,'',$dir);
+$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
 // echo $dir."<br />".$here."<br />";
 $trace_link = $here.$tracefile;
 // echo "<br />".$trace_link."<br />";
@@ -76,7 +76,7 @@ if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
 	$output_folder = trim(str_replace(DIRECTORY_SEPARATOR,' ',$output_folder));
 	$output_folder = str_replace(' ',DIRECTORY_SEPARATOR,$output_folder);
-	$output = $bp_application_dir.DIRECTORY_SEPARATOR.$output_folder;
+	$output = $bp_application_path.DIRECTORY_SEPARATOR.$output_folder;
 	do $output = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$output,$count);
 	while($count > 0);
 //	echo $output."<br />";
@@ -95,7 +95,7 @@ if(isset($_POST['change_output_folder'])) {
 	fclose($handle);
 	}
 else {
-	$output = $bp_application_dir.DIRECTORY_SEPARATOR.$output_folder;
+	$output = $bp_application_path.DIRECTORY_SEPARATOR.$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 	if(!file_exists($output)) {
@@ -116,7 +116,7 @@ if(isset($_POST['compilegrammar'])) {
 	echo "<p id=\"timespan\" style=\"color:red;\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
-	$application_path = $bp_application_dir.DIRECTORY_SEPARATOR;
+	$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
 	chdir($dir);
 	$command = $application_path."bp compile";
 	if($note_convention <> '') $command .= " --".$note_convention;
