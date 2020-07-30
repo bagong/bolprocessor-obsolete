@@ -17,11 +17,6 @@ else {
 $this_title = $object_name;
 require_once("_header.php");
 
-/* echo "url_this_page = ".$url_this_page."<br />";
-echo "temp_folder = ".$temp_folder."<br />";
-echo "object_file = ".$object_file."<br />";
-echo "here = ".$here."<br />"; */
-
 $object_foldername = clean_folder_name($object_name);
 $save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
 $deleted_object = $temp_folder.DIRECTORY_SEPARATOR.$object_name.".txt.old";
@@ -30,6 +25,7 @@ if(file_exists($deleted_object)) {
 	die();
 	}
 if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
+$image_file = $save_codes_dir.DIRECTORY_SEPARATOR."image.php";
 $midi_file = $save_codes_dir.DIRECTORY_SEPARATOR."midicodes.mid";
 $midi_text = $save_codes_dir.DIRECTORY_SEPARATOR."midicodes.txt";
 $midi_bytes = $save_codes_dir.DIRECTORY_SEPARATOR."midibytes.txt";
@@ -83,8 +79,17 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	$j = 1;
 	$resolution = $_POST["object_param_".$j++];
 	fwrite($handle,$resolution."\n");
-	$default_channel = $_POST["object_param_".$j++];
-	fwrite($handle,$default_channel."\n");
+	
+	$channel_force = $_POST['channel_force'];
+	if($channel_force <> 1) $MIDIchannel = $channel_force;
+	else $MIDIchannel = trim($_POST['MIDIchannel']);
+	if($MIDIchannel == '') $MIDIchannel = 0;
+	$MIDIchannel = intval($MIDIchannel);
+	
+//	$default_channel = $_POST["object_param_".$j++];
+	fwrite($handle,$MIDIchannel."\n");
+	$j++;
+	
 	$Trefc = $_POST['Tref'] / $resolution;
 	fwrite($handle,$Trefc."\n");
 	$j++;
@@ -441,6 +446,10 @@ if(isset($_POST['playexpression'])) {
 // ---------- EDIT THIS PROTOTYPE ------------
 
 
+	
+$h_image = fopen($image_file,"w");
+fwrite($h_image,"<?php\n");
+
 echo "<form method=\"post\" action=\"prototype.php\" enctype=\"multipart/form-data\">";
 
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\"></p>";
@@ -466,14 +475,33 @@ echo "<input type=\"checkbox\" name=\"object_type4\"";
    if($object_type > 3) echo " checked";
    echo "> Csound score";
 
-echo "<p>GLOBAL PARAMETERS</p>";
 $resolution = $object_param[$j];
 if($resolution == '' OR $resolution == 0) $resolution = 1;
 // $resolution = intval($resolution);
 if($resolution == 0) $resolution = 1;
-echo "Resolution: 1 tick = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"5\" value=\"".$resolution."\"> ms<br />";
+echo "<p>Resolution: 1 tick = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"5\" value=\"".$resolution."\"> ms</p>";
 
-echo "Default channel = <input type=\"text\" name=\"object_param_".$j."\" size=\"5\" value=\"".$object_param[$j++]."\"><br />";
+$MIDIchannel = $object_param[$j++];
+// echo "MIDIchannel j = ".($j -1)."<br />";
+// echo "<p>Force to MIDI channel = <input type=\"text\" name=\"object_param_".($j++)."\" size=\"5\" value=\"".$MIDIchannel."\"> (zero means using current channel)</p>";
+store($h_image,"MIDIchannel",$MIDIchannel);
+
+echo "<p>MIDI CHANNEL</p>";
+
+echo "<p><input type=\"radio\" name=\"channel_force\" value=\"0\"";
+if($MIDIchannel == 0) echo " checked";
+echo "> Force to current channel<br />";
+echo "<input type=\"radio\" name=\"channel_force\" value=\"-1\"";
+if($MIDIchannel == -1) echo " checked";
+echo "> Do not change channels<br />";
+echo "<input type=\"radio\" name=\"channel_force\" value=\"1\"";
+if($MIDIchannel > 0) echo " checked";
+echo "> Force to channel&nbsp;";
+if($MIDIchannel > 0) $value = $MIDIchannel;
+else $value = '';
+echo "<input type=\"text\" name=\"MIDIchannel\" size=\"3\" value=\"". $value."\"></p>";
+
+echo "<p>TIME REFERENCE</p>";
 
 $Trefc = $object_param[$j++];
 $Tref = $Trefc * $object_param[1];
@@ -517,22 +545,38 @@ echo "<input type=\"radio\" name=\"Pivot_mode\" value=\"3\"";
 if($pivendoff == 1) echo " checked";
 echo ">Last NoteOff<br />";
 
+store($h_image,"pivbeg",$pivbeg);
+store($h_image,"pivcent",$pivcent);
+store($h_image,"pivend",$pivend);
+store($h_image,"pivbegon",$pivbegon);
+store($h_image,"pivcentonoff",$pivcentonoff);
+store($h_image,"pivendoff",$pivendoff);
+	
 $okrescale = $string[$k++];
 $FixScale = $string[$k++];
 $OkExpand = $string[$k++];
 $OkCompress = $string[$k++];
 $OkRelocate = $string[$k++];
+store($h_image,"OkRelocate",$OkRelocate);
 $BreakTempo = $string[$k++];
 
 $ContBeg = $string[$k++];
 $ContEnd = $string[$k++];
+store($h_image,"ContBeg",$ContBeg);
+store($h_image,"ContEnd",$ContEnd);
 
 $CoverBeg = $string[$k++];
 $CoverEnd = $string[$k++];
 $TruncBeg = $string[$k++];
 $TruncEnd = $string[$k++];
+store($h_image,"CoverBeg",$CoverBeg);
+store($h_image,"CoverEnd",$CoverEnd);
+store($h_image,"TruncBeg",$TruncBeg);
+store($h_image,"TruncEnd",$TruncEnd);
 
 $pivspec = $string[$k++];
+store($h_image,"pivspec",$pivspec);
+
 $AlphaCtrl = $string[$k++];
 
 $RescaleMode = $object_param[$j++];
@@ -546,6 +590,7 @@ $ForwardMode = $object_param[$j++];
 $MaxForward = $object_param[$j++];
 
 $BreakTempoMode = $object_param[$j++];
+
 
 $x = $object_param[$j++];
 if(isset($_POST['division'])) $division = $_POST['division'];
@@ -568,6 +613,8 @@ $MaxTruncEnd = $object_param[$j++];
 
 $PivMode = $object_param[$j++];
 $PivPos = $object_param[$j++];
+store($h_image,"PivMode",$PivMode);
+store($h_image,"PivPos",$PivPos);
 
 $AlphaCtrlNr = $object_param[$j++];
 $AlphaCtrlChan = $object_param[$j++];
@@ -664,6 +711,13 @@ if($dilation_ok) echo " checked";
 echo ">Dilation ratio range from";
 echo "&nbsp;<input type=\"text\" name=\"AlphaMin\" size=\"5\" value=\"".$value_min."\"> to <input type=\"text\" name=\"AlphaMax\" size=\"5\" value=\"".$value_max."\"> %<br />";
 
+// store($h_image,"okrescale",$okrescale);
+store($h_image,"OkExpand",$OkExpand);
+store($h_image,"OkCompress",$OkCompress);
+store($h_image,"FixScale",$FixScale);
+if($dilation_ok) store($h_image,"dilation_mssg","Dilation ratio range from ".$value_min." to ".$value_max." %");
+
+
 $alpha_controller = FALSE;
 if($AlphaCtrl AND $AlphaCtrlNr > 0 AND $AlphaCtrlChan > 0) {
 	$alpha_controller = TRUE;
@@ -750,6 +804,7 @@ echo ">Never break after this object<br />";
 echo "<input type=\"radio\" name=\"BreakTempo\" value=\"1\"";
 if($BreakTempo == 1) echo " checked";
 echo ">Break at will";
+store($h_image,"BreakTempo",$BreakTempo);
 
 echo "<p>FORCE CONTINUITY (BEGINNING)</p>";
 echo "<input type=\"radio\" name=\"ContBeg\" value=\"0\"";
@@ -1337,6 +1392,8 @@ if(!$no_midi) {
 	$more = 0; $code_line = $mf2t_line = '';
 	if($new_midi) fwrite($handle_bytes,$kmax."\n");
 	$hide = 0; $oldtime = 0;
+	$first_note_on = TRUE;
+	$last_note_off = -1;
 	for($k = 0; $k < $kmax; $k++) {
 		$byte = $midi_text_bytes[$k];
 		if($new_midi) fwrite($handle_bytes,$byte."\n");
@@ -1353,6 +1410,11 @@ if(!$no_midi) {
 		$oldtime = $time;
 	//	echo "(".$time.") ".$code."<br />";
 		if($code >= 144 AND $code < 160) {
+			store($h_image,"event[]",$time);
+			if($first_note_on) {
+				store($h_image,"first_note_on",$time);
+				$first_note_on = FALSE;
+				}
 			$channel = $code - 144 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$key = $byte % 256;
@@ -1362,11 +1424,15 @@ if(!$no_midi) {
 			fwrite($handle_mf2t,$mf2t_line."\n");
 			if($velocity > 0)
 				$code_line = $time." (ch ".$channel.") NoteOn ";
-			else
+			else {
 				$code_line = $time." (ch ".$channel.") NoteOff ";
+				$last_note_off = $time;
+				}
 			$more = 2;
 			}
 		else if($code >= 128 AND $code < 144) {
+			store($h_image,"event[]",$time);
+			$last_note_off = $time;
 			$channel = $code - 128 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$key = $byte % 256;
@@ -1378,6 +1444,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 160 AND $code < 176) {
+			store($h_image,"event[]",$time);
 			$channel = $code - 160 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$key = $byte % 256;
@@ -1389,6 +1456,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 176 AND $code < 192) {
+			store($h_image,"event[]",$time);
 			$channel = $code - 176 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$ctrl = $byte % 256;
@@ -1506,6 +1574,7 @@ if(!$no_midi) {
 			else $more = 3; // 14-bit controller/switch
 			}
 		else if($code >= 208 AND $code < 224) {
+			store($h_image,"event[]",$time);
 			$channel = $code - 208 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$val = $byte % 256;
@@ -1515,6 +1584,7 @@ if(!$no_midi) {
 			$more = 1;
 			}
 		else if($code >= 224 AND $code < 240) {
+			store($h_image,"event[]",$time);
 			$channel = $code - 224 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$val1 = $byte % 256;
@@ -1527,6 +1597,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 192 AND $code < 208) {
+			store($h_image,"event[]",$time);
 			$channel = $code - 192 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$prog = $byte % 256;
@@ -1548,6 +1619,7 @@ if(!$no_midi) {
 				}
 			}
 		}
+	if($last_note_off >= 0) store($h_image,"last_note_off",$last_note_off);
 	fclose($handle_text);
 	fwrite($handle_mf2t,$time." Meta TrkEnd\n");
 	fwrite($handle_mf2t,"TrkEnd\n");
@@ -1606,6 +1678,8 @@ else echo "<p>No MIDI codes in this sound-object prototype</p>";
 if(!$no_midi) {
 	echo "<p>DURATION</p>";
 	$real_duration = $Duration - $PreRoll + $PostRoll;
+	store($h_image,"PreRoll",$PreRoll);
+	store($h_image,"PostRoll",$PostRoll);
 	echo "Real duration of this object will be:<br /><b>event duration - pre-roll + post-roll</b> = ".$Duration." - (".$PreRoll.") + (".$PostRoll.") = ".$real_duration." ms<br />for a metronome period Tref = ".$Tref." ms";
 	if($duration_warning <> '') echo $duration_warning;
 	echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
@@ -1627,10 +1701,18 @@ if(!$new_midi AND !$no_midi) {
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"add_allnotes_off\" value=\"APPEND AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_allnotes_off\" value=\"SUPPRESS AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"delete_midi\" value=\"SUPPRESS all MIDI codes\"><br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"quantize_NoteOn\" value=\"QUANTIZE NoteOns\"> = 1 / <input type=\"text\" name=\"NoteOnQuantize\" size=\"4\" value=\"64\"> beat</p>";
 	}
+	
+store($h_image,"object_name",$object_name);
+store($h_image,"Duration",$Duration);
+store($h_image,"Tref",$Tref);
+$line = "§>\n";
+$line = str_replace('§','?',$line);
+fwrite($h_image,$line);
+fclose($h_image);
 
-$link = "prototype_image.php?object_name=".$object_name."&Duration=".$Duration;
+$link = "prototype_image.php?save_codes_dir=".urlencode($save_codes_dir);
 
-echo "<div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$link."','".$object_name."_image','width=805,height=605,left=100'); return false;\" href=\"".$link."\">IMAGE</a></div>";
+echo "<div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$link."','".clean_folder_name($object_name)."_image','width=805,height=605,left=100'); return false;\" href=\"".$link."\">IMAGE</a></div>";
 
 echo "<p style=\"text-align:center;\"><i>I am working on the “convert MIDI to Csound” procedure…</i></p>";
 echo "<p style=\"text-align:center;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\">&nbsp;<big> = <b><font color=\"red\">".$object_name."</font></b></big></p>";
