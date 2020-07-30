@@ -6,7 +6,7 @@ $url_this_page = "produce.php";
 $this_title = "BP console";
 require_once("_header.php");
 
-$application_path = $root.$path_to_bp."bolprocessor/";
+$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
 
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
@@ -32,26 +32,26 @@ else {
 	else $show_production = FALSE;
 	if(isset($_GET['trace_production'])) $trace_production = TRUE;
 	else $trace_production = FALSE;
-	
+
 	$table = explode('/',$grammar_path);
 	$grammar_name = $table[count($table) - 1];
 	$dir = str_replace($grammar_name,'',$grammar_path);
-	
+
 	if($output <> '') @unlink($output);
 	if($tracefile <> '') @unlink($tracefile);
-	
+
 	$thisgrammar = $grammar_path;
 	if(is_integer(strpos($thisgrammar,' ')))
 		$thisgrammar = '"'.$thisgrammar.'"';
 	$command = $application_path."bp ".$instruction." -gr ".$thisgrammar;
-	
+
 	$thisalphabet = $alphabet_file;
 	if(is_integer(strpos($thisalphabet,' ')))
 		$thisalphabet = '"'.$thisalphabet.'"';
 	$thisalphabet = $dir.$thisalphabet;
-		
+
 	if($alphabet_file <> '') $command .= " -ho ".$thisalphabet;
-	
+
 	if($note_convention <> '') $command .= " --".$note_convention;
 	switch($file_format) {
 		case "data":
@@ -83,11 +83,14 @@ for($i=0; $i < $n_messages; $i++) {
 	}
 echo "<hr>";
 
-if($instruction <> "help") {	
-	$output_link = str_replace($root,'',$output);
-	$tracefile_html = clean_up_file($dir.$tracefile);
-	$trace_link = str_replace($root,'',$tracefile_html);
+if($instruction <> "help") {
+	$output_link = $path_above.DIRECTORY_SEPARATOR.str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$output);
+	$tracefile_html = $path_above.DIRECTORY_SEPARATOR.clean_up_file($dir.$tracefile);
+	$trace_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$tracefile_html);
 	
+	echo "output_link = ".$output_link."<br />";
+	echo "trace_link = ".$trace_link."<br />";
+
 	if(!$no_error) {
 		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">error trace</a> file!</p>";
 		}
@@ -98,7 +101,7 @@ if($instruction <> "help") {
 		echo "</p>";
 		}
 	}
-	
+
 for($i=0; $i < $n_messages; $i++) {
 	$mssg = $o[$i];
 	$mssg = clean_up_encoding(TRUE,$mssg);

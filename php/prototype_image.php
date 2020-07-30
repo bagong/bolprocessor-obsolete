@@ -1,6 +1,6 @@
 <?php
 header("Content-type: image/png");
-require_once("_basic_tasks.php");
+// require_once("_basic_tasks.php");
 
 if(isset($_GET['Duration'])) {
 	$Duration = $_GET['Duration'];

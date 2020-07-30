@@ -7,10 +7,10 @@ else $file = '';
 if($file == '') die();
 
 $url_this_page .= "?file=".$file;
-$table = explode('/',$file);
+$table = explode(DIRECTORY_SEPARATOR,$file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$file);
-$here = str_replace($root,'',$dir);
+$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
 require_once("_header.php");
 echo "<p>Current directory = ".$here;
 echo "   <span id='message1' style=\"margin-bottom:1em;\"></span>";
@@ -97,7 +97,7 @@ foreach($dircontent as $oldfile) {
 	$this_object = str_replace(".txt",'',$thisfile);
 	$deleted_objects .= "“".$this_object."” ";
 	}
-	
+
 if(isset($_POST['savethisfile']) OR isset($_POST['create_object']) OR isset($_POST['delete_object']) OR isset($_POST['restore']) OR isset($_POST['duplicate_object'])) {
 	echo "<p id=\"timespan\"><font color=\"red\">Saved file:</font> <font color=\"blue\">";
 	SaveObjectPrototypes(TRUE,$dir,$filename,$temp_folder);
@@ -156,7 +156,7 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("<HTML>",'',$line);
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
-		
+
 		$object_file[$iobj] = $temp_folder."/".$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
 		$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
@@ -165,12 +165,12 @@ for($i = 0; $i < count($table); $i++) {
 		$handle_object = fopen($object_file[$iobj],"w");
 		$midi_bytes = $save_codes_dir."/midibytes.txt";
 		$handle_bytes = fopen($midi_bytes,"w");
-		
+
 		$file_header = $top_header."\n// Object prototype saved as \"".$object_name[$iobj]."\". Date: ".gmdate('Y-m-d H:i:s');
 		$file_header .= "\n".$filename;
 		fwrite($handle_object,$file_header."\n");
 		echo "<input type=\"hidden\" name=\"object_name_".$iobj."\" value=\"".$object_name[$iobj]."\">";
-		$j = $i_start_midi = $n = 0; $first = TRUE; 
+		$j = $i_start_midi = $n = 0; $first = TRUE;
 		do {
 			$i++; $line = $table[$i];
 			if(is_integer($pos=strpos($line,"_beginCsoundScore_"))) {
@@ -225,7 +225,7 @@ echo "</form>";
 
 echo "<hr>";
 echo "<h3>Click object prototypes below to edit them:</h3>";
- 
+
 $temp_alphabet_file = $temp_folder."/-ho.alphabet";
 $handle = fopen($temp_alphabet_file,"w");
 fwrite($handle,$filename."\n");

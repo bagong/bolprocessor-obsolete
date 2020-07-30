@@ -11,7 +11,7 @@ end "DATA:"
 Type (default 1)
 Resolution (default 1)
 DefaultChannel
-k => Tref = k * Resolution
+Trefc => Tref = Trefc * Resolution
 Quan
 line (binary): 
 
@@ -47,7 +47,7 @@ MaxDelay = 0
 ForwardMode
 MaxForward
 BreakTempoMode = -1
-k = 0
+division = 480
 ContBegMode = 1
 MaxBegGap = 1
 ContEndMode = -1

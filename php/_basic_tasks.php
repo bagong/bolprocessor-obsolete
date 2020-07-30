@@ -3,14 +3,36 @@ session_start();
 require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
 
-$root = $_SERVER['DOCUMENT_ROOT']."/";
-// echo "root = ".$root."<br />";
-$current_path = getcwd();
-// echo "current_path = ".$current_path."<br />";
-$path_to_bp = str_replace($root,'',$current_path);
-$path_to_bp = str_replace("bolprocessor/php",'',$path_to_bp);
-// echo "path_to_bp = ".$path_to_bp."<br />";
-$text_help_file = $root.$path_to_bp."bolprocessor/BP2_help.txt";
+$root = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
+
+// take bottom-up approach
+$bp_php_path = getcwd();
+$bp_application_path = dirname($bp_php_path);
+$bp_parent_path = dirname($bp_application_path);
+
+$bp_home_dir = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$bp_application_path);
+$part_dir = str_replace($bp_parent_path,'',$bp_php_path);
+$path_above = str_replace($root,'',$bp_php_path);
+$path_above = str_replace($part_dir,'',$path_above);
+
+$test = FALSE;
+if($test) {
+	// Beware that test mode will disrupt the display of images
+	echo "root = ".$root."<br />";
+	echo "bp_php_path = ".$bp_php_path."<br />";
+	echo "bp_application_path = ".$bp_application_path."<br />";
+	echo "bp_parent_path = ".$bp_parent_path."<br />";
+	echo "bp_home_dir = ".$bp_home_dir."<br />";
+	echo "part_dir = ".$part_dir."<br />";
+	echo "path_above = ".$path_above."<br />";
+	}
+	
+// previous $root and $path_to_root must be replaced
+// $root.$path_to_bp is $bp_parent_path
+// $root.$path_to_bp."/"."bolprocessor" is $bp_application_path
+// $root.$path_to_bp."/"."bolprocessor/php" is $bp_php_path
+
+$text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
 $html_help_file = "BP2_help.html";
 $help = compile_help($text_help_file,$html_help_file);
 $tracefile = "trace_".session_id().".txt";
@@ -225,7 +247,7 @@ function compile_help($text_help_file,$html_help_file) {
 	    if(x) {
 	      x.className=(x.className=='hidden')?'unhidden':'hidden'; }
 	  }\n";
-		$file_header .= "</script>\n"; 
+		$file_header .= "</script>\n";
 		$file_header .= "</head>";
 		$file_header .= "<body>\n";
 		$content = str_replace("<","&lt;",$content);
@@ -283,14 +305,14 @@ function compile_help($text_help_file,$html_help_file) {
 		}
 	return $help;
 	}
-	
+
 function link_to_help() {
 	global $html_help_file;
 	$console_link = "produce.php?instruction=help";
 	$link = "<p>➡ <a onclick=\"window.open('".$html_help_file."','Help','width=800,height=500'); return false;\" href=\"".$html_help_file."\">Display complete help file</a> or the console's <a href=\"".$console_link."\" onclick=\"window.open('".$console_link."','help','width=800,height=800,left=200'); return false;\">help file</a></p>";
 	return $link;
 	}
-	
+
 function display_help_entries($content) {
 	$table = explode("\n",$content);
 	$ignore = FALSE;
@@ -373,7 +395,7 @@ function recode_tags($text) {
 	$text = str_replace('"',"&quot;",$text);
 	return $text;
 	}
-	
+
 function recode_entities($text) {
 	$text = str_replace("•","&bull;",$text);
 	$text = str_replace(" … "," _rest ",$text);
@@ -440,7 +462,7 @@ function get_setting($parameter,$settings_file) {
 	if($i <> -1) return $table[$i];
 	else return '';
 	}
-	
+
 function note_convention($i) {
 	switch($i) {
 		case 0: $c = "english"; break;
