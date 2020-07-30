@@ -3,6 +3,7 @@ require_once("_basic_tasks.php");
 require_once("_header.php");
 echo "<h2>This is on-line Bol Processor</h2>";
 $this_page = "index.php";
+
 if(isset($_GET['path'])) {
 	$dir = realpath($_GET['path']);
 	$table = explode(DIRECTORY_SEPARATOR,$dir);
@@ -51,7 +52,7 @@ echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,DIRECTORY_SEPARATOR."bolprocessor")) AND $folder <> "bolprocessor".DIRECTORY_SEPARATOR."php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
+if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_home_dir.DIRECTORY_SEPARATOR."php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
 	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";

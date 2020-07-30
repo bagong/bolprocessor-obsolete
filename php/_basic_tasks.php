@@ -7,6 +7,7 @@ require('midi.class.php');
 $bp_php_path = getcwd();
 $bp_application_path = dirname($bp_php_path);
 $bp_parent_path = dirname($bp_application_path);
+$bp_home_dir = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$bp_application_path);
 
 // previous $root and $path_to_root must be replaced
 // $root.$path_to_bp is $bp_parent_path
