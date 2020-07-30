@@ -4,6 +4,8 @@ require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
 
 $root = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
+$root = str_replace("\\",DIRECTORY_SEPARATOR,$root);
+$root = str_replace("/",DIRECTORY_SEPARATOR,$root);
 
 // take bottom-up approach
 $bp_php_path = getcwd();
@@ -16,6 +18,7 @@ $path_above = str_replace($root,'',$bp_php_path);
 $path_above = str_replace($part_dir,'',$path_above);
 
 $test = FALSE;
+// $test = TRUE;
 if($test) {
 	// Beware that test mode will disrupt the display of images
 	echo "root = ".$root."<br />";
@@ -26,11 +29,6 @@ if($test) {
 	echo "part_dir = ".$part_dir."<br />";
 	echo "path_above = ".$path_above."<br />";
 	}
-	
-// previous $root and $path_to_root must be replaced
-// $root.$path_to_bp is $bp_parent_path
-// $root.$path_to_bp."/"."bolprocessor" is $bp_application_path
-// $root.$path_to_bp."/"."bolprocessor/php" is $bp_php_path
 
 $text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
 $html_help_file = "BP2_help.html";
@@ -713,6 +711,13 @@ function rcopy($src,$dst) {
 			if($file <> "." AND $file <> "..") rcopy("$src/$file","$dst/$file");
 		}
 	else if(file_exists($src)) copy($src,$dst);
+	return;
+	}
+
+function store($handle,$varname,$var) {
+	$line = "$".$varname." = \"".$var."\";\n";
+	// $line = str_replace('§','$',$line);
+	fwrite($handle,$line);
 	return;
 	}
 ?>
