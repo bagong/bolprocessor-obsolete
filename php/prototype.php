@@ -228,7 +228,7 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	
 	if(isset($_POST['CoverEndMode'])) $CoverEndMode = $_POST['CoverEndMode'];
 	else $CoverEndMode = 0;
-	$MaxCoverEnd = '';
+	$MaxCoverEnd = 0;
 	if($CoverEndMode == -1) $MaxCoverEnd = $_POST['MaxCoverEnd1'];
 	if($CoverEndMode == 0) $MaxCoverEnd = $_POST['MaxCoverEnd2'];
 	if($CoverEnd) {
@@ -830,6 +830,8 @@ if($ContBeg AND $ContBegMode == 0) {
 else $value = '';
 echo ">Allow gap";
 echo "&nbsp;<input type=\"text\" name=\"MaxBegGap2\" size=\"5\" value=\"".$value."\"> % of duration";
+store($h_image,"ContBegMode",$ContBegMode);
+store($h_image,"MaxBegGap",$MaxBegGap);
 
 echo "<p>FORCE CONTINUITY (END)</p>";
 echo "<input type=\"radio\" name=\"ContEnd\" value=\"0\"";
@@ -855,8 +857,11 @@ if($ContEnd AND $ContEndMode == 0) {
 else $value = '';
 echo ">Allow gap";
 echo "&nbsp;<input type=\"text\" name=\"MaxEndGap2\" size=\"5\" value=\"".$value."\"> % of duration";
+store($h_image,"ContEndMode",$ContEndMode);
+store($h_image,"MaxEndGap",$MaxEndGap);
 
 echo "<p>COVER BEGINNING</p>";
+if(!$CoverBeg AND $MaxCoverBeg == '') $MaxCoverBeg = 0;
 echo "<input type=\"radio\" name=\"CoverBeg\" value=\"1\"";
 if($CoverBeg == 1) echo " checked";
 echo ">Cover at will<br />";
@@ -878,9 +883,15 @@ if(!$CoverBeg AND $CoverBegMode == 0) {
 	}
 else $value = '';
 echo ">Not more than";
-echo "&nbsp;<input type=\"text\" name=\"MaxCoverBeg2\" size=\"5\" value=\"".$value."\"> % of duration";
+echo "&nbsp;<input type=\"text\" name=\"MaxCoverBeg2\" size=\"5\" value=\"".$value."\"> % of duration<br />";
+echo "MaxCoverBeg = ".$MaxCoverBeg."<br />";
+//if(!$CoverBeg) $CoverBegMode = $MaxCoverBeg = 0;
+store($h_image,"CoverBeg",$CoverBeg);
+store($h_image,"CoverBegMode",$CoverBegMode);
+store($h_image,"MaxCoverBeg",$MaxCoverBeg);
 
 echo "<p>COVER END</p>";
+if(!$CoverEnd AND $MaxCoverEnd == '') $MaxCoverEnd = 0;
 echo "<input type=\"radio\" name=\"CoverEnd\" value=\"1\"";
 if($CoverEnd == 1) echo " checked";
 echo ">Cover at will<br />";
@@ -903,6 +914,9 @@ if(!$CoverEnd AND $CoverEndMode == 0) {
 else $value = '';
 echo ">Not more than";
 echo "&nbsp;<input type=\"text\" name=\"MaxCoverEnd2\" size=\"5\" value=\"".$value."\"> % of duration";
+store($h_image,"CoverEnd",$CoverEnd);
+store($h_image,"CoverEndMode",$CoverEndMode);
+store($h_image,"MaxCoverEnd",$MaxCoverEnd);
 	
 echo "<p>TRUNCATE BEGINNING</p>";
 echo "<input type=\"radio\" name=\"TruncBeg\" value=\"1\"";
@@ -928,6 +942,8 @@ if(!$TruncBeg AND $TruncBegMode == 0) {
 else $value = '';
 echo ">Not more than";
 echo "&nbsp;<input type=\"text\" name=\"MaxTruncBeg2\" size=\"5\" value=\"".$value."\"> % of duration";
+store($h_image,"TruncBegMode",$TruncBegMode);
+store($h_image,"MaxTruncBeg",$MaxTruncBeg);
 
 echo "<p>TRUNCATE END</p>";
 echo "<input type=\"radio\" name=\"TruncEnd\" value=\"1\"";
@@ -953,6 +969,9 @@ if(!$TruncEnd AND $TruncEndMode == 0) {
 else $value = '';
 echo ">Not more than";
 echo "&nbsp;<input type=\"text\" name=\"MaxTruncEnd2\" size=\"5\" value=\"".$value."\"> % of duration";
+store($h_image,"TruncEndMode",$TruncEndMode);
+store($h_image,"MaxTruncEnd",$MaxTruncEnd);
+
 
 echo "<p>PREROLL - POSTROLL</p>";
 echo "<input type=\"radio\" name=\"PreRollMode\" value=\"-1\"";
@@ -1011,6 +1030,8 @@ if($PeriodMode == 0) {
 else $value = '';
 echo ">Periodical after";
 echo "&nbsp;<input type=\"text\" name=\"BeforePeriod2\" size=\"5\" value=\"".$value."\"> % of duration<br />";
+store($h_image,"PeriodMode",$PeriodMode);
+store($h_image,"BeforePeriod",$BeforePeriod);
 
 echo "<input type=\"checkbox\" name=\"ForceIntegerPeriod\"";
 if($ForceIntegerPeriod) echo " checked";
@@ -1712,7 +1733,7 @@ fclose($h_image);
 
 $link = "prototype_image.php?save_codes_dir=".urlencode($save_codes_dir);
 
-echo "<div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$link."','".clean_folder_name($object_name)."_image','width=805,height=605,left=100'); return false;\" href=\"".$link."\">IMAGE</a></div>";
+echo "<div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$link."','".clean_folder_name($object_name)."_image','width=800,height=625,left=100'); return false;\" href=\"".$link."\">IMAGE</a></div>";
 
 echo "<p style=\"text-align:center;\"><i>I am working on the “convert MIDI to Csound” procedure…</i></p>";
 echo "<p style=\"text-align:center;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE THIS PROTOTYPE\">&nbsp;<big> = <b><font color=\"red\">".$object_name."</font></b></big></p>";
