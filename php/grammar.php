@@ -4,21 +4,17 @@ require_once("_settings.php");
 
 $url_this_page = "grammar.php";
 
-if(isset($_GET['file'])) $grammar_file = $_GET['file'];
+if(isset($_GET['file'])) $grammar_file = urldecode($_GET['file']);
 else $grammar_file = '';
 if($grammar_file == '') die();
-$url_this_page .= "?file=".$grammar_file;
+$url_this_page .= "?file=".urlencode($grammar_file);
 
 $table = explode(DIRECTORY_SEPARATOR,$grammar_file);
-// $filename = $table[count($table) - 1];
 $filename = end($table);
 $dir = str_replace($filename,'',$grammar_file);
 $here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
-echo "dir = ".$dir."<br />";
-// $trace_link = $here.$tracefile;
-// echo "<br />".$trace_link."<br />";
+// echo "dir = ".$dir."<br />";
 if($output_folder == '') $output_folder = "my_output";
-// $output = $dir.$output_folder;
 $output_file = "out.sco";
 $file_format = "csound";
 if(isset($_POST['output_file'])) $output_file = $_POST['output_file'];
@@ -216,12 +212,12 @@ echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savegramm
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"><br /><br />";
 if($produce_all_items > 0) $action = "produce-all";
 else $action = "produce";
-$link = "produce.php?instruction=".$action."&grammar=".$grammar_file;
+$link = "produce.php?instruction=".$action."&grammar=".urlencode($grammar_file);
 if($alphabet_file <> '')
-	$link .= "&alphabet=".$alphabet_file;
+	$link .= "&alphabet=".urlencode($alphabet_file);
 if($note_convention <> '')
 	$link .= "&note_convention=".$note_convention;
-$link .= "&output=".$output."/".$output_file."&format=".$file_format;
+$link .= "&output=".urlencode($output.DIRECTORY_SEPARATOR.$output_file)."&format=".$file_format;
 if($show_production > 0)
 	$link .= "&show_production=1";
 if($trace_production > 0)

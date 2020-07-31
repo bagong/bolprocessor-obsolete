@@ -5,7 +5,7 @@ require('midi.class.php');
 
 $root = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
 $root = str_replace("\\",DIRECTORY_SEPARATOR,$root);
-$root = str_replace("/",DIRECTORY_SEPARATOR,$root);
+$root = str_replace(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$root);
 
 // take bottom-up approach
 $bp_php_path = getcwd();
@@ -137,61 +137,61 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 		}
 	echo "<table style=\"padding:0px; background-color:white; border-spacing: 2px;\" cellpadding=\"0px;\"><tr>";
 	if($alphabet_file <> '') {
-		$url_this_page = "alphabet.php?file=".$dir.$alphabet_file;
+		$url_this_page = "alphabet.php?file=".urlencode($dir.$alphabet_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"openobjects\" onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$alphabet_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($objects_file <> '') {
-		$url_this_page = "objects.php?file=".$dir.$objects_file;
+		$url_this_page = "objects.php?file=".urlencode($dir.$objects_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$objects_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($csound_file <> '') {
-		$url_this_page = "csound.php?file=".$dir.$csound_file;
+		$url_this_page = "csound.php?file=".urlencode($dir.$csound_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"opencsound\" onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$csound_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($settings_file <> '') {
-		$url_this_page = "settings.php?file=".$dir.$settings_file;
+		$url_this_page = "settings.php?file=".urlencode($dir.$settings_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$settings_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($orchestra_file <> '') {
-		$url_this_page = "orchestra.php?file=".$dir.$orchestra_file;
+		$url_this_page = "orchestra.php?file=".urlencode($dir.$orchestra_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$orchestra_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($interaction_file <> '') {
-		$url_this_page = "interaction.php?file=".$dir.$interaction_file;
+		$url_this_page = "interaction.php?file=".urlencode($dir.$interaction_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$interaction_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($midisetup_file <> '') {
-		$url_this_page = "midisetup.php?file=".$dir.$midisetup_file;
+		$url_this_page = "midisetup.php?file=".urlencode($dir.$midisetup_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$midisetup_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($timebase_file <> '') {
-		$url_this_page = "timebase.php?file=".$dir.$timebase_file;
+		$url_this_page = "timebase.php?file=".urlencode($dir.$timebase_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$timebase_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($keyboard_file <> '') {
-		$url_this_page = "keyboard.php?file=".$dir.$keyboard_file;
+		$url_this_page = "keyboard.php?file=".urlencode($dir.$keyboard_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$keyboard_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($glossary_file <> '') {
-		$url_this_page = "glossary.php?file=".$dir.$glossary_file;
+		$url_this_page = "glossary.php?file=".urlencode($dir.$glossary_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$glossary_file."’\">&nbsp;";
 		echo "</td></form>";
@@ -512,7 +512,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		if($extension <> "txt") continue;
 		$object_label = str_replace(".".$extension,'',$thisfile);
 		if($verbose) echo $object_label." ";
-		$content = file_get_contents($temp_folder."/".$thisfile,TRUE);
+		$content = file_get_contents($temp_folder.DIRECTORY_SEPARATOR.$thisfile,TRUE);
 		$pick_up_headers = pick_up_headers($content);
 		$headers = $pick_up_headers['headers'];
 		if(!is_integer($pos=strpos($headers,"//"))) continue;
@@ -526,7 +526,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 			if($line == "_endCsoundScore_") {
 				// We fetch MIDI codes from a separate "midibytes.txt" file
 				$object_foldername = clean_folder_name($object_label);
-				$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
+				$save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
 				$midi_bytes = $save_codes_dir."/midibytes.txt";
 			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
 				$all_bytes = @file_get_contents($midi_bytes,TRUE);

@@ -99,10 +99,12 @@ imagefilledrectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$y
 imagerectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$black);
 
 // Draw MIDI events
-for($i = 0; $i < count($event); $i++) {
-	$time = $event[$i];
-	$x = $margin_left + ($alpha * $time);
-	imageline($im,$x,$y1,$x,$y2+5,$red);
+if(isset($event[0])) {
+	for($i = 0; $i < count($event); $i++) {
+		$time = $event[$i];
+		$x = $margin_left + ($alpha * $time);
+		imageline($im,$x,$y1,$x,$y2+5,$red);
+		}
 	}
 
 // Draw time line and time units
@@ -145,17 +147,19 @@ if($Tref > 0 AND $Tref < $Duration) {
 	}
 
 // Draw period if object is cyclic
-$before_period = -1;
-if($PeriodMode == -1) $before_period = $BeforePeriod;
-if($PeriodMode == 0) $before_period = $BeforePeriod * $Duration / 100;
-if($before_period >= 0) {
-	imageline($im,$margin_left + ($alpha * $Duration),$y2-58,$margin_left + ($alpha * $Duration),$y2-20,$blue);
-	imageline($im,$margin_left + ($alpha * $before_period),$y2-58,$margin_left + ($alpha * $Duration),$y2-58,$blue);
-	imageline($im,$margin_left + ($alpha * $before_period),$y2-58,$margin_left + ($alpha * $before_period),$y2-20,$blue);
-	arrow($im,$margin_left + ($alpha * $before_period),$y1 - 38,$margin_left + ($alpha * $before_period),$y1,17,5,0,$blue);
-	$mssg = "(cyclic)";
-	$length_mssg = imagefontwidth(10) * strlen($mssg);
-	imagestring($im,10,$x2 - $length_mssg,$y2-50,$mssg,$blue);
+if(isset($PeriodMode)) {
+	$before_period = -1;
+	if($PeriodMode == -1) $before_period = $BeforePeriod;
+	if($PeriodMode == 0) $before_period = $BeforePeriod * $Duration / 100;
+	if($before_period >= 0) {
+		imageline($im,$margin_left + ($alpha * $Duration),$y2-58,$margin_left + ($alpha * $Duration),$y2-20,$blue);
+		imageline($im,$margin_left + ($alpha * $before_period),$y2-58,$margin_left + ($alpha * $Duration),$y2-58,$blue);
+		imageline($im,$margin_left + ($alpha * $before_period),$y2-58,$margin_left + ($alpha * $before_period),$y2-20,$blue);
+		arrow($im,$margin_left + ($alpha * $before_period),$y1 - 38,$margin_left + ($alpha * $before_period),$y1,17,5,0,$blue);
+		$mssg = "(cyclic)";
+		$length_mssg = imagefontwidth(10) * strlen($mssg);
+		imagestring($im,10,$x2 - $length_mssg,$y2-50,$mssg,$blue);
+		}
 	}
 
 // Draw pivot if object is striated
@@ -166,7 +170,7 @@ if($Tref > 0 AND isset($pivot_pos)) {
 $vshift = 30;
 
 // Draw trailing rectangle if continuous beginning
-if($ContBeg)
+if(isset($ContBeg) AND $ContBeg)
 	imagefilledrectangle($im,0,$y1,$x1+($alpha*$PreRoll)-($alpha*$gapbeg)-1,$y2,$yellow);
 
 // Indicate measure of gap at beginning if any
@@ -177,7 +181,7 @@ if($gapbeg > 0) {
 	}
 
 // Draw trailing rectangle if continuous end
-if($ContEnd)
+if(isset($ContEnd) AND $ContEnd)
 	imagefilledrectangle($im,$x2+($alpha*$gapend)+1,$y1,$width+100+$more,$y2,$yellow);
 
 // Indicate measure of gap at beginning if any
@@ -314,10 +318,12 @@ else {
 $vshift += 20;
 
 // Write MIDI channel status
-if($MIDIchannel > 0) $mssg = "Force to MIDI channel #".$MIDIchannel;
-else if($MIDIchannel < 0) $mssg = "Do not change MIDI channels";
-else if($MIDIchannel == 0) $mssg = "Force to current MIDI channel";
-imagestring($im,10,$margin_left,$y2 + $vshift,$mssg,$black);
+if(isset($event[0])) {
+	if($MIDIchannel > 0) $mssg = "Force to MIDI channel #".$MIDIchannel;
+	else if($MIDIchannel < 0) $mssg = "Do not change MIDI channels";
+	else if($MIDIchannel == 0) $mssg = "Force to current MIDI channel";
+	imagestring($im,10,$margin_left,$y2 + $vshift,$mssg,$black);
+	}
 
 imagepng($im);
 imagedestroy($im);

@@ -19,16 +19,16 @@ else $here = '???';
 if($instruction == "help")
 	$command = $application_path."bp --help";
 else {
-	if(isset($_GET['grammar'])) $grammar_path = $_GET['grammar'];
+	if(isset($_GET['grammar'])) $grammar_path = urldecode($_GET['grammar']);
 	else $grammar_path = '';
 	if($grammar_path == '') die();
 	if(isset($_GET['note_convention'])) $note_convention = $_GET['note_convention'];
 	else $note_convention = '';
-	if(isset($_GET['alphabet'])) $alphabet_file = $_GET['alphabet'];
+	if(isset($_GET['alphabet'])) $alphabet_file = urldecode($_GET['alphabet']);
 	else $alphabet_file = '';
 	if(isset($_GET['format'])) $file_format = $_GET['format'];
 	else $file_format = '';
-	if($file_format <> '' AND isset($_GET['output'])) $output = $_GET['output'];
+	if($file_format <> '' AND isset($_GET['output'])) $output = urldecode($_GET['output']);
 	else $output = '';
 	if(isset($_GET['show_production'])) $show_production = TRUE;
 	else $show_production = FALSE;
@@ -107,7 +107,7 @@ if($instruction <> "help") {
 		}
 	else {
 		echo "<p>";
-		if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$output_link."','".$file_format."','width=800,height=800,left=200'); return false;\" href=\"".$output_link."\">output file</a><br />";
+		if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$output_link."','".$file_format."','width=800,height=800,left=300'); return false;\" href=\"".$output_link."\">output file</a><br />";
 		if($trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">trace file</a>";
 		echo "</p>";
 		}

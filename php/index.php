@@ -5,15 +5,13 @@ echo "<h2>This is on-line Bol Processor</h2>";
 $this_page = "index.php";
 
 if(isset($_GET['path'])) {
-	$dir = realpath($_GET['path']);
+	$dir = realpath(urldecode($_GET['path']));
 	$table = explode(DIRECTORY_SEPARATOR,$dir);
 	$upper_dir = dirname($dir);
-	$link = $this_page."?path=".$upper_dir;
+	$link = $this_page."?path=".urlencode($upper_dir);
 	if($table[count($table)-1]) echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
-else {
-	$dir = $bp_application_path;
-	}
+else $dir = $bp_application_path;
 
 // echo "dir = ".$dir."<br />";
 
@@ -27,7 +25,7 @@ if(isset($_POST['create_grammar'])) {
 			}
 		echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
 		$new_file = $filename;
-		$handle = fopen($dir."/".$filename,"w");
+		$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
 		fclose($handle);
 		}
 	else unset($_POST['create_grammar']);
@@ -41,7 +39,7 @@ if(isset($_POST['create_alphabet'])) {
 			}
 		echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
 		$new_file = $filename;
-		$handle = fopen($dir."/".$filename,"w");
+		$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
 		fclose($handle);
 		}
 	else unset($_POST['create_alphabet']);
@@ -53,13 +51,13 @@ echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 $table = explode('_',$folder);
 $extension = end($table);
 if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_home_dir.DIRECTORY_SEPARATOR."php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
-	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
+	echo "<form method=\"post\" action=\"".$this_page."?path=".urlencode($dir)."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
 	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
 	echo "</form>";
-	echo "<form method=\"post\" action=\"".$this_page."?path=".$dir."\" enctype=\"multipart/form-data\">";
+	echo "<form method=\"post\" action=\"".$this_page."?path=".urlencode($dir)."\" enctype=\"multipart/form-data\">";
 	echo "<p style=\"text-align:left;\">";
 	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
@@ -72,18 +70,18 @@ $now = time();
 $yesterday = $now - (24 * 3600);
 foreach($dircontent as $thisfile) {
 	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
-	$time_saved = filemtime($dir."/".$thisfile);
+	$time_saved = filemtime($dir.DIRECTORY_SEPARATOR.$thisfile);
 	if($time_saved < $yesterday) $old = TRUE;
 	else $old = FALSE;
-	if(is_dir($dir."/".$thisfile)) {
+	if(is_dir($dir.DIRECTORY_SEPARATOR.$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
-		$link = $this_page."?path=".$dir."/".$thisfile;
+		$link = $this_page."?path=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
 		if($extension == "temp" AND count($table) > 2) {
 			$id = $table[count($table) - 2];
 			if($old) {
 				if($id <> session_id()) {
-					my_rmdir($dir."/".$thisfile);
+					my_rmdir($dir.DIRECTORY_SEPARATOR.$thisfile);
 					continue;
 					}
 				}
@@ -100,7 +98,7 @@ foreach($dircontent as $thisfile) {
 		if($prefix == "trace") {
 			$id = $table[1];
 			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
-				unlink($dir."/".$thisfile);
+				unlink($dir.DIRECTORY_SEPARATOR.$thisfile);
 				continue;
 				}
 			}
@@ -152,7 +150,7 @@ foreach($dircontent as $thisfile) {
 		case "bpgl": $type = "glossary"; break;
 		}
 	if($type <> '') {
-		$link = $type.".php?file=".$dir."/".$thisfile;
+		$link = $type.".php?file=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
 		if($new_file == $thisfile) echo "<font color=\"red\">➡</font> ";
 		echo "<a target=\"_blank\" href=\"".$link."\">";
 		echo $thisfile."</a> ";

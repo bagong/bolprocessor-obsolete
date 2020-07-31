@@ -2,11 +2,11 @@
 require_once("_basic_tasks.php");
 $url_this_page = "objects.php";
 
-if(isset($_GET['file'])) $file = $_GET['file'];
+if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
 
-$url_this_page .= "?file=".$file;
+$url_this_page .= "?file=".urlencode($file);
 $table = explode(DIRECTORY_SEPARATOR,$file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$file);
@@ -32,7 +32,7 @@ if(isset($_POST['create_object'])) {
 	if($new_object <> '') {
 		$template = getcwd()."/object_template";
 		$template_content = @file_get_contents($template,TRUE);
-		$new_object_file = $temp_folder."/".$new_object.".txt";
+		$new_object_file = $temp_folder.DIRECTORY_SEPARATOR.$new_object.".txt";
 		$handle = fopen($new_object_file,"w");
 		$file_header = $top_header."\n// Object prototype saved as \"".$new_object."\". Date: ".gmdate('Y-m-d H:i:s');
 		fwrite($handle,$file_header."\n");
@@ -47,15 +47,15 @@ if(isset($_POST['duplicate_object'])) {
 	$copy_object = trim($_POST['copy_object']);
 	$copy_object = str_replace(' ','-',$copy_object);
 	$copy_object = str_replace('"','',$copy_object);
-	$this_object_file = $temp_folder."/".$object.".txt";
-	$copy_object_file = $temp_folder."/".$copy_object.".txt";
-//	$copy_object_file_deleted = $temp_folder."/".$copy_object.".txt.old";
+	$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
+	$copy_object_file = $temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt";
+//	$copy_object_file_deleted = $temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old";
 //	if(!file_exists($copy_object_file) AND !file_exists($copy_object_file_deleted)) {
 	if(!file_exists($copy_object_file)) {
 		copy($this_object_file,$copy_object_file);
-		@unlink($temp_folder."/".$copy_object.".txt.old");
-		$this_object_codes = $temp_folder."/".$object."_codes";
-		$copy_object_codes = $temp_folder."/".$copy_object."_codes";
+		@unlink($temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old");
+		$this_object_codes = $temp_folder.DIRECTORY_SEPARATOR.$object."_codes";
+		$copy_object_codes = $temp_folder.DIRECTORY_SEPARATOR.$copy_object."_codes";
 		rcopy($this_object_codes,$copy_object_codes);
 		}
 	else echo "<p><font color=\"red\">Cannot create</font> <font color=\"blue\"><big>“".$copy_object."”</big></font> <font color=\"red\">because an object with that name already exists</font></p>";
@@ -64,7 +64,7 @@ if(isset($_POST['duplicate_object'])) {
 if(isset($_POST['delete_object'])) {
 	$object = $_POST['object_name'];
 	echo "<p><font color=\"red\">Deleted </font><font color=\"blue\"><big>“".$object."”</big></font>…</p>";
-	$this_object_file = $temp_folder."/".$object.".txt";
+	$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
 //	echo $this_object_file."<br />";
 	rename($this_object_file,$this_object_file.".old");
 	}
@@ -80,7 +80,7 @@ if(isset($_POST['restore'])) {
 		if($extension <> "old") continue;
 		$thisfile = str_replace(".old",'',$oldfile);
 		echo "<font color=\"blue\">".str_replace(".txt",'',$thisfile)."</font> ";
-		$this_object_file = $temp_folder."/".$oldfile;
+		$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$oldfile;
 		rename($this_object_file,str_replace(".old",'',$this_object_file));
 		}
 	echo "</p>";
@@ -157,9 +157,9 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
 
-		$object_file[$iobj] = $temp_folder."/".$object_name[$iobj].".txt";
+		$object_file[$iobj] = $temp_folder.DIRECTORY_SEPARATOR.$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
-		$save_codes_dir = $temp_folder."/".$object_foldername."_codes";
+		$save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
 		if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
 		if($handle_object) fclose($handle_object);
 		$handle_object = fopen($object_file[$iobj],"w");

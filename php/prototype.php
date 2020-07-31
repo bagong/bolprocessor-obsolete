@@ -711,7 +711,6 @@ if($dilation_ok) echo " checked";
 echo ">Dilation ratio range from";
 echo "&nbsp;<input type=\"text\" name=\"AlphaMin\" size=\"5\" value=\"".$value_min."\"> to <input type=\"text\" name=\"AlphaMax\" size=\"5\" value=\"".$value_max."\"> %<br />";
 
-// store($h_image,"okrescale",$okrescale);
 store($h_image,"OkExpand",$OkExpand);
 store($h_image,"OkCompress",$OkCompress);
 store($h_image,"FixScale",$FixScale);
@@ -971,7 +970,6 @@ echo ">Not more than";
 echo "&nbsp;<input type=\"text\" name=\"MaxTruncEnd2\" size=\"5\" value=\"".$value."\"> % of duration";
 store($h_image,"TruncEndMode",$TruncEndMode);
 store($h_image,"MaxTruncEnd",$MaxTruncEnd);
-
 
 echo "<p>PREROLL - POSTROLL</p>";
 echo "<input type=\"radio\" name=\"PreRollMode\" value=\"-1\"";
@@ -1683,7 +1681,6 @@ if(!$no_midi AND file_exists($midi_text)) {
 	
 	echo "<table id=\"midi\" style=\"background-color:white;\"><tr>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
-//	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500,left=400'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a><br /><small>Top number is the number of bytes</small></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = ".$division."</small></div></td>";
 // echo "midi_file = ".$midi_file."<br />";
@@ -1704,7 +1701,7 @@ echo "➡ <i>If changes are not visible on these pop-up windows, juste clear the
 	}
 else echo "<p>No MIDI codes in this sound-object prototype</p>";
 
-if(!$no_midi) {
+// if(!$no_midi) {
 	echo "<p>DURATION</p>";
 	$real_duration = $Duration - $PreRoll + $PostRoll;
 	store($h_image,"PreRoll",$PreRoll);
@@ -1723,7 +1720,7 @@ if(!$no_midi) {
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
 
 	if($new_midi) echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
-	}
+//	}
 echo "<font color=\"red\">➡</font> Create or replace MIDI codes loading a MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
 if(!$new_midi AND !$no_midi) {
 	echo "<p style=\"text-align:left;\"><input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pressure\" value=\"SUPPRESS channel pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_polyphonic_pressure\" value=\"SUPPRESS polyphonic pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pitchbend\" value=\"SUPPRESS pitchbend\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_volume\" value=\"SUPPRESS volume control\"><br />";

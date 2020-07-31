@@ -2,11 +2,11 @@
 require_once("_basic_tasks.php");
 $url_this_page = "csound.php";
 
-if(isset($_GET['file'])) $file = $_GET['file'];
+if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
 
-$url_this_page .= "?file=".$file;
+$url_this_page .= "?file=".urlencode($file);
 
 $table = explode(DIRECTORY_SEPARATOR,$file);
 $filename = $table[count($table) - 1];
