@@ -1667,42 +1667,25 @@ if(!$no_midi AND file_exists($midi_text)) {
 	$text_link = DIRECTORY_SEPARATOR.str_replace($root,'',$midi_text);
 	$bytes_link = DIRECTORY_SEPARATOR.str_replace($root,'',$midi_bytes);
 	$mf2t_link = DIRECTORY_SEPARATOR.str_replace($root,'',$mf2t);
-//	echo "midi_text = ".$midi_text."<br />";
-//	echo "midi_bytes = ".$midi_bytes."<br />";
-//	echo "text_link = ".$text_link."<br />";
-//	echo "bytes_link = ".$bytes_link."<br />";
-	
-	$table = explode(DIRECTORY_SEPARATOR,$here);
-	$this_data_folder = $table[count($table) - 2];
-	
-	$text_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_text);
-	$text_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$text_link;
-	
-	
-	$bytes_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_bytes);
-	$bytes_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$bytes_link;
-	
-	$mf2t_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$mf2t);
-	$mf2t_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$mf2t_link;
-	
-//	echo "text_new_link = ".$text_new_link."<br />";
-	
+/*	echo "midi_text = ".$midi_text."<br />";
+	echo "midi_bytes = ".$midi_bytes."<br />";
+	echo "text_link = ".$text_link."<br />";
+	echo "bytes_link = ".$bytes_link."<br />"; */
 	echo "<table id=\"midi\" style=\"background-color:white;\"><tr>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
-//	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500,left=400'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = ".$division."</small></div></td>";
-//	$table = explode(DIRECTORY_SEPARATOR,$here);
-//	$this_data_folder = $table[count($table) - 2];
+	$table = explode(DIRECTORY_SEPARATOR,$here);
+	$this_data_folder = $table[count($table) - 2];
 //	echo "this_data_folder = ".$this_data_folder."<br />";
-// echo "midi_file = ".$midi_file."<br />";
-// echo "root = ".$root."<br />";
-// echo "here = ".$here."<br />";
-// echo "path_above = ".$path_above."<br />";
+//	echo "midi_file = ".$midi_file."<br />";
+//	echo "root = ".$root."<br />";
+//	echo "here = ".$here."<br />";
+//	echo "path_above = ".$path_above."<br />";
 	$midi_file_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_file);
-// echo "midi_file_link1 = ".$midi_file_link."<br />";
+//	echo "midi_file_link1 = ".$midi_file_link."<br />";
 	$midi_file_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.DIRECTORY_SEPARATOR.$midi_file_link;
-// echo "midi_file_link2 = ".$midi_file_link."<br />";
+//	echo "midi_file_link2 = ".$midi_file_link."<br />";
 	if(file_exists($midi_file_link)) {
 		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\">Play MIDI file</a>";
 		echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)</td>";
