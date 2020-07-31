@@ -14,6 +14,8 @@ if($instruction == '') {
 	echo "ERROR: No instruction has been sent";
 	die();
 	}
+if(isset($_GET['here'])) $here = urldecode($_GET['here']);
+else $here = '???';
 if($instruction == "help")
 	$command = $application_path."bp --help";
 else {
@@ -83,21 +85,30 @@ for($i=0; $i < $n_messages; $i++) {
 	}
 echo "<hr>";
 
+$this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
+
 if($instruction <> "help") {
-	$output_link = $path_above.DIRECTORY_SEPARATOR.str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$output);
-	$tracefile_html = $path_above.DIRECTORY_SEPARATOR.clean_up_file($dir.$tracefile);
-	$trace_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$tracefile_html);
+	$tracefile_html = clean_up_file($dir.$tracefile);
+	$trace_link = str_replace($dir,'',$tracefile_html);
+	$trace_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$trace_link;
+	$output_link = "..".str_replace($bp_application_path,'',$output);
 	
-//	echo "output_link = ".$output_link."<br />";
+//	echo "here = ".$here."<br />";
+//	echo "output = ".$output."<br />";
+//	echo "tracefile_html = ".$tracefile_html."<br />";
+//	echo "dir = ".$dir."<br />";
+//	echo "path_above = ".$path_above."<br />";
+//	echo "this_data_folder = ".$this_data_folder."<br />";
 //	echo "trace_link = ".$trace_link."<br />";
+//	echo "output_link = ".$output_link."<br />";
 
 	if(!$no_error) {
-		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('/".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">error trace</a> file!</p>";
+		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">error trace</a> file!</p>";
 		}
 	else {
 		echo "<p>";
-		if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$output_link."','".$file_format."','width=800,height=800,left=200'); return false;\" href=\"/".$output_link."\">output file</a><br />";
-		if($trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"/".$trace_link."\">trace file</a>";
+		if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$output_link."','".$file_format."','width=800,height=800,left=200'); return false;\" href=\"".$output_link."\">output file</a><br />";
+		if($trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">trace file</a>";
 		echo "</p>";
 		}
 	}

@@ -10,10 +10,11 @@ if($grammar_file == '') die();
 $url_this_page .= "?file=".$grammar_file;
 
 $table = explode(DIRECTORY_SEPARATOR,$grammar_file);
-$filename = $table[count($table) - 1];
+// $filename = $table[count($table) - 1];
+$filename = end($table);
 $dir = str_replace($filename,'',$grammar_file);
 $here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
-// echo $dir."<br />".$here."<br />";
+echo "dir = ".$dir."<br />";
 // $trace_link = $here.$tracefile;
 // echo "<br />".$trace_link."<br />";
 if($output_folder == '') $output_folder = "my_output";
@@ -142,18 +143,13 @@ if(isset($_POST['compilegrammar'])) {
 			}
 		}
 	if(!$no_error) {
-//		$tracefile_html = DIRECTORY_SEPARATOR.clean_up_file($tracefile);
-//		$trace_link = str_replace($tracefile,$tracefile_html,$trace_link);
-		
-		
-	$tracefile_html = $path_above.DIRECTORY_SEPARATOR.clean_up_file($dir.$tracefile);
-	$trace_link = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$tracefile_html);
-	
-	
-		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('/".$trace_link."','trace','width=800,height=800'); return false;\" href=\"/".$trace_link."\">trace file</a>!</p>";
+		$this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
+		$tracefile_html = clean_up_file($dir.$tracefile);
+		$trace_link = str_replace($dir,'',$tracefile_html);
+		$trace_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$trace_link;
+		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800'); return false;\" href=\"".$trace_link."\">trace file</a>!</p>";
 		}
 	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error.</font></p>";
-
 	// Now reformat the grammar
 	reformat_grammar(FALSE,$grammar_file);
 	}
@@ -217,9 +213,7 @@ echo ">CSOUND file";
 echo "</p></td>";
 echo "<td style=\"text-align:right; vertical-align:middle;\" rowspan=\"2\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savegrammar\" value=\"SAVE ‘".$filename."’\"><br /><br />";
-// echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"></p>";
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"><br /><br />";
-// echo "<p><input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"this.form.target='_blank';return true;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
 if($produce_all_items > 0) $action = "produce-all";
 else $action = "produce";
 $link = "produce.php?instruction=".$action."&grammar=".$grammar_file;
@@ -232,7 +226,8 @@ if($show_production > 0)
 	$link .= "&show_production=1";
 if($trace_production > 0)
 	$link .= "&trace_production=1";
-echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','produce','width=800,height=800'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
+$link .= "&here=".urlencode($here);
+echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','produce','width=800,height=800,left=200'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
 echo "</td></tr>";
 echo "<tr><td colspan=\"2\"><p style=\"text-align:center;\">➡ <i>You can change above settings, then save the grammar…</i></p></td></tr>";
 echo "</table>";

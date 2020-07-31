@@ -383,6 +383,9 @@ function clean_up_encoding($convert,$text) {
 	$text = str_replace("Â","¬",$text);
 	$text = str_replace("¤","•",$text);
 	$text = str_replace("â¢","•",$text);
+	$text = str_replace("²","≤",$text);
+	$text = str_replace("³","≥",$text);
+//	$text = str_replace("â•","≥",$text);
 	$text = str_replace(" "," ",$text);
 	return $text;
 	}
@@ -412,6 +415,7 @@ function clean_up_file($file) {
 	$text = str_replace(chr(9),' ',$text);
 	$text = trim($text);
 	$text = clean_up_encoding(TRUE,$text);
+//	$text = str_replace("�","•",$text);
 	do $text = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$text,$count);
 	while($count > 0);
 	$text = str_replace(chr(10),"<br />",$text);
