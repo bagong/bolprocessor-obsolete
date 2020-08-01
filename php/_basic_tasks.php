@@ -17,10 +17,16 @@ $part_dir = str_replace($bp_parent_path,'',$bp_php_path);
 $path_above = str_replace($root,'',$bp_php_path);
 $path_above = str_replace($part_dir,'',$path_above);
 
+if(isset($_GET['path'])) $path = urldecode($_GET['path']);
+else $path = '';
+
+$text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
+
 $test = FALSE;
 // $test = TRUE;
 if($test) {
-	// Beware that test mode will disrupt the display of images
+	echo "<small>";
+	echo "path = ".$path."<br />";
 	echo "root = ".$root."<br />";
 	echo "bp_php_path = ".$bp_php_path."<br />";
 	echo "bp_application_path = ".$bp_application_path."<br />";
@@ -28,9 +34,10 @@ if($test) {
 	echo "bp_home_dir = ".$bp_home_dir."<br />";
 	echo "part_dir = ".$part_dir."<br />";
 	echo "path_above = ".$path_above."<br />";
+	echo "text_help_file = ".$text_help_file."<br />";
+	echo "</small><hr>";
 	}
 
-$text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
 $html_help_file = "BP2_help.html";
 $help = compile_help($text_help_file,$html_help_file);
 $tracefile = "trace_".session_id().".txt";
@@ -117,17 +124,20 @@ function fix_file_name($line,$type) {
 	}
 
 function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound_file,$alphabet_file,$settings_file,$orchestra_file,$interaction_file,$midisetup_file,$timebase_file,$keyboard_file,$glossary_file) {
-	global $output_file, $file_format;
+	global $output_file, $file_format,$test;
 	$page_type = str_replace(".php",'',$url_this_page);
 	$page_type = preg_replace("/\.php.*/u",'',$url_this_page);
-//	echo $page_type;
+	
+	$dir = str_replace("..".DIRECTORY_SEPARATOR,'',$dir);
+	if($test) echo "dir = ".$dir."<br />";
+	
 	if($page_type == "grammar" OR $page_type == "alphabet" OR $page_type == "glossary" OR $page_type == "interaction") {
 		if(isset($_POST['show_help_entries'])) {
 			$entries = display_help_entries($content);
 			echo $entries."<br />";
 			}
 		else {
-			echo "<div style=\"float:right; width:600px;\">";
+			echo "<div style=\"float:right; width:600px; margin-top:6px;\">";
 			echo "<form method=\"post\" action=\"".$url_this_page."#help_entries\" enctype=\"multipart/form-data\">";
 			echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 			echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
@@ -138,6 +148,9 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 	echo "<table style=\"padding:0px; background-color:white; border-spacing: 2px;\" cellpadding=\"0px;\"><tr>";
 	if($alphabet_file <> '') {
 		$url_this_page = "alphabet.php?file=".urlencode($dir.$alphabet_file);
+		
+		if($test) echo "url_this_page = ".$url_this_page."<br />";
+		
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"openobjects\" onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$alphabet_file."’\">&nbsp;";
 		echo "</td></form>";
@@ -156,6 +169,9 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 		}
 	if($settings_file <> '') {
 		$url_this_page = "settings.php?file=".urlencode($dir.$settings_file);
+		
+		if($test) echo "url_this_page = ".$url_this_page."<br />";
+		
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\"  onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$settings_file."’\">&nbsp;";
 		echo "</td></form>";
@@ -405,7 +421,7 @@ function recode_entities($text) {
 
 function clean_up_file($file) {
 	if(!file_exists($file)) {
-		echo "<p style=\"color:red;\">ERROR file not found: ".$file."</p>";
+	//	echo "<p style=\"color:red;\">ERROR file not found: ".$file."</p>";
 		return '';
 		}
 	$tracefile_html = str_replace(".txt",".html",$file);
@@ -489,7 +505,7 @@ function my_rmdir($src) {
 	}
 
 function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
-	global $top_header;
+	global $top_header, $test;
 	$handle = fopen($dir.$filename,"w");
 //	$handle = fopen($dir."essai.txt","w");
 	$file_header = $top_header."\n// Object prototypes file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
@@ -504,7 +520,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 	fwrite($handle,$CsoundInstruments_filename."\n");
 	$maxsounds = $_POST['maxsounds'];
 	fwrite($handle,$maxsounds."\n");
-	$dircontent = scandir($temp_folder);
+	$dircontent = scandir($dir.$temp_folder);
 	foreach($dircontent as $thisfile) {
 		if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
 		$table = explode(".",$thisfile);
@@ -512,7 +528,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		if($extension <> "txt") continue;
 		$object_label = str_replace(".".$extension,'',$thisfile);
 		if($verbose) echo $object_label." ";
-		$content = file_get_contents($temp_folder.DIRECTORY_SEPARATOR.$thisfile,TRUE);
+		$content = file_get_contents($dir.$temp_folder.DIRECTORY_SEPARATOR.$thisfile,TRUE);
 		$pick_up_headers = pick_up_headers($content);
 		$headers = $pick_up_headers['headers'];
 		if(!is_integer($pos=strpos($headers,"//"))) continue;
@@ -526,7 +542,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 			if($line == "_endCsoundScore_") {
 				// We fetch MIDI codes from a separate "midibytes.txt" file
 				$object_foldername = clean_folder_name($object_label);
-				$save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
+				$save_codes_dir = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
 				$midi_bytes = $save_codes_dir."/midibytes.txt";
 			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
 				$all_bytes = @file_get_contents($midi_bytes,TRUE);

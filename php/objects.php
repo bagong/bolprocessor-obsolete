@@ -1,28 +1,30 @@
 <?php
 require_once("_basic_tasks.php");
-$url_this_page = "objects.php";
 
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
-
-$url_this_page .= "?file=".urlencode($file);
+$url_this_page = "objects.php?file=".urlencode($file);
 $table = explode(DIRECTORY_SEPARATOR,$file);
-$filename = $table[count($table) - 1];
-$dir = str_replace($filename,'',$file);
-$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
+$filename = end($table);
+$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$dir = str_replace($filename,'',$this_file);
+
 require_once("_header.php");
-echo "<p>Current directory = ".$here;
+echo "<p>Current directory = ".$dir;
 echo "   <span id='message1' style=\"margin-bottom:1em;\"></span>";
 echo "</p>";
 echo link_to_help();
 
 echo "<h2>Object prototypes file “".$filename."”</h2>";
 
-$temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
-// echo $temp_folder;
-if(!file_exists($temp_folder)) {
-	mkdir($temp_folder);
+if($test) echo "dir = ".$dir."<br />";
+
+// $temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
+$temp_folder = str_replace(' ','_',$filename)."_".session_id()."_temp";
+echo "temp_folder = ".$temp_folder."<br />";
+if(!file_exists($dir.$temp_folder)) {
+	mkdir($dir.$temp_folder);
 	}
 
 if(isset($_POST['create_object'])) {
@@ -32,7 +34,7 @@ if(isset($_POST['create_object'])) {
 	if($new_object <> '') {
 		$template = getcwd()."/object_template";
 		$template_content = @file_get_contents($template,TRUE);
-		$new_object_file = $temp_folder.DIRECTORY_SEPARATOR.$new_object.".txt";
+		$new_object_file = $dir.$temp_folder.DIRECTORY_SEPARATOR.$new_object.".txt";
 		$handle = fopen($new_object_file,"w");
 		$file_header = $top_header."\n// Object prototype saved as \"".$new_object."\". Date: ".gmdate('Y-m-d H:i:s');
 		fwrite($handle,$file_header."\n");
@@ -47,15 +49,15 @@ if(isset($_POST['duplicate_object'])) {
 	$copy_object = trim($_POST['copy_object']);
 	$copy_object = str_replace(' ','-',$copy_object);
 	$copy_object = str_replace('"','',$copy_object);
-	$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
-	$copy_object_file = $temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt";
-//	$copy_object_file_deleted = $temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old";
+	$this_object_file = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
+	$copy_object_file = $dir.$temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt";
+//	$copy_object_file_deleted = $dir.$temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old";
 //	if(!file_exists($copy_object_file) AND !file_exists($copy_object_file_deleted)) {
 	if(!file_exists($copy_object_file)) {
 		copy($this_object_file,$copy_object_file);
-		@unlink($temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old");
-		$this_object_codes = $temp_folder.DIRECTORY_SEPARATOR.$object."_codes";
-		$copy_object_codes = $temp_folder.DIRECTORY_SEPARATOR.$copy_object."_codes";
+		@unlink($dir.$temp_folder.DIRECTORY_SEPARATOR.$copy_object.".txt.old");
+		$this_object_codes = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object."_codes";
+		$copy_object_codes = $dir.$temp_folder.DIRECTORY_SEPARATOR.$copy_object."_codes";
 		rcopy($this_object_codes,$copy_object_codes);
 		}
 	else echo "<p><font color=\"red\">Cannot create</font> <font color=\"blue\"><big>“".$copy_object."”</big></font> <font color=\"red\">because an object with that name already exists</font></p>";
@@ -64,7 +66,7 @@ if(isset($_POST['duplicate_object'])) {
 if(isset($_POST['delete_object'])) {
 	$object = $_POST['object_name'];
 	echo "<p><font color=\"red\">Deleted </font><font color=\"blue\"><big>“".$object."”</big></font>…</p>";
-	$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
+	$this_object_file = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object.".txt";
 //	echo $this_object_file."<br />";
 	rename($this_object_file,$this_object_file.".old");
 	}
@@ -72,7 +74,7 @@ if(isset($_POST['delete_object'])) {
 if(isset($_POST['restore'])) {
 	echo "<p><font color=\"red\">Restoring: </font>";
 	// echo "<font color=\"blue\">".$object."</font> </p>";
-	$dircontent = scandir($temp_folder);
+	$dircontent = scandir($dir.$temp_folder);
 	foreach($dircontent as $oldfile) {
 		if($oldfile == '.' OR $oldfile == ".." OR $oldfile == ".DS_Store") continue;
 		$table = explode(".",$oldfile);
@@ -80,14 +82,14 @@ if(isset($_POST['restore'])) {
 		if($extension <> "old") continue;
 		$thisfile = str_replace(".old",'',$oldfile);
 		echo "<font color=\"blue\">".str_replace(".txt",'',$thisfile)."</font> ";
-		$this_object_file = $temp_folder.DIRECTORY_SEPARATOR.$oldfile;
+		$this_object_file = $dir.$temp_folder.DIRECTORY_SEPARATOR.$oldfile;
 		rename($this_object_file,str_replace(".old",'',$this_object_file));
 		}
 	echo "</p>";
 	}
 
 $deleted_objects = '';
-$dircontent = scandir($temp_folder);
+$dircontent = scandir($dir.$temp_folder);
 foreach($dircontent as $oldfile) {
 	if($oldfile == '.' OR $oldfile == ".." OR $oldfile == ".DS_Store") continue;
 	$table = explode(".",$oldfile);
@@ -99,12 +101,15 @@ foreach($dircontent as $oldfile) {
 	}
 
 if(isset($_POST['savethisfile']) OR isset($_POST['create_object']) OR isset($_POST['delete_object']) OR isset($_POST['restore']) OR isset($_POST['duplicate_object'])) {
+	if($test) echo "SaveObjectPrototypes() dir = ".$dir."<br />";
+	if($test) echo "filename = ".$filename."<br />";
+	if($test) echo "temp_folder = ".$temp_folder."<br />";
 	echo "<p id=\"timespan\"><font color=\"red\">Saved file:</font> <font color=\"blue\">";
-	SaveObjectPrototypes(TRUE,$dir,$filename,$temp_folder);
+	SaveObjectPrototypes(TRUE,$dir,$filename,$dir.$temp_folder);
 	}
 
-try_create_new_file($file,$filename);
-$content = @file_get_contents($file,TRUE);
+try_create_new_file($this_file,$filename);
+$content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 $objects_file = $csound_file = $alphabet_file = $settings_file = $orchestra_file = $interaction_file = $midisetup_file = $timebase_file = $keyboard_file = $glossary_file = '';
 $pick_up_headers = pick_up_headers($content);
@@ -116,7 +121,7 @@ $comment_on_file = '';
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
 echo "<input type=\"hidden\" name=\"filename\" value=\"".$filename."\">";
-echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
+// echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 $table = explode(chr(10),$content);
 $iobj = -1;
 $handle_object = FALSE;
@@ -157,10 +162,11 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
 
-		$object_file[$iobj] = $temp_folder.DIRECTORY_SEPARATOR.$object_name[$iobj].".txt";
+		$object_file[$iobj] = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
-		$save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
+		$save_codes_dir = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
 		if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
+		
 		if($handle_object) fclose($handle_object);
 		$handle_object = fopen($object_file[$iobj],"w");
 		$midi_bytes = $save_codes_dir."/midibytes.txt";
@@ -226,7 +232,7 @@ echo "</form>";
 echo "<hr>";
 echo "<h3>Click object prototypes below to edit them:</h3>";
 
-$temp_alphabet_file = $temp_folder."/-ho.alphabet";
+$temp_alphabet_file = $dir.$temp_folder."/-ho.alphabet";
 $handle = fopen($temp_alphabet_file,"w");
 fwrite($handle,$filename."\n");
 fwrite($handle,"*\n");
@@ -234,7 +240,7 @@ echo "<table style=\"background-color:lightgrey;\">";
 for($i = 0; $i <= $iobj; $i++) {
 	echo "<tr><td>";
 	echo "<form method=\"post\" action=\"prototype.php\" enctype=\"multipart/form-data\">";
-	echo "<input type=\"hidden\" name=\"here\" value=\"".$here."\">";
+	echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
 	echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 	echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file[$i]."\">";
 	echo "<input style=\"background-color:azure; font-size:larger;\" type=\"submit\" onclick=\"this.form.target='_blank';return true;\" name=\"object_name\" value=\"".$object_name[$i]."\">";
@@ -248,7 +254,7 @@ for($i = 0; $i <= $iobj; $i++) {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
 	echo "<input type=\"hidden\" name=\"filename\" value=\"".$filename."\">";
-	echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
+//	echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 	echo "<input type=\"hidden\" name=\"PrototypeTickKey\" value=\"".$PrototypeTickKey."\">";
 	echo "<input type=\"hidden\" name=\"PrototypeTickChannel\" value=\"".$PrototypeTickChannel."\">";
 	echo "<input type=\"hidden\" name=\"PrototypeTickVelocity\" value=\"".$PrototypeTickVelocity."\">";

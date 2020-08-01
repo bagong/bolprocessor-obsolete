@@ -1,19 +1,16 @@
 <?php
 require_once("_basic_tasks.php");
-$url_this_page = "alphabet.php";
 
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
-if($file == '') die();
-
-$url_this_page .= "?file=".urlencode($file);
-
+$url_this_page = "alphabet.php?file=".urlencode($file);
 $table = explode(DIRECTORY_SEPARATOR,$file);
-$filename = $table[count($table) - 1];
-$dir = str_replace($filename,'',$file);
-$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
+$filename = end($table);
+$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$dir = str_replace($filename,'',$this_file);
+
 require_once("_header.php");
-echo "<p>Current directory = ".$here."</p>";
+echo "<p>Current directory = ".$dir."</p>";
 echo link_to_help();
 
 echo "<h3>Alphabet file “".$filename."”</h3>";
@@ -21,15 +18,19 @@ echo "<h3>Alphabet file “".$filename."”</h3>";
 if(isset($_POST['savethisfile'])) {
 	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
 	$content = $_POST['thistext'];
-	$handle = fopen($file,"w");
+	$handle = fopen($this_file,"w");
 	$file_header = "// Bol Processor on-line test via PHP\n// Alphabet file saved as ‘".$filename."’. Date: ".gmdate('Y-m-d H:i:s');
 	fwrite($handle,$file_header."\n");
 	fwrite($handle,$content);
 	fclose($handle);
 	}
 
-try_create_new_file($file,$filename);
-$content = @file_get_contents($file,TRUE);
+if($test) echo "file = ".$file."<br />";
+if($test) echo "this_file = ".$this_file."<br />";
+if($test) echo "filename = ".$filename."<br />";
+
+try_create_new_file($this_file,$filename);
+$content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 
 $objects_file = $csound_file = $alphabet_file = $settings_file = $orchestra_file = $interaction_file = $midisetup_file = $timebase_file = $keyboard_file = $glossary_file = '';

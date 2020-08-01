@@ -1,6 +1,6 @@
 <?php
 require_once("_basic_tasks.php");
-// $path = getcwd();
+
 $url_this_page = "prototype.php";
 define('MAXFILESIZE',1000000);
 
@@ -8,7 +8,7 @@ if(isset($_POST['object_name'])) {
 	$object_name = $_POST['object_name'];
 	$temp_folder = $_POST['temp_folder'];
 	$object_file = $_POST['object_file'];
-	$here = $_POST['here'];
+	$dir = $_POST['dir'];
 	}
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
@@ -18,8 +18,16 @@ $this_title = $object_name;
 require_once("_header.php");
 
 $object_foldername = clean_folder_name($object_name);
-$save_codes_dir = $temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
-$deleted_object = $temp_folder.DIRECTORY_SEPARATOR.$object_name.".txt.old";
+
+if($test) echo "object_foldername = ".$object_foldername."<br />";
+
+$save_codes_dir = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
+$deleted_object = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_name.".txt.old";
+
+if($test) echo "dir = ".$dir."<br />";
+if($test) echo "temp_folder = ".$temp_folder."<br />";
+if($test) echo "save_codes_dir = ".$save_codes_dir."<br />";
+
 if(file_exists($deleted_object)) {
 	echo "<p><font color=\"red\">Sound-object</font> <font color=\"blue\">“".$object_name."”</font> <font color=\"red\">has been deleted.<br />Close this tab and return to the “-mi” file in which it has been deleted.<br />Then click the <b>RESTORE ALL DELETED OBJECTS</b> button.</font></p>";
 	die();
@@ -62,6 +70,9 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
 
 if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats']) OR isset($_POST['adjust_duration']) OR isset($_POST['silence_before']) OR isset($_POST['silence_after']) OR isset($_POST['add_allnotes_off']) OR isset($_POST['suppress_allnotes_off']) OR isset($_POST['quantize_NoteOn']) OR isset($_POST['delete_midi']) OR isset($_POST['cancel'])) {
+	
+	if($test) echo "<br />object_file = ".$object_file."<br />";
+	
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
@@ -416,8 +427,8 @@ if(isset($_POST['playexpression'])) {
 	$expression = $_POST['expression'];
 	echo "<p><font color=\"red\">➡ Playing:</font> <font color=\"blue\"><big>".$expression."</big></font></p>";
 //	echo "temp_folder = ".$temp_folder."<br />";
-	$startup_file = $temp_folder.DIRECTORY_SEPARATOR."startup";
-	$alphabet = $temp_folder.DIRECTORY_SEPARATOR."-ho.alphabet";
+	$startup_file = $dir.$temp_folder.DIRECTORY_SEPARATOR."startup";
+	$alphabet = $dir.$temp_folder.DIRECTORY_SEPARATOR."-ho.alphabet";
 	// $tracefile = $temp_folder."/trace.txt";
 	$handle = fopen($startup_file,"w");
 	fwrite($handle,$expression."\n");
@@ -430,7 +441,7 @@ if(isset($_POST['playexpression'])) {
 	$command .= " -ho ".$alphabet;
 	$command .= " -d --midiout ";
 	// $command .= " --traceout ".$tracefile;
-	echo "<p><small>".$command."</small></p>";
+	echo "<p style=\"color:red;\"><small>".$command."</small></p>";
 	$no_error = FALSE;
 	exec($command,$o);
 	$n_messages = count($o);
@@ -460,7 +471,7 @@ echo "<input type=\"hidden\" name=\"object_name\" value=\"".$object_name."\">";
 echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file."\">";
 echo "<input type=\"hidden\" name=\"source_file\" value=\"".$source_file."\">";
-echo "<input type=\"hidden\" name=\"here\" value=\"".$here."\">";
+echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
 
 $object_comment = recode_tags($object_comment);
 $size = strlen($object_comment);
@@ -1662,35 +1673,22 @@ if(!$no_midi) {
 	}
 
 if(!$no_midi AND file_exists($midi_text)) {
-	$text_link = DIRECTORY_SEPARATOR.str_replace($root,'',$midi_text);
-	$bytes_link = DIRECTORY_SEPARATOR.str_replace($root,'',$midi_bytes);
-	$mf2t_link = DIRECTORY_SEPARATOR.str_replace($root,'',$mf2t);
-//	echo "midi_text = ".$midi_text."<br />";
-//	echo "midi_bytes = ".$midi_bytes."<br />";
-//	echo "text_link = ".$text_link."<br />";
-//	echo "bytes_link = ".$bytes_link."<br />";
-	
-	$this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
-	
-	$text_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_text);
-	$text_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$text_link;
-	$bytes_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_bytes);
-	$bytes_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$bytes_link;
-	$mf2t_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$mf2t);
-	$mf2t_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$mf2t_link;
+	if($test) echo "midi_text = ".$midi_text."<br />";
+
+	$text_link = $midi_text;
+	$bytes_link = $midi_bytes;
+	$mf2t_link = $mf2t;
+if($test) echo "midi_bytes = ".$midi_bytes."<br />";
+if($test) echo "text_link = ".$text_link."<br />";
+if($test) echo "bytes_link = ".$bytes_link."<br />";
+if($test) echo "midi_file = ".$midi_file."<br />";
 	
 	echo "<table id=\"midi\" style=\"background-color:white;\"><tr>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500,left=400'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a><br /><small>Top number is the number of bytes</small></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = ".$division."</small></div></td>";
-// echo "midi_file = ".$midi_file."<br />";
-// echo "root = ".$root."<br />";
-// echo "here = ".$here."<br />";
-// echo "path_above = ".$path_above."<br />";
-	$midi_file_link = str_replace($root.$path_above.DIRECTORY_SEPARATOR.$here,'',$midi_file);
-// echo "midi_file_link1 = ".$midi_file_link."<br />";
-	$midi_file_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$midi_file_link;
-//	echo "midi_file_link2 = ".$midi_file_link."<br />";
+
+	$midi_file_link = $midi_file;
 	if(file_exists($midi_file_link)) {
 		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\">Play MIDI file</a>";
 		echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)</td>";
@@ -1701,26 +1699,25 @@ echo "➡ <i>If changes are not visible on these pop-up windows, juste clear the
 	}
 else echo "<p>No MIDI codes in this sound-object prototype</p>";
 
-// if(!$no_midi) {
-	echo "<p>DURATION</p>";
-	$real_duration = $Duration - $PreRoll + $PostRoll;
-	store($h_image,"PreRoll",$PreRoll);
-	store($h_image,"PostRoll",$PostRoll);
-	echo "Real duration of this object will be:<br /><b>event duration - pre-roll + post-roll</b> = ".$Duration." - (".$PreRoll.") + (".$PostRoll.") = ".$real_duration." ms<br />for a metronome period Tref = ".$Tref." ms";
-	if($duration_warning <> '') echo $duration_warning;
-	echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
-	echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_duration\" value=\"Adjust event time duration\"> to <input type=\"text\" name=\"NewDuration\" size=\"8\" value=\"".$Duration."\"> ms<br />";
-	if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref),2)."\"> beats (striated object with Tref = ".($Tref / $resolution)." ticks of ".$resolution." ms, i.e. ".($Tref)." ms)";
-	echo "</p>";
-	
-	if($silence_before_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_before_warning."<br />";
-	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_before\" value=\"Insert silence before this object\"> = <input type=\"text\" name=\"SilenceBefore\" size=\"8\" value=\"\"> ms ➡ current pre-roll = ".$PreRoll." ms<br />";
-	
-	if($silence_after_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_after_warning."<br />";
-	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
+echo "<p>DURATION</p>";
+$real_duration = $Duration - $PreRoll + $PostRoll;
+store($h_image,"PreRoll",$PreRoll);
+store($h_image,"PostRoll",$PostRoll);
+echo "Real duration of this object will be:<br /><b>event duration - pre-roll + post-roll</b> = ".$Duration." - (".$PreRoll.") + (".$PostRoll.") = ".$real_duration." ms<br />for a metronome period Tref = ".$Tref." ms";
+if($duration_warning <> '') echo $duration_warning;
+echo "<input type=\"hidden\" name=\"Duration\" value=\"".$Duration."\">";
+echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_duration\" value=\"Adjust event time duration\"> to <input type=\"text\" name=\"NewDuration\" size=\"8\" value=\"".$Duration."\"> ms<br />";
+if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref),2)."\"> beats (striated object with Tref = ".($Tref / $resolution)." ticks of ".$resolution." ms, i.e. ".($Tref)." ms)";
+echo "</p>";
 
-	if($new_midi) echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
-//	}
+if($silence_before_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_before_warning."<br />";
+echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_before\" value=\"Insert silence before this object\"> = <input type=\"text\" name=\"SilenceBefore\" size=\"8\" value=\"\"> ms ➡ current pre-roll = ".$PreRoll." ms<br />";
+
+if($silence_after_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_after_warning."<br />";
+echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
+
+if($new_midi) echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
+
 echo "<font color=\"red\">➡</font> Create or replace MIDI codes loading a MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
 if(!$new_midi AND !$no_midi) {
 	echo "<p style=\"text-align:left;\"><input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pressure\" value=\"SUPPRESS channel pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_polyphonic_pressure\" value=\"SUPPRESS polyphonic pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pitchbend\" value=\"SUPPRESS pitchbend\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_volume\" value=\"SUPPRESS volume control\"><br />";

@@ -1,3 +1,3 @@
 <?php
-$output_folder = "test_output";
+$output_folder = "my_output";
 ?>

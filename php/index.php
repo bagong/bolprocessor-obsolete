@@ -2,31 +2,47 @@
 require_once("_basic_tasks.php");
 require_once("_header.php");
 echo "<h2>This is on-line Bol Processor</h2>";
-$this_page = "index.php";
+$url_this_page = $this_page = "index.php";
 
-if(isset($_GET['path'])) {
-	$dir = realpath(urldecode($_GET['path']));
-	$table = explode(DIRECTORY_SEPARATOR,$dir);
-	$upper_dir = dirname($dir);
-	$link = $this_page."?path=".urlencode($upper_dir);
-	if($table[count($table)-1]) echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
+if($path <> '') {
+	$url_this_page .= "?path=".urlencode($path);
+	$dir = realpath($bp_application_path.DIRECTORY_SEPARATOR.urldecode($path));
+	$table = explode(DIRECTORY_SEPARATOR,$path);
+	if(($n=count($table)) > 1) {
+		$upper_dir = $table[$n - 2];
+		}
+	else $upper_dir = '';
+	if($test) echo "upper_dir = ".$upper_dir."<br />";
+	if($upper_dir == '') $link = $this_page;
+	else $link = $this_page."?path=".urlencode($upper_dir);
+	if($test) echo "link = ".$link."<br />";
+	echo "<h3>[<a href=\"".$link."\">move up</a>]</h3>";
 	}
 else $dir = $bp_application_path;
 
-// echo "dir = ".$dir."<br />";
+if($test) echo "dir = ".$dir."<br />";
+if($test) echo "url_this_page = ".$url_this_page."<br />";
 
 $new_file = '';
 if(isset($_POST['create_grammar'])) {
 	$filename = trim($_POST['filename']);
+	if($test) echo "filename = ".$filename."<br />";
 	if($filename <> '') {
 		if(!is_integer($pos=strpos($filename,"-gr")) OR $pos > 0) {
 			$filename = trim(str_replace("-gr",'',$filename));
 			$filename = "-gr.".$filename;
 			}
-		echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
 		$new_file = $filename;
-		$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
-		fclose($handle);
+		if($test) echo "newfile = ".$new_file."<br />";
+		if(file_exists($dir.DIRECTORY_SEPARATOR.$filename)) {
+			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
+			unset($_POST['create_grammar']);
+			}
+		else {
+			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
+			$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
+			fclose($handle);
+			}
 		}
 	else unset($_POST['create_grammar']);
 	}
@@ -37,10 +53,16 @@ if(isset($_POST['create_alphabet'])) {
 			$filename = trim(str_replace("-ho",'',$filename));
 			$filename = "-ho.".$filename;
 			}
-		echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
 		$new_file = $filename;
-		$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
-		fclose($handle);
+		if(file_exists($dir.DIRECTORY_SEPARATOR.$filename)) {
+			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
+			unset($_POST['create_alphabet']);
+		}
+		else {
+			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
+			$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
+			fclose($handle);
+			}
 		}
 	else unset($_POST['create_alphabet']);
 	}
@@ -50,19 +72,23 @@ echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_home_dir.DIRECTORY_SEPARATOR."php" AND $extension <> "temp" AND !isset($_POST['create_grammar']) AND !isset($_POST['create_alphabet'])) {
-	echo "<form method=\"post\" action=\"".$this_page."?path=".urlencode($dir)."\" enctype=\"multipart/form-data\">";
-	echo "<p style=\"text-align:left;\">";
-	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
-	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
-	echo "</form>";
-	echo "<form method=\"post\" action=\"".$this_page."?path=".urlencode($dir)."\" enctype=\"multipart/form-data\">";
-	echo "<p style=\"text-align:left;\">";
-	echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-	echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
-	echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
-	echo "</form>";
+if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_home_dir.DIRECTORY_SEPARATOR."php" AND $extension <> "temp") {
+	if(!isset($_POST['create_grammar'])) {
+		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+		echo "<p style=\"text-align:left;\">";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+		echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
+		echo "</form>";
+		}
+	if(!isset($_POST['create_alphabet'])) {
+		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+		echo "<p style=\"text-align:left;\">";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+		echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
+		echo "</form>";
+		}
 	}
 
 $dircontent = scandir($dir);
@@ -76,7 +102,9 @@ foreach($dircontent as $thisfile) {
 	if(is_dir($dir.DIRECTORY_SEPARATOR.$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
-		$link = $this_page."?path=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
+	//	$link = $this_page."?path=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
+		if($path == '') $link = $this_page."?path=".urlencode($thisfile);
+		else $link = $this_page."?path=".urlencode($path.DIRECTORY_SEPARATOR.$thisfile);
 		if($extension == "temp" AND count($table) > 2) {
 			$id = $table[count($table) - 2];
 			if($old) {
@@ -150,7 +178,7 @@ foreach($dircontent as $thisfile) {
 		case "bpgl": $type = "glossary"; break;
 		}
 	if($type <> '') {
-		$link = $type.".php?file=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
+		$link = $type.".php?file=".urlencode($path.DIRECTORY_SEPARATOR.$thisfile);
 		if($new_file == $thisfile) echo "<font color=\"red\">➡</font> ";
 		echo "<a target=\"_blank\" href=\"".$link."\">";
 		echo $thisfile."</a> ";

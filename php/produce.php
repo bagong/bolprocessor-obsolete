@@ -74,7 +74,7 @@ else {
 	if($trace_production) $command .= " --trace-production";
 	}
 
-echo "<p><small>command = ".$command."</small></p>";
+echo "<p style=\"color:red;\"><small>command = ".$command."</small></p>";
 
 exec($command,$o);
 $n_messages = count($o);
@@ -89,18 +89,14 @@ $this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
 
 if($instruction <> "help") {
 	$tracefile_html = clean_up_file($dir.$tracefile);
-	$trace_link = str_replace($dir,'',$tracefile_html);
-	$trace_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$trace_link;
+	$trace_link = $tracefile_html;
 	$output_link = "..".str_replace($bp_application_path,'',$output);
 	
-//	echo "here = ".$here."<br />";
-//	echo "output = ".$output."<br />";
-//	echo "tracefile_html = ".$tracefile_html."<br />";
-//	echo "dir = ".$dir."<br />";
-//	echo "path_above = ".$path_above."<br />";
-//	echo "this_data_folder = ".$this_data_folder."<br />";
-//	echo "trace_link = ".$trace_link."<br />";
-//	echo "output_link = ".$output_link."<br />";
+if($test) echo "output = ".$output."<br />";
+if($test) echo "tracefile_html = ".$tracefile_html."<br />";
+if($test) echo "dir = ".$dir."<br />";
+if($test) echo "trace_link = ".$trace_link."<br />";
+if($test) echo "output_link = ".$output_link."<br />";
 
 	if(!$no_error) {
 		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">error trace</a> file!</p>";

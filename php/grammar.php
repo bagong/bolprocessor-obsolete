@@ -2,18 +2,16 @@
 require_once("_basic_tasks.php");
 require_once("_settings.php");
 
-$url_this_page = "grammar.php";
-
-if(isset($_GET['file'])) $grammar_file = urldecode($_GET['file']);
-else $grammar_file = '';
-if($grammar_file == '') die();
-$url_this_page .= "?file=".urlencode($grammar_file);
-
-$table = explode(DIRECTORY_SEPARATOR,$grammar_file);
-$filename = end($table);
+if(isset($_GET['file'])) $file = urldecode($_GET['file']);
+else $file = '';
+$url_this_page = "grammar.php?file=".urlencode($file);
+$table = explode(DIRECTORY_SEPARATOR,$file);
+$here = $filename = end($table);
+$grammar_file = "..".DIRECTORY_SEPARATOR.$file;
 $dir = str_replace($filename,'',$grammar_file);
-$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
-// echo "dir = ".$dir."<br />";
+
+if($test) echo "grammar_file = ".$grammar_file."<br />";
+
 if($output_folder == '') $output_folder = "my_output";
 $output_file = "out.sco";
 $file_format = "csound";
@@ -22,7 +20,7 @@ if(isset($_POST['file_format'])) $file_format = $_POST['file_format'];
 
 require_once("_header.php");
 
-echo "<p>Current directory = ".$here;
+echo "<p><small>Current directory = ".$dir;
 
 if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 	if(isset($_POST['savegrammar'])) echo "<span id=\"timespan\" style=\"color:red;\">&nbsp;…&nbsp;Saved “".$filename."” file…</span>";
@@ -67,7 +65,7 @@ if(isset($_POST['savegrammar']) OR isset($_POST['compilegrammar'])) {
 	fwrite($handle,$content);
 	fclose($handle);
 	}
-echo "</p>";
+echo "</small></p>";
 
 if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
@@ -110,10 +108,11 @@ if(isset($_POST['compilegrammar'])) {
 	else $alphabet_file = '';
 	if(isset($_POST['note_convention'])) $note_convention = $_POST['note_convention'];
 	else $note_convention = '';
-	echo "<p id=\"timespan\" style=\"color:red;\">Compiling ‘".$filename."’</p>";
+	echo "<p id=\"timespan\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
 	$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
+	$olddir = getcwd();
 	chdir($dir);
 	$command = $application_path."bp compile";
 	if($note_convention <> '') $command .= " --".$note_convention;
@@ -127,10 +126,11 @@ if(isset($_POST['compilegrammar'])) {
 	if($alphabet_file <> '')
 		$command .= " ".$thisalphabet;
 	$command .= " --traceout ".$tracefile;
-	echo "<p><small>".$command."</small></p>";
+	echo "<p style=\"color:red;\"><small>".$command."</small></p>";
 	$no_error = FALSE;
 	exec($command,$o);
 	$n_messages = count($o);
+	chdir($olddir);
 	if($n_messages > 0) {
 		for($i=0; $i < $n_messages; $i++) {
 			$mssg = $o[$i];
@@ -139,11 +139,9 @@ if(isset($_POST['compilegrammar'])) {
 			}
 		}
 	if(!$no_error) {
-		$this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
-		$tracefile_html = clean_up_file($dir.$tracefile);
-		$trace_link = str_replace($dir,'',$tracefile_html);
-		$trace_link = "..".DIRECTORY_SEPARATOR.$this_data_folder.$trace_link;
-		echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800'); return false;\" href=\"".$trace_link."\">trace file</a>!</p>";
+		$trace_link = clean_up_file($dir.$tracefile);
+		if($trace_link == '') echo "<p><font color=\"red\">Errors found, but no trace file has been created.</font></p>";
+		else echo "<p><font color=\"red\">Errors found! Open the </font> <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800'); return false;\" href=\"".$trace_link."\">trace file</a>!</p>";
 		}
 	else echo "<p><font color=\"red\">➡</font> <font color=\"blue\">No error.</font></p>";
 	// Now reformat the grammar
@@ -153,11 +151,13 @@ else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
-	echo "Location of output files: <font color=\"blue\">".$bp_application_path.DIRECTORY_SEPARATOR."</font>";
+	echo "Location of output files: <font color=\"blue\">".$bp_home_dir.DIRECTORY_SEPARATOR."</font>";
 	echo "<input type=\"text\" name=\"output_folder\" size=\"25\" value=\"".$output_folder."\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"change_output_folder\" value=\"SAVE THIS LOCATION\"><br />➡ global setting for all projects in this session.<br /><i>Folder will be created if necessary…</i>";
 	echo "</form>";
 	}
+
+if($test) echo "grammar_file = ".$grammar_file."<br />";
 
 $content = @file_get_contents($grammar_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
@@ -187,6 +187,8 @@ if($settings_file <> '') $trace_production = get_setting("trace_production",$set
 else $trace_production = 0;
 if($settings_file <> '') $produce_all_items = get_setting("produce_all_items",$settings_file);
 else $produce_all_items = 0;
+
+if($test) echo "url_this_page = ".$url_this_page."<br />";
 
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 echo "<table cellpadding=\"8px;\"><tr style=\"background-color:white;\">";

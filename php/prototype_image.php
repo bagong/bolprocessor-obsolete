@@ -87,6 +87,7 @@ $font = 'arial.ttf';
 imagettftext($im, 20, 0, $margin_left,30, $black, $font, $text); */
 imagestring($im,10,$margin_left,30,$text,$black);
 $text = "Duration ".$Duration." ms";
+if($Tref > 0) $text .= " (".round(($Duration / $Tref),2)." beats)";
 imagestring($im,10,$margin_left,50,$text,$black);
 
 $x1 = $margin_left;
