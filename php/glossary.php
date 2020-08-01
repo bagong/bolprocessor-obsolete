@@ -5,9 +5,9 @@ if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
 $url_this_page = "glossary.php?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $filename = end($table);
-$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
 require_once("_header.php");

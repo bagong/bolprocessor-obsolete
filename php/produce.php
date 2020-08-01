@@ -6,7 +6,7 @@ $url_this_page = "produce.php";
 $this_title = "BP console";
 require_once("_header.php");
 
-$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
+$application_path = $bp_application_path.SLASH;
 
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
@@ -85,7 +85,7 @@ for($i=0; $i < $n_messages; $i++) {
 	}
 echo "<hr>";
 
-$this_data_folder = str_replace($bp_home_dir.DIRECTORY_SEPARATOR,'',$here);
+$this_data_folder = str_replace($bp_home_dir.SLASH,'',$here);
 
 if($instruction <> "help") {
 	$tracefile_html = clean_up_file($dir.$tracefile);

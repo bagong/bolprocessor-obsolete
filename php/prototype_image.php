@@ -1,7 +1,8 @@
 <?php
 header("Content-type: image/png");
+require_once("_basic_tasks.php");
 $save_codes_dir = urldecode($_GET['save_codes_dir']);
-$image_file = $save_codes_dir.DIRECTORY_SEPARATOR."image.php";
+$image_file = $save_codes_dir.SLASH."image.php";
 require_once($image_file);
 
 if($pivbeg == 1) $pivot_pos = 0;

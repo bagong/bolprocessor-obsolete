@@ -3,24 +3,34 @@ session_start();
 require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
 
-$root = $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
-$root = str_replace("\\",DIRECTORY_SEPARATOR,$root);
-$root = str_replace(DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$root);
+// define('SLASH',DIRECTORY_SEPARATOR);
+define('SLASH',"/");
+
+$root = $_SERVER['DOCUMENT_ROOT'].SLASH;
+$root = str_replace("\\",SLASH,$root);
+$root = str_replace(SLASH,SLASH,$root);
 
 // take bottom-up approach
 $bp_php_path = getcwd();
 $bp_application_path = dirname($bp_php_path);
 $bp_parent_path = dirname($bp_application_path);
 
-$bp_home_dir = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$bp_application_path);
+$bp_home_dir = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
 $part_dir = str_replace($bp_parent_path,'',$bp_php_path);
 $path_above = str_replace($root,'',$bp_php_path);
 $path_above = str_replace($part_dir,'',$path_above);
 
+$bp_php_path = str_replace("\\",SLASH,$bp_php_path);
+$bp_application_path = str_replace("\\",SLASH,$bp_application_path);
+$bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
+$bp_home_dir = str_replace("\\",SLASH,$bp_home_dir);
+$part_dir = str_replace("\\",SLASH,$part_dir);
+$path_above = str_replace("\\",SLASH,$path_above);
+
 if(isset($_GET['path'])) $path = urldecode($_GET['path']);
 else $path = '';
 
-$text_help_file = $bp_application_path.DIRECTORY_SEPARATOR."BP2_help.txt";
+$text_help_file = $bp_application_path.SLASH."BP2_help.txt";
 
 $test = FALSE;
 // $test = TRUE;
@@ -128,7 +138,7 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 	$page_type = str_replace(".php",'',$url_this_page);
 	$page_type = preg_replace("/\.php.*/u",'',$url_this_page);
 	
-	$dir = str_replace("..".DIRECTORY_SEPARATOR,'',$dir);
+	$dir = str_replace("..".SLASH,'',$dir);
 	if($test) echo "dir = ".$dir."<br />";
 	
 	if($page_type == "grammar" OR $page_type == "alphabet" OR $page_type == "glossary" OR $page_type == "interaction") {
@@ -528,7 +538,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		if($extension <> "txt") continue;
 		$object_label = str_replace(".".$extension,'',$thisfile);
 		if($verbose) echo $object_label." ";
-		$content = file_get_contents($dir.$temp_folder.DIRECTORY_SEPARATOR.$thisfile,TRUE);
+		$content = file_get_contents($dir.$temp_folder.SLASH.$thisfile,TRUE);
 		$pick_up_headers = pick_up_headers($content);
 		$headers = $pick_up_headers['headers'];
 		if(!is_integer($pos=strpos($headers,"//"))) continue;
@@ -542,7 +552,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 			if($line == "_endCsoundScore_") {
 				// We fetch MIDI codes from a separate "midibytes.txt" file
 				$object_foldername = clean_folder_name($object_label);
-				$save_codes_dir = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
+				$save_codes_dir = $dir.$temp_folder.SLASH.$object_foldername."_codes";
 				$midi_bytes = $save_codes_dir."/midibytes.txt";
 			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
 				$all_bytes = @file_get_contents($midi_bytes,TRUE);

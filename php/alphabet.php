@@ -4,9 +4,9 @@ require_once("_basic_tasks.php");
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 $url_this_page = "alphabet.php?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $filename = end($table);
-$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
 require_once("_header.php");

@@ -6,9 +6,9 @@ if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
 $url_this_page = "data.php?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $filename = end($table);
-$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
 
@@ -21,10 +21,10 @@ if($file == '') die();
 
 
 $url_this_page .= "?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $filename = $table[count($table) - 1];
 $dir = str_replace($filename,'',$file);
-$here = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir); */
+$here = str_replace($bp_parent_path.SLASH,'',$dir); */
 require_once("_header.php");
 echo "<p>Current directory = ".$dir."</p>";
 echo link_to_help();

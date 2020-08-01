@@ -6,8 +6,8 @@ $url_this_page = $this_page = "index.php";
 
 if($path <> '') {
 	$url_this_page .= "?path=".urlencode($path);
-	$dir = realpath($bp_application_path.DIRECTORY_SEPARATOR.urldecode($path));
-	$table = explode(DIRECTORY_SEPARATOR,$path);
+	$dir = realpath($bp_application_path.SLASH.urldecode($path));
+	$table = explode(SLASH,$path);
 	if(($n=count($table)) > 1) {
 		$upper_dir = $table[$n - 2];
 		}
@@ -34,13 +34,13 @@ if(isset($_POST['create_grammar'])) {
 			}
 		$new_file = $filename;
 		if($test) echo "newfile = ".$new_file."<br />";
-		if(file_exists($dir.DIRECTORY_SEPARATOR.$filename)) {
+		if(file_exists($dir.SLASH.$filename)) {
 			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
 			unset($_POST['create_grammar']);
 			}
 		else {
 			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
-			$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
+			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
@@ -54,30 +54,30 @@ if(isset($_POST['create_alphabet'])) {
 			$filename = "-ho.".$filename;
 			}
 		$new_file = $filename;
-		if(file_exists($dir.DIRECTORY_SEPARATOR.$filename)) {
+		if(file_exists($dir.SLASH.$filename)) {
 			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
 			unset($_POST['create_alphabet']);
 		}
 		else {
 			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
-			$handle = fopen($dir.DIRECTORY_SEPARATOR.$filename,"w");
+			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
 	else unset($_POST['create_alphabet']);
 	}
 
-$folder = str_replace($bp_parent_path.DIRECTORY_SEPARATOR,'',$dir);
+$folder = str_replace($bp_parent_path.SLASH,'',$dir);
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_home_dir.DIRECTORY_SEPARATOR."php" AND $extension <> "temp") {
+if(is_integer(strpos($dir,SLASH.$bp_home_dir)) AND $folder <> $bp_home_dir.SLASH."php" AND $extension <> "temp") {
 	if(!isset($_POST['create_grammar'])) {
 		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<p style=\"text-align:left;\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-		echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
+		echo "<font color=\"blue\">".$folder.SLASH."</font>";
 		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
 		echo "</form>";
 		}
@@ -85,7 +85,7 @@ if(is_integer(strpos($dir,DIRECTORY_SEPARATOR.$bp_home_dir)) AND $folder <> $bp_
 		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<p style=\"text-align:left;\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
-		echo "<font color=\"blue\">".$folder.DIRECTORY_SEPARATOR."</font>";
+		echo "<font color=\"blue\">".$folder.SLASH."</font>";
 		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
 		echo "</form>";
 		}
@@ -96,20 +96,20 @@ $now = time();
 $yesterday = $now - (24 * 3600);
 foreach($dircontent as $thisfile) {
 	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
-	$time_saved = filemtime($dir.DIRECTORY_SEPARATOR.$thisfile);
+	$time_saved = filemtime($dir.SLASH.$thisfile);
 	if($time_saved < $yesterday) $old = TRUE;
 	else $old = FALSE;
-	if(is_dir($dir.DIRECTORY_SEPARATOR.$thisfile)) {
+	if(is_dir($dir.SLASH.$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
-	//	$link = $this_page."?path=".urlencode($dir.DIRECTORY_SEPARATOR.$thisfile);
+	//	$link = $this_page."?path=".urlencode($dir.SLASH.$thisfile);
 		if($path == '') $link = $this_page."?path=".urlencode($thisfile);
-		else $link = $this_page."?path=".urlencode($path.DIRECTORY_SEPARATOR.$thisfile);
+		else $link = $this_page."?path=".urlencode($path.SLASH.$thisfile);
 		if($extension == "temp" AND count($table) > 2) {
 			$id = $table[count($table) - 2];
 			if($old) {
 				if($id <> session_id()) {
-					my_rmdir($dir.DIRECTORY_SEPARATOR.$thisfile);
+					my_rmdir($dir.SLASH.$thisfile);
 					continue;
 					}
 				}
@@ -126,7 +126,7 @@ foreach($dircontent as $thisfile) {
 		if($prefix == "trace") {
 			$id = $table[1];
 			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
-				unlink($dir.DIRECTORY_SEPARATOR.$thisfile);
+				unlink($dir.SLASH.$thisfile);
 				continue;
 				}
 			}
@@ -178,7 +178,7 @@ foreach($dircontent as $thisfile) {
 		case "bpgl": $type = "glossary"; break;
 		}
 	if($type <> '') {
-		$link = $type.".php?file=".urlencode($path.DIRECTORY_SEPARATOR.$thisfile);
+		$link = $type.".php?file=".urlencode($path.SLASH.$thisfile);
 		if($new_file == $thisfile) echo "<font color=\"red\">➡</font> ";
 		echo "<a target=\"_blank\" href=\"".$link."\">";
 		echo $thisfile."</a> ";

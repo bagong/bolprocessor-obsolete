@@ -5,9 +5,9 @@ require_once("_settings.php");
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 $url_this_page = "grammar.php?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $here = $filename = end($table);
-$grammar_file = "..".DIRECTORY_SEPARATOR.$file;
+$grammar_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$grammar_file);
 
 if($test) echo "grammar_file = ".$grammar_file."<br />";
@@ -69,10 +69,10 @@ echo "</small></p>";
 
 if(isset($_POST['change_output_folder'])) {
 	$output_folder = trim($_POST['output_folder']);
-	$output_folder = trim(str_replace(DIRECTORY_SEPARATOR,' ',$output_folder));
-	$output_folder = str_replace(' ',DIRECTORY_SEPARATOR,$output_folder);
-	$output = $bp_application_path.DIRECTORY_SEPARATOR.$output_folder;
-	do $output = str_replace(DIRECTORY_SEPARATOR.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR,$output,$count);
+	$output_folder = trim(str_replace(SLASH,' ',$output_folder));
+	$output_folder = str_replace(' ',SLASH,$output_folder);
+	$output = $bp_application_path.SLASH.$output_folder;
+	do $output = str_replace(SLASH.SLASH,SLASH,$output,$count);
 	while($count > 0);
 //	echo $output."<br />";
 	if(!file_exists($output)) {
@@ -90,7 +90,7 @@ if(isset($_POST['change_output_folder'])) {
 	fclose($handle);
 	}
 else {
-	$output = $bp_application_path.DIRECTORY_SEPARATOR.$output_folder;
+	$output = $bp_application_path.SLASH.$output_folder;
 	do $output = str_replace("//",'/',$output,$count);
 	while($count > 0);
 	if(!file_exists($output)) {
@@ -111,7 +111,7 @@ if(isset($_POST['compilegrammar'])) {
 	echo "<p id=\"timespan\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
-	$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
+	$application_path = $bp_application_path.SLASH;
 	$olddir = getcwd();
 	chdir($dir);
 	$command = $application_path."bp compile";
@@ -151,7 +151,7 @@ else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
-	echo "Location of output files: <font color=\"blue\">".$bp_home_dir.DIRECTORY_SEPARATOR."</font>";
+	echo "Location of output files: <font color=\"blue\">".$bp_home_dir.SLASH."</font>";
 	echo "<input type=\"text\" name=\"output_folder\" size=\"25\" value=\"".$output_folder."\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"change_output_folder\" value=\"SAVE THIS LOCATION\"><br />➡ global setting for all projects in this session.<br /><i>Folder will be created if necessary…</i>";
 	echo "</form>";
@@ -219,7 +219,7 @@ if($alphabet_file <> '')
 	$link .= "&alphabet=".urlencode($alphabet_file);
 if($note_convention <> '')
 	$link .= "&note_convention=".$note_convention;
-$link .= "&output=".urlencode($output.DIRECTORY_SEPARATOR.$output_file)."&format=".$file_format;
+$link .= "&output=".urlencode($output.SLASH.$output_file)."&format=".$file_format;
 if($show_production > 0)
 	$link .= "&show_production=1";
 if($trace_production > 0)

@@ -21,8 +21,8 @@ $object_foldername = clean_folder_name($object_name);
 
 if($test) echo "object_foldername = ".$object_foldername."<br />";
 
-$save_codes_dir = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_foldername."_codes";
-$deleted_object = $dir.$temp_folder.DIRECTORY_SEPARATOR.$object_name.".txt.old";
+$save_codes_dir = $dir.$temp_folder.SLASH.$object_foldername."_codes";
+$deleted_object = $dir.$temp_folder.SLASH.$object_name.".txt.old";
 
 if($test) echo "dir = ".$dir."<br />";
 if($test) echo "temp_folder = ".$temp_folder."<br />";
@@ -33,12 +33,12 @@ if(file_exists($deleted_object)) {
 	die();
 	}
 if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
-$image_file = $save_codes_dir.DIRECTORY_SEPARATOR."image.php";
-$midi_file = $save_codes_dir.DIRECTORY_SEPARATOR."midicodes.mid";
-$midi_text = $save_codes_dir.DIRECTORY_SEPARATOR."midicodes.txt";
-$midi_bytes = $save_codes_dir.DIRECTORY_SEPARATOR."midibytes.txt";
-$midi_import = $save_codes_dir.DIRECTORY_SEPARATOR."midi_import.txt";
-$mf2t = $save_codes_dir.DIRECTORY_SEPARATOR."mf2t.txt";
+$image_file = $save_codes_dir.SLASH."image.php";
+$midi_file = $save_codes_dir.SLASH."midicodes.mid";
+$midi_text = $save_codes_dir.SLASH."midicodes.txt";
+$midi_bytes = $save_codes_dir.SLASH."midibytes.txt";
+$midi_import = $save_codes_dir.SLASH."midi_import.txt";
+$mf2t = $save_codes_dir.SLASH."mf2t.txt";
 $midi_text_bytes = array();
 if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 	$upload_filename = $_FILES['mid_upload']['name'];
@@ -427,14 +427,14 @@ if(isset($_POST['playexpression'])) {
 	$expression = $_POST['expression'];
 	echo "<p><font color=\"red\">➡ Playing:</font> <font color=\"blue\"><big>".$expression."</big></font></p>";
 //	echo "temp_folder = ".$temp_folder."<br />";
-	$startup_file = $dir.$temp_folder.DIRECTORY_SEPARATOR."startup";
-	$alphabet = $dir.$temp_folder.DIRECTORY_SEPARATOR."-ho.alphabet";
+	$startup_file = $dir.$temp_folder.SLASH."startup";
+	$alphabet = $dir.$temp_folder.SLASH."-ho.alphabet";
 	// $tracefile = $temp_folder."/trace.txt";
 	$handle = fopen($startup_file,"w");
 	fwrite($handle,$expression."\n");
 	fclose($handle);
-//	$application_path = $root.$path_to_bp."bolprocessor".DIRECTORY_SEPARATOR;
-	$application_path = $bp_application_path.DIRECTORY_SEPARATOR;
+//	$application_path = $root.$path_to_bp."bolprocessor".SLASH;
+	$application_path = $bp_application_path.SLASH;
 //	echo "application_path = ".$application_path."<br />";
 	$command = $application_path."bp play";
 	$command .= " --startup ".$startup_file;

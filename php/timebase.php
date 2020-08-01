@@ -1,13 +1,14 @@
 <?php
 require_once("_basic_tasks.php");
 
+define('MAXFILESIZE',1000000);
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
 $url_this_page = "timebase.php?file=".urlencode($file);
-$table = explode(DIRECTORY_SEPARATOR,$file);
+$table = explode(SLASH,$file);
 $filename = end($table);
-$this_file = "..".DIRECTORY_SEPARATOR.$file;
+$this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
 require_once("_header.php");
