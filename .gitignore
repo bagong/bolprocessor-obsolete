@@ -30,4 +30,4 @@ resources/decoded_resources/
 Makefile copy
 bp-linux.tar.gz
 output/
-
+*_temp/
