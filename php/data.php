@@ -1,7 +1,6 @@
 <?php
 require_once("_basic_tasks.php");
 
-
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
@@ -11,20 +10,6 @@ $filename = end($table);
 $this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
-
-/*
-$url_this_page = "data.php";
-
-if(isset($_GET['file'])) $file = urldecode($_GET['file']);
-else $file = '';
-if($file == '') die();
-
-
-$url_this_page .= "?file=".urlencode($file);
-$table = explode(SLASH,$file);
-$filename = $table[count($table) - 1];
-$dir = str_replace($filename,'',$file);
-$here = str_replace($bp_parent_path.SLASH,'',$dir); */
 require_once("_header.php");
 echo "<p>Current directory = ".$dir."</p>";
 echo link_to_help();

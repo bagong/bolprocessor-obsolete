@@ -16,16 +16,16 @@ $bp_application_path = dirname($bp_php_path);
 $bp_parent_path = dirname($bp_application_path);
 
 $bp_home_dir = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
-$part_dir = str_replace($bp_parent_path,'',$bp_php_path);
-$path_above = str_replace($root,'',$bp_php_path);
-$path_above = str_replace($part_dir,'',$path_above);
+// $part_dir = str_replace($bp_parent_path,'',$bp_php_path);
+// $path_above = str_replace($root,'',$bp_php_path);
+// $path_above = str_replace($part_dir,'',$path_above);
 
 $bp_php_path = str_replace("\\",SLASH,$bp_php_path);
 $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
 $bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
 $bp_home_dir = str_replace("\\",SLASH,$bp_home_dir);
-$part_dir = str_replace("\\",SLASH,$part_dir);
-$path_above = str_replace("\\",SLASH,$path_above);
+// $part_dir = str_replace("\\",SLASH,$part_dir);
+// $path_above = str_replace("\\",SLASH,$path_above);
 
 if(isset($_GET['path'])) $path = urldecode($_GET['path']);
 else $path = '';
@@ -42,8 +42,8 @@ if($test) {
 	echo "bp_application_path = ".$bp_application_path."<br />";
 	echo "bp_parent_path = ".$bp_parent_path."<br />";
 	echo "bp_home_dir = ".$bp_home_dir."<br />";
-	echo "part_dir = ".$part_dir."<br />";
-	echo "path_above = ".$path_above."<br />";
+//	echo "part_dir = ".$part_dir."<br />";
+//	echo "path_above = ".$path_above."<br />";
 	echo "text_help_file = ".$text_help_file."<br />";
 	echo "</small><hr>";
 	}

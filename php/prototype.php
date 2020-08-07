@@ -1081,14 +1081,47 @@ echo "<input type=\"hidden\" name=\"Tpict\" value=\"".$Tpict."\">";
 
 echo "<p>CSOUND SCORE</p>";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
-$text = str_ireplace("<HTML>",'',$object_param[$j]);
-$text = str_ireplace("</HTML>",'',$text);
-$text = str_ireplace("<BR>","\n",$text);
-echo "<textarea name=\"object_param_".($j++)."\" rows=\"20\" style=\"width:700px; background-color:Cornsilk;\">".$text."</textarea><br />";
+$csound_score = str_ireplace("<HTML>",'',$object_param[$j]);
+$csound_score = str_ireplace("</HTML>",'',$csound_score);
+$csound_score = str_ireplace("<BR>","\n",$csound_score);
+echo "<textarea name=\"object_param_".($j++)."\" rows=\"20\" style=\"width:700px; background-color:Cornsilk;\">".$csound_score."</textarea><br />";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
 
+$csound_period = 0;
+$time_max_csound = 0;
+$table = explode(chr(10),$csound_score);
+if(count($table) > 2) {
+	$csound_instruction = $table[0];
+	for($i = 0; $i < count($table); $i++) {
+		$csound_instruction = $table[$i];
+		do
+			$csound_instruction = str_replace("  ",' ',$csound_instruction,$count);
+		while($count > 0);
+		$table2 = explode(' ',$csound_instruction);
+		if($table2[0] == "t" AND count($table2) > 2) {
+			$csound_tempo = $table2[2];
+			if($csound_tempo > 0) {
+				$csound_period = 60000 / $csound_tempo;
+			//	echo "csound_period = ".$csound_period."<br />";
+				}
+			}
+		else if($table2[0][0] == "i" AND count($table2) > 2) {
+			$start = $table2[1] * $csound_period;
+			$duration = $table2[2] * $csound_period;
+			$end = $start + $duration;
+			if($end > $time_max_csound)
+				$time_max_csound = $end;
+		//	echo $start." - ".$end."<br />";
+			store($h_image,"event_csound[]",$start);
+			store($h_image,"event_csound[]",$end);
+			}
+		}
+	store($h_image,"time_max_csound",$time_max_csound);
+	echo "<p>Duration of Csound sequence: ".$time_max_csound." ms</p>";
+	}
+	
 $kmax = 0;
-$time_max = 0;
+$time_max_midi = 0;
 $no_midi = FALSE;
 if(isset($_POST['delete_midi'])) {
 	@unlink($midi_bytes);
@@ -1157,24 +1190,24 @@ if(isset($_POST['suppress_allnotes_off'])) {
 
 if(isset($_POST['add_allnotes_off'])) {
 	$new_midi_code = array();
-	$time_max = 0;
+	$time_max_midi = 0;
 	for($k = 0; $k < $kmax; $k++) {
 		$byte = $midi_text_bytes[$k];
 		$code = $byte % 256;
 		$time = ($byte - $code) / 256;
-		if($time > $time_max) $time_max = $time;
+		if($time > $time_max_midi) $time_max_midi = $time;
 		$new_midi_code[$k] = $byte;
 		}
 	for($channel = 0; $channel < 16; $channel++) {
 		$code = 176 + $channel;
-		$byte = $code + (256 * $time_max);
+		$byte = $code + (256 * $time_max_midi);
 	//	echo $channel." -> ".$byte."<br />";
 		$new_midi_code[$k++] = $byte;
 		$code = 123;
-		$byte = $code + (256 * $time_max);
+		$byte = $code + (256 * $time_max_midi);
 		$new_midi_code[$k++] = $byte;
 		$code = 0;
-		$byte = $code + (256 * $time_max);
+		$byte = $code + (256 * $time_max_midi);
 		$new_midi_code[$k++] = $byte;
 		}
 	$kmax = count($new_midi_code);
@@ -1398,7 +1431,7 @@ if(!$no_midi) {
 		if(file_exists($midi_bytes)) copy($midi_bytes,$midi_bytes.".old");
 		if(file_exists($mf2t)) copy($mf2t,$mf2t.".old");
 		}
-	$time_max = $oldtime = 0;
+	$time_max_midi = $oldtime = 0;
 	$number_of_tracks = 1;
 	for($k = 0; $k < $kmax; $k++) {
 		$byte = $midi_text_bytes[$k];
@@ -1406,7 +1439,7 @@ if(!$no_midi) {
 		$time = ($byte - $code) / 256;
 		if($time < $oldtime) $number_of_tracks++;
 		$oldtime = $time;
-		if($time > $time_max) $time_max = $time;
+		if($time > $time_max_midi) $time_max_midi = $time;
 		}
 	$trk = 1;
 	$handle_text = fopen($midi_text,"w");
@@ -1440,7 +1473,7 @@ if(!$no_midi) {
 		$oldtime = $time;
 	//	echo "(".$time.") ".$code."<br />";
 		if($code >= 144 AND $code < 160) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			if($first_note_on) {
 				store($h_image,"first_note_on",$time);
 				$first_note_on = FALSE;
@@ -1461,7 +1494,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 128 AND $code < 144) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$last_note_off = $time;
 			$channel = $code - 128 + 1;
 			$byte = $midi_text_bytes[$k + 1];
@@ -1474,7 +1507,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 160 AND $code < 176) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$channel = $code - 160 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$key = $byte % 256;
@@ -1486,7 +1519,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 176 AND $code < 192) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$channel = $code - 176 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$ctrl = $byte % 256;
@@ -1604,7 +1637,7 @@ if(!$no_midi) {
 			else $more = 3; // 14-bit controller/switch
 			}
 		else if($code >= 208 AND $code < 224) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$channel = $code - 208 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$val = $byte % 256;
@@ -1614,7 +1647,7 @@ if(!$no_midi) {
 			$more = 1;
 			}
 		else if($code >= 224 AND $code < 240) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$channel = $code - 224 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$val1 = $byte % 256;
@@ -1627,7 +1660,7 @@ if(!$no_midi) {
 			$more = 2;
 			}
 		else if($code >= 192 AND $code < 208) {
-			store($h_image,"event[]",$time);
+			store($h_image,"event_midi[]",$time);
 			$channel = $code - 192 + 1;
 			$byte = $midi_text_bytes[$k + 1];
 			$prog = $byte % 256;
@@ -1656,7 +1689,8 @@ if(!$no_midi) {
 	fclose($handle_mf2t);
 	if($new_midi) fclose($handle_bytes);
 	}
-$Duration = $time_max;
+$Duration = $time_max_midi;
+store($h_image,"time_max_midi",$time_max_midi);
 	
 echo "<input type=\"hidden\" name=\"jmax\" value=\"".$j."\">";
 if(!$no_midi) {
@@ -1678,10 +1712,10 @@ if(!$no_midi AND file_exists($midi_text)) {
 	$text_link = $midi_text;
 	$bytes_link = $midi_bytes;
 	$mf2t_link = $mf2t;
-if($test) echo "midi_bytes = ".$midi_bytes."<br />";
-if($test) echo "text_link = ".$text_link."<br />";
-if($test) echo "bytes_link = ".$bytes_link."<br />";
-if($test) echo "midi_file = ".$midi_file."<br />";
+	if($test) echo "midi_bytes = ".$midi_bytes."<br />";
+	if($test) echo "text_link = ".$text_link."<br />";
+	if($test) echo "bytes_link = ".$bytes_link."<br />";
+	if($test) echo "midi_file = ".$midi_file."<br />";
 	
 	echo "<table id=\"midi\" style=\"background-color:white;\"><tr>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
@@ -1690,7 +1724,7 @@ if($test) echo "midi_file = ".$midi_file."<br />";
 
 	$midi_file_link = $midi_file;
 	if(file_exists($midi_file_link)) {
-		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\">Play MIDI file</a>";
+		echo "</tr><tr><td colspan=\"3\"><a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file_link."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play MIDI file</a>";
 		echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)</td>";
 		}
 	echo "</tr></table>";
@@ -1699,7 +1733,7 @@ echo "➡ <i>If changes are not visible on these pop-up windows, juste clear the
 	}
 else echo "<p>No MIDI codes in this sound-object prototype</p>";
 
-echo "<p>DURATION</p>";
+echo "<p>DURATION OF MIDI SEQUENCE</p>";
 $real_duration = $Duration - $PreRoll + $PostRoll;
 store($h_image,"PreRoll",$PreRoll);
 store($h_image,"PostRoll",$PostRoll);

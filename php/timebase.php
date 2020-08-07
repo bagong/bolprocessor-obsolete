@@ -30,6 +30,7 @@ if(isset($_POST['savethisfile'])) {
 try_create_new_file($this_file,$filename);
 $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
+if(trim($content) == '') $content = @file_get_contents("timebase_template",TRUE);
 $pick_up_headers = pick_up_headers($content);
 echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
 $content = $pick_up_headers['content'];

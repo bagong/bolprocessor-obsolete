@@ -15,9 +15,15 @@ if(isset($last_note_off) AND isset($last_note_off) AND $pivcentonoff == 1) $pivo
 $margin_left = 50;
 $width = 600;
 $height = 20;
+$alpha = 0;
 if($Duration > 0) $alpha = $width/$Duration;
-else $alpha = 0;
-
+$max_duration = $Duration;
+$image_range = "midi";
+if(isset($time_max_csound) AND $time_max_csound > $Duration) {
+	$alpha = $width/$time_max_csound;
+	$max_duration = $time_max_csound;
+	$image_range = "csound";
+	}
 $more = 0;
 
 // Revise left and right margins to display gaps correctly if any
@@ -87,65 +93,101 @@ $text = "Sound-object prototype \"".$object_name."\"";
 $font = 'arial.ttf';
 imagettftext($im, 20, 0, $margin_left,30, $black, $font, $text); */
 imagestring($im,10,$margin_left,30,$text,$black);
-$text = "Duration ".$Duration." ms";
-if($Tref > 0) $text .= " (".round(($Duration / $Tref),2)." beats)";
+$text = "Duration (MIDI) ".$Duration." ms";
+if($Tref > 0) $text .= " = ".round(($Duration / $Tref),2)." beat(s)";
 imagestring($im,10,$margin_left,50,$text,$black);
+if(isset($time_max_csound) AND $time_max_csound > 0) {
+	$text = "Duration (Csound) ".$time_max_csound." ms";
+	if($Tref > 0) $text .= " = ".round(($time_max_csound / $Tref),2)." beat(s)";
+	imagestring($im,10,$margin_left,70,$text,$black);
+	}
 
 $x1 = $margin_left;
-$y1 = 200;
-$x2 = $x1 + $width;
-$y2 = $y1 + $height;
 
-// Draw object rectangle
+// Draw Csound rectangle and events
+if(isset($event_csound[0])) {
+	$y1 = 190;
+	$y2 = $y1 + $height;
+	$x2 = $x1 + ($alpha * $time_max_csound);
+	$x2max = $x2;
+	imagefilledrectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$yellow);
+	for($i = 0; $i < count($event_csound); $i++) {
+		$time = $event_csound[$i];
+		$x = $margin_left + ($alpha * $time);
+		imageline($im,$x,$y1,$x,$y2+5,$blue);
+		}
+	imagerectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$black);
+	$text = "Csound";
+	$center = ($x1+($alpha*$PreRoll) + $x2+($alpha*$PostRoll)) / 2;
+	$length = imagefontwidth(10) * strlen($text);
+	$text_start = $center - ($length / 2);
+	imagestring($im,10,$text_start,$y1 + 3,$text,$black);
+	if($Tref > 0 AND isset($pivot_pos))
+		arrow($im,$margin_left+($alpha*$pivot_pos),$y1 - 30,$margin_left+($alpha*$pivot_pos),$y1,17,5,$OkRelocate,$red);
+	}
+	
+// MIDI rectangle
+$x2 = $x1 + ($alpha * $Duration);
+$y1 = 270;
+$y2 = $y1 + $height;
 imagefilledrectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$yellow);
 imagerectangle($im,$x1+($alpha*$PreRoll),$y1,$x2+($alpha*$PostRoll),$y2,$black);
 
 // Draw MIDI events
-if(isset($event[0])) {
-	for($i = 0; $i < count($event); $i++) {
-		$time = $event[$i];
+if(isset($event_midi[0])) {
+	for($i = 0; $i < count($event_midi); $i++) {
+		$time = $event_midi[$i];
 		$x = $margin_left + ($alpha * $time);
 		imageline($im,$x,$y1,$x,$y2+5,$red);
 		}
 	}
+$text = "MIDI";
+$center = ($x1+($alpha*$PreRoll) + $x2+($alpha*$PostRoll)) / 2;
+$length = imagefontwidth(10) * strlen($text);
+$text_start = $center - ($length / 2);
+imagestring($im,10,$text_start,$y1 + 3,$text,$black);
+
+if($image_range == "midi") $x2max = $x2;
 
 // Draw time line and time units
-imageline($im,$x1,100,$x2+($alpha*$PostRoll),100,$black);
+imageline($im,$x1,110,$x2max+($alpha*$PostRoll),110,$black);
 $t = 0;
 while(TRUE) {
-	imagefilledrectangle($im,$margin_left+($alpha*$t),100,$margin_left+($alpha*$t)+1,115,$black);
+	imagefilledrectangle($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t)+1,125,$black);
 	$t += 1000;
-	if($t > $Duration) break;
+	if($t > $max_duration) break;
 	}
 $t = 0;
 while(TRUE) {
-	imageline($im,$margin_left+($alpha*$t),100,$margin_left+($alpha*$t),110,$black);
+	imageline($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t),120,$black);
 	$t += 100;
-	if($t > $Duration) break;
+	if($t > $max_duration) break;
 	}
-imagestring($im,10,$margin_left-2,82,"0",$black);
+imagestring($im,10,$margin_left-2,92,"0",$black);
 
 // Write time unit
-if($Duration > 10000)
-	imagestring($im,10,$margin_left-2+($alpha*10000),82,"10 s",$black);
-else if($Duration > 1000)
-	imagestring($im,10,$margin_left-2+($alpha*1000),82,"1.00 s",$black);
-else if($Duration > 100)
-	imagestring($im,10,$margin_left-2+($alpha*100),82,"100 ms",$black);
+if($max_duration > 100000)
+	imagestring($im,10,$margin_left-2+($alpha*10000),92,"100 s",$black);
+if($max_duration > 10000)
+	imagestring($im,10,$margin_left-2+($alpha*10000),92,"10 s",$black);
+else if($max_duration > 1000)
+	imagestring($im,10,$margin_left-2+($alpha*1000),92,"1.00 s",$black);
+else if($max_duration > 100)
+	imagestring($im,10,$margin_left-2+($alpha*100),92,"100 ms",$black);
 
 // Display beats
-if($Tref > 0 AND $Tref < $Duration) {
-	$mssg = "(beats)";
+if($Tref > 0 AND $Tref <= $max_duration) {
+	$mssg = "(beats) ";
 	$length_mssg = imagefontwidth(10) * strlen($mssg);
 	$t = 0;
 	while(TRUE) {
 		$x = $x1 + ($alpha * $t);
-		imagefilledrectangle($im,$x-1,115,$x+1,135,$green);
+		imagefilledrectangle($im,$x-1,125,$x+1,145,$green);
 		$t += $Tref;
-		if($t > ($Duration + $PostRoll)) break;
+		if($t > ($max_duration + $PostRoll)) break;
 		}
-	imageline($im,$x1,125,$x2 - $length_mssg - 10,125,$green);
-	imagestring($im,10,$x2 - $length_mssg,115,$mssg,$black);
+	imageline($im,$x1,135,$x2 - $length_mssg - 10,135,$green);
+	imagestring($im,10,$x2 - $length_mssg,125,$mssg,$black);
 	}
 
 // Draw period if object is cyclic
@@ -320,7 +362,7 @@ else {
 $vshift += 20;
 
 // Write MIDI channel status
-if(isset($event[0])) {
+if(isset($event_midi[0])) {
 	if($MIDIchannel > 0) $mssg = "Force to MIDI channel #".$MIDIchannel;
 	else if($MIDIchannel < 0) $mssg = "Do not change MIDI channels";
 	else if($MIDIchannel == 0) $mssg = "Force to current MIDI channel";
