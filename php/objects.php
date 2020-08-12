@@ -20,9 +20,8 @@ echo "<h2>Object prototypes file “".$filename."”</h2>";
 
 if($test) echo "dir = ".$dir."<br />";
 
-// $temp_folder = $dir.str_replace(' ','_',$filename)."_".session_id()."_temp";
 $temp_folder = str_replace(' ','_',$filename)."_".session_id()."_temp";
-echo "temp_folder = ".$temp_folder."<br />";
+// echo "temp_folder = ".$temp_folder."<br />";
 if(!file_exists($dir.$temp_folder)) {
 	mkdir($dir.$temp_folder);
 	}

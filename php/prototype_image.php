@@ -238,7 +238,7 @@ if($gapend > 0) {
 
 // Write continuity settings and values of gaps if any
 imagestring($im,10,$margin_left-($alpha*$gapbeg),$y2 + $vshift,$beg_mssg,$black);
-imagestring($im,10,$x2 - (imagefontwidth(10) * strlen($end_mssg))+($alpha*$gapend),$y2 + $vshift,$end_mssg,$black);
+imagestring($im,10,$x2max - (imagefontwidth(10) * strlen($end_mssg))+($alpha*$gapend),$y2 + $vshift,$end_mssg,$black);
 
 $vshift += 30;
 
@@ -279,12 +279,12 @@ if(!$TruncEnd AND $TruncEndMode == -1) {
 
 if($max_truncend > 0) {
 	$vshift += 40;
-	imagefilledrectangle($im,$x2 - ($alpha * $max_truncend),$y2 + $vshift,$x2,$y2 + $vshift + 1,$blue);
-	imageline($im,$x2 - ($alpha * $max_truncend),$y2 + $vshift,$x2 - ($alpha * $max_truncend),$y2 + $vshift - 20,$blue);
-	imageline($im,$x2,$y2 + $vshift,$x2,$y2 + $vshift - 20,$blue);
+	imagefilledrectangle($im,$x2max - ($alpha * $max_truncend),$y2 + $vshift,$x2max,$y2 + $vshift + 1,$blue);
+	imageline($im,$x2max - ($alpha * $max_truncend),$y2 + $vshift,$x2max - ($alpha * $max_truncend),$y2 + $vshift - 20,$blue);
+	imageline($im,$x2max,$y2 + $vshift,$x2max,$y2 + $vshift - 20,$blue);
 	$vshift += 10;
 	}
-imagestring($im,10,$x2 - (imagefontwidth(10) * strlen($end_mssg)),$y2 + $vshift,$end_mssg,$black);
+imagestring($im,10,$x2max - (imagefontwidth(10) * strlen($end_mssg)),$y2 + $vshift,$end_mssg,$black);
 
 $vshift += 20;
 
@@ -327,19 +327,19 @@ if(!$CoverEnd AND $CoverEndMode == -1) {
 
 if($max_coverend > 0) {
 	$vshift += 30;
-	imagefilledrectangle($im,$x2 - ($alpha * $max_coverend),$y2 + $vshift,$x2,$y2 + $vshift + 1,$blue);
-	imageline($im,$x2,$y2 + $vshift,$x2,$y2 + $vshift - 20,$blue);
-	imageline($im,$x2 - ($alpha * $max_coverend),$y2 + $vshift,$x2 - ($alpha * $max_coverend),$y2 + $vshift - 20,$blue);
+	imagefilledrectangle($im,$x2max - ($alpha * $max_coverend),$y2 + $vshift,$x2max,$y2 + $vshift + 1,$blue);
+	imageline($im,$x2max,$y2 + $vshift,$x2max,$y2 + $vshift - 20,$blue);
+	imageline($im,$x2max - ($alpha * $max_coverend),$y2 + $vshift,$x2max - ($alpha * $max_coverend),$y2 + $vshift - 20,$blue);
 	$vshift += 10;
 	}
-imagestring($im,10,$x2 - (imagefontwidth(10) * strlen($end_mssg)),$y2 + $vshift,$end_mssg,$black);
+imagestring($im,10,$x2max - (imagefontwidth(10) * strlen($end_mssg)),$y2 + $vshift,$end_mssg,$black);
 
 $vshift += 30;
 
 // Write Break tempo (organum)
 if($BreakTempo) $mssg = "BreakTempo (organum)";
 else $mssg = "#BreakTempo";
-imagestring($im,10,$x2 - (imagefontwidth(10) * strlen($mssg)),$y2 + $vshift,$mssg,$black);
+imagestring($im,10,$x2max - (imagefontwidth(10) * strlen($mssg)),$y2 + $vshift,$mssg,$black);
 
 $vshift += 40;
 

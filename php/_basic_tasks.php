@@ -398,6 +398,13 @@ function gcd ($a, $b) {
     return $b ? gcd($b, $a % $b) : $a;
 	}
 
+function gcd_array($array,$a = 0) {
+    $b = array_pop($array);
+    return($b === null) ?
+        (int)$a :
+        gcd_array($array, gcd($a,$b));
+	}
+
 function clean_up_encoding($convert,$text) {
 	if($convert) $text = mb_convert_encoding($text, "UTF-8", mb_detect_encoding($text, "UTF-8, ISO-8859-1, ISO-8859-15", true));
 	$text = str_replace("¥","•",$text);
@@ -412,7 +419,6 @@ function clean_up_encoding($convert,$text) {
 	$text = str_replace("²","≤",$text);
 	$text = str_replace("³","≥",$text);
 //	$text = str_replace("â•","≥",$text);
-	$text = str_replace(" "," ",$text);
 	return $text;
 	}
 
