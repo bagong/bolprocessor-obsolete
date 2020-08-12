@@ -1,6 +1,5 @@
-// Bol Processor on-line test via PHP
-// Grammar file saved as ‘-gr.acceleration’. Date: 2020-07-14
-
+// Bol Processor BP3 compatible with version BP2.9.8
+// Grammar file saved as "-gr.acceleration". Date: 2020-08-01 16:01:29
 -se.Visser2
 // A grammar by Harm Visser (hvisser@pop3.worldaccess.nl)
 // October 1997
@@ -14,7 +13,7 @@
 RND
 _mm(60.0000) _striated
 gram#1[1] S --> _vel(60) A B _vel(65) C  D _vel(70) E F _vel(75) G _vel(77) H _vel(80) I _vel(85) J  _vel(87) K _vel(90) L
-gram#1[2] A --> E2 •
+gram#1[2] A --> E2 &bull;
 gram#1[3] B --> D2 A
 gram#1[4] C --> B2 B
 gram#1[5] D --> G2 C

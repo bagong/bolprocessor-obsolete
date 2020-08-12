@@ -1,3 +1,5 @@
+// Bol Processor BP3 compatible with version BP2.9.8
+// Grammar file saved as "unknown-terminal.bpgr". Date: 2020-08-04 15:21:23
 gram#1[1] S --> A B
-gram#1[2] A --> 
-B --> x a
+gram#1[2] A -->
+gram#1[3] B --> x a

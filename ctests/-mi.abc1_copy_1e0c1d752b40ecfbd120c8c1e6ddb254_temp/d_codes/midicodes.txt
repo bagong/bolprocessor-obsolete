@@ -1,2 +1,0 @@
-0 (ch 1) NoteOn 65 59 
-617 (ch 1) NoteOff 65 0 
