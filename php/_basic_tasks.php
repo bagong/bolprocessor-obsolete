@@ -3,6 +3,7 @@ session_start();
 require('midi.class.php');
 // Source: https://github.com/robbie-cao/midi-class-php
 
+define('MAXFILESIZE',1000000);
 // define('SLASH',DIRECTORY_SEPARATOR);
 define('SLASH',"/");
 
@@ -16,16 +17,54 @@ $bp_application_path = dirname($bp_php_path);
 $bp_parent_path = dirname($bp_application_path);
 
 $bp_home_dir = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
-// $part_dir = str_replace($bp_parent_path,'',$bp_php_path);
-// $path_above = str_replace($root,'',$bp_php_path);
-// $path_above = str_replace($part_dir,'',$path_above);
 
 $bp_php_path = str_replace("\\",SLASH,$bp_php_path);
 $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
 $bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
 $bp_home_dir = str_replace("\\",SLASH,$bp_home_dir);
-// $part_dir = str_replace("\\",SLASH,$part_dir);
-// $path_above = str_replace("\\",SLASH,$path_above);
+
+$temp_dir = "..".SLASH."temp_bolprocessor";
+if(!file_exists($temp_dir)) {
+	mkdir($temp_dir);
+	}
+$temp_dir .= SLASH;
+
+// Delete old temp directories and trace files
+$dircontent = scandir($temp_dir);
+$now = time();
+$yesterday = $now - (24 * 3600);
+foreach($dircontent as $thisfile) {
+	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
+	$time_saved = filemtime($temp_dir.$thisfile);
+	if($time_saved < $yesterday) $old = TRUE;
+	else $old = FALSE;
+	if(is_dir($temp_dir.$thisfile)) {
+		$table = explode('_',$thisfile);
+		$extension = end($table);
+		if($extension == "temp" AND count($table) > 2) {
+			$id = $table[count($table) - 2];
+			if($old) {
+				if($id <> session_id()) {
+					my_rmdir($temp_dir.$thisfile);
+					continue;
+					}
+				}
+			}
+		}
+	$table = explode(".",$thisfile);
+	$extension = end($table);
+	if($old) {
+		$table = explode('_',$thisfile);
+		$prefix = $table[0];
+		if($prefix == "trace") {
+			$id = $table[1];
+			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
+				unlink($temp_dir.$thisfile);
+				continue;
+				}
+			}
+		}
+	}
 
 if(isset($_GET['path'])) $path = urldecode($_GET['path']);
 else $path = '';
@@ -42,7 +81,7 @@ if($test) {
 	echo "bp_application_path = ".$bp_application_path."<br />";
 	echo "bp_parent_path = ".$bp_parent_path."<br />";
 	echo "bp_home_dir = ".$bp_home_dir."<br />";
-//	echo "part_dir = ".$part_dir."<br />";
+	echo "temp_dir = ".$temp_dir."<br />";
 //	echo "path_above = ".$path_above."<br />";
 	echo "text_help_file = ".$text_help_file."<br />";
 	echo "</small><hr>";
@@ -50,7 +89,7 @@ if($test) {
 
 $html_help_file = "BP2_help.html";
 $help = compile_help($text_help_file,$html_help_file);
-$tracefile = "trace_".session_id().".txt";
+$tracefile = $temp_dir."trace_".session_id().".txt";
 $top_header = "// Bol Processor BP3 compatible with version BP2.9.8";
 
 function pick_up_headers($content) {
@@ -521,7 +560,7 @@ function my_rmdir($src) {
 	}
 
 function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
-	global $top_header, $test;
+	global $top_header, $test, $temp_dir;
 	$handle = fopen($dir.$filename,"w");
 //	$handle = fopen($dir."essai.txt","w");
 	$file_header = $top_header."\n// Object prototypes file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
@@ -536,7 +575,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 	fwrite($handle,$CsoundInstruments_filename."\n");
 	$maxsounds = $_POST['maxsounds'];
 	fwrite($handle,$maxsounds."\n");
-	$dircontent = scandir($dir.$temp_folder);
+	$dircontent = scandir($temp_dir.$temp_folder);
 	foreach($dircontent as $thisfile) {
 		if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
 		$table = explode(".",$thisfile);
@@ -544,7 +583,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		if($extension <> "txt") continue;
 		$object_label = str_replace(".".$extension,'',$thisfile);
 		if($verbose) echo $object_label." ";
-		$content = file_get_contents($dir.$temp_folder.SLASH.$thisfile,TRUE);
+		$content = file_get_contents($temp_dir.$temp_folder.SLASH.$thisfile,TRUE);
 		$pick_up_headers = pick_up_headers($content);
 		$headers = $pick_up_headers['headers'];
 		if(!is_integer($pos=strpos($headers,"//"))) continue;
@@ -558,7 +597,7 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 			if($line == "_endCsoundScore_") {
 				// We fetch MIDI codes from a separate "midibytes.txt" file
 				$object_foldername = clean_folder_name($object_label);
-				$save_codes_dir = $dir.$temp_folder.SLASH.$object_foldername."_codes";
+				$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
 				$midi_bytes = $save_codes_dir."/midibytes.txt";
 			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
 				$all_bytes = @file_get_contents($midi_bytes,TRUE);
@@ -648,26 +687,59 @@ function clean_folder_name($name) {
 	}
 
 function convert_mf2t_to_bytes($verbose,$midi_import,$midi,$midi_file) {
+	// $verbose = TRUE;
 	// midi_file contains the code in MIDI format
 	$midi->importMid($midi_file);
 	$midi_text_bytes = array();
-	$jcode = 0;
+	$jcode = 5;
 	$tt = 0; // We ask for absolute time stamps
+	$old_tempo = $tempo = 1000000; // Default value
 	$text = $midi->getTxt($tt);
 	$handle = fopen($midi_import,"w");
 	$table = explode(chr(10),$text);
 	for($i = 0; $i < count($table); $i++) {
 		$line = $table[$i];
-	//	echo $line."<br />";
-		fwrite($handle,$line."\n");
 		$table2 = explode(" ",$line);
+		if(isset($table2[3]) AND $table2[0] == "MFile") {
+			$old_division = intval($table2[3]);
+			}
+		if(isset($table2[2]) AND $table2[1] == "Tempo" AND $table2[0] == "0") {
+			$old_tempo = intval($table2[2]);
+			break;
+			}
+		}
+	$alpha = $old_tempo / $old_division / 1000;
+	$division = 1000; $tempo = 1000000;
+//	echo $alpha; die();
+	for($i = 0; $i < count($table); $i++) {
+		$line = $table[$i];
+	//	echo $line."<br />";
+		$table2 = explode(" ",$line);
+		if(isset($table2[3]) AND $table2[0] == "MFile") {
+			$table2[3] = $division;
+			$line = implode(' ',$table2);
+			fwrite($handle,$line."\n");
+			continue;
+			}
+		if(isset($table2[2]) AND $table2[1] == "Tempo" AND $table2[0] == "0") {
+			$table2[2] = $tempo;
+			$line = implode(' ',$table2);
+			fwrite($handle,$line."\n");
+			continue;
+			}
+		if(count($table2) > 3 OR (isset($table2[2]) AND $table2[2] == "TrkEnd")) {
+			$time = round($table2[0] * $alpha);
+			$table2[0] = $time;
+			$line = implode(' ',$table2);
+			}
+		fwrite($handle,$line."\n");
 		if(count($table2) < 4) continue;
-		$time = intval($table2[0]);
 		$chan = str_replace("ch=",'',$table2[2]);
 		$code[0] = $code[1] = $code[2] = $code[3] = -1;
-		if(isset($table2[3]) AND $table2[0] == "MFile") {
-			$division = $table2[3];
-			$midi_text_bytes[$jcode++] = intval($division);
+		if(isset($table2[4]) AND $table2[1] == "TimeSig" AND $table2[0] == "0") {
+			$midi_text_bytes[2] = $table2[2];
+			$midi_text_bytes[3] = $table2[3];
+			$midi_text_bytes[4] = $table2[4];
 			}
 		else if(isset($table2[1]) AND $table2[1] == "ChPr") {
 			$val = str_replace("v=",'',$table2[3]);
@@ -734,10 +806,102 @@ function convert_mf2t_to_bytes($verbose,$midi_import,$midi,$midi_file) {
 				}
 			}
 		}
+	$midi_text_bytes[0] = $division;
+	$midi_text_bytes[1] = $tempo;
 	fclose($handle);
+//	echo "ok3"; die();
 	return $midi_text_bytes;
 	}
 
+function fix_mf2t_file($mf2tfile,$tracknames) {
+	$said = $bad = FALSE;
+	if(!file_exists($mf2tfile)) {
+		echo "<p style=\"color:red;\">Cannot find: ".$mf2tfile."</p>";
+		return;
+		}
+	$message = "<span style=\"color:red;\">Fixing imported MIDI file:</span><ul>";
+	$content = @file_get_contents($mf2tfile,TRUE);
+	$handle = fopen($mf2tfile,"w");
+	$table = explode(chr(10),$content);
+	$i0 = 0;
+	if(!is_integer(strpos($content," Tempo "))) {
+		$i0 = 1;
+		$line = trim($table[0]);
+		$table2 = explode(' ',$line);
+		$new_track_number = intval($table2[2]) + 1;
+		$table2[2] = $new_track_number;
+		$line = implode(' ',$table2);
+		fwrite($handle,$newline."\n");
+		echo "<li>Modified: ".$newline."</li>";
+		$line = "MTrk\n0 Meta TrkName \"header\"\n0 TimeSig 1/4 24 8\n0 Tempo 1000000\n0 KeySig 0 major\n0 Meta TrkEnd\nTrkEnd";
+		fwrite($handle,$newline."\n");
+		echo "<li>Modified: ".str_replace("\n","<br />",$newline)."</li>";
+		}
+	$new_track_nr = 1;
+	for($i = $i0; $i < count($table); $i++) {
+		$line = trim($table[$i]);
+		if($line == "TrkEnd") {
+			$line2 = trim($table[$i - 1]);
+			if(!is_integer(strpos($line2,"TrkEnd"))) {
+				$bad = TRUE;
+				if(!$said) echo $message;
+				$said = TRUE;
+				$table2 = explode(' ',$line2);
+				$time = intval($table2[0]);
+				$newline = $time." Meta TrkEnd";
+				fwrite($handle,$newline."\n");
+				echo "<li>Added: ".$newline."</li>";
+				}
+			}
+		fwrite($handle,$line."\n");
+		if($line == "MTrk") {
+			$line2 = trim($table[$i + 1]);
+			if(!is_integer(strpos($line2,"TrkName"))) {
+				$bad = TRUE;
+				if(!$said) echo $message;
+				$said = TRUE;
+				$newline = "0 Meta TrkName \"".$tracknames.$new_track_nr."\"";
+				$new_track_nr++;
+				fwrite($handle,$newline."\n");
+				echo "<li>Added: ".$newline."</li>";
+				}
+			}
+		}
+	if($bad) echo "</ul>";
+	fclose($handle);
+	return;
+	}
+
+function duration_of_midifile($mf2t_content) {
+	$duration = 0;
+	$table = explode(chr(10),$mf2t_content);
+	for($i = 0; $i < count($table); $i++) {
+		$line = $table[$i];
+		$table2 = explode(' ',$line);
+		if(count($table2) < 5) continue;
+		if($table2[1] == "TimeSig" OR $table2[1] == "Tempo") continue;
+		$time = intval($table2[0]);
+		if($time <> $table2[0]) continue;
+		if($time > $duration) $duration = $time;
+		}
+	return $duration;
+	}
+	
+function mf2t_no_header($mf2t_content) {
+	$result = array();
+	$table = explode(chr(10),$mf2t_content);
+	$found_MTrk = 0;
+	for($i = 0; $i < count($table); $i++) {
+		$line = $table[$i];
+		$table2 = explode(' ',$line);
+		if($table2[0] == "MTrk") {
+			$found_MTrk++;
+			}
+		if($found_MTrk > 1) $result[] = $line;
+		}
+	return $result;
+	}
+	
 function rcopy($src,$dst) {
 	if(file_exists($dst)) my_rmdir($dst);
 	if(is_dir($src)) {

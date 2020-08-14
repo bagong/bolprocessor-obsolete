@@ -922,7 +922,9 @@ function _parseTrack($binStr, $tn){
 	  // timedelta
 	  $dt = _readVarLen($binStr,$p);
 	  $time += $dt;
-
+		if(!isset($binStr[$p])) { // Added BB 2020-08-13
+			$p+=2; continue;
+			}
 	  $byte = ord($binStr[$p]);
 	  $high = $byte >> 4;
 	  $low = $byte - $high*16;
@@ -1095,9 +1097,11 @@ function _parseTrack($binStr, $tn){
 					  switch ($last){
 						  case 'On':
 						  case 'Off':
-							  $note = ord($binStr[$p]);
-							  $vel = ord($binStr[$p+1]);
-							  $track[] = "$time $last ch=$chan n=$note v=$vel";
+						  	if(isset($binStr[$p+1])) { // Added BB 2020-08-13
+								$note = ord($binStr[$p]);
+								$vel = ord($binStr[$p+1]);
+								$track[] = "$time $last ch=$chan n=$note v=$vel";
+							  	}
 							  $p+=2;
 							  break;
 						  case 'PrCh':

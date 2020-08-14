@@ -1,7 +1,6 @@
 <?php
 require_once("_basic_tasks.php");
 
-define('MAXFILESIZE',1000000);
 if(isset($_GET['file'])) $file = urldecode($_GET['file']);
 else $file = '';
 if($file == '') die();
@@ -17,11 +16,48 @@ echo link_to_help();
 
 $temp_folder = str_replace(' ','_',$filename)."_".session_id()."_temp";
 // echo "temp_folder = ".$temp_folder."<br />";
-if(!file_exists($dir.$temp_folder)) {
-	mkdir($dir.$temp_folder);
+if(!file_exists($temp_dir.$temp_folder)) {
+	mkdir($temp_dir.$temp_folder);
 	}
 
 echo "<h3>Time base file “".$filename."”</h3>";
+
+$midi_import_file = $temp_dir.$temp_folder.SLASH."imported_codes.mid";
+$midi_import_mf2t = $temp_dir.$temp_folder.SLASH."imported_mf2t.txt";
+$upload_filename = '';
+if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
+	$upload_filename = $_FILES['mid_upload']['name'];
+	if($_FILES["mid_upload"]["size"] > MAXFILESIZE) {
+		echo "<h3><font color=\"red\">Uploading failed:</font> <font color=\"blue\">".$upload_filename."</font> <font color=\"red\">is larger than ".MAXFILESIZE." bytes</font></h3>";
+		}
+	else {
+		$tmpFile = $_FILES['mid_upload']['tmp_name'];
+		copy($tmpFile,$midi_import_file) or die('Problem uploading this MIDI file');
+		@chmod($midi_import_file,0666);
+		$table = explode('.',$upload_filename);
+		$extension = end($table);
+		if($extension <> "mid" and $extension <> "midi") {
+			echo "<h3><font color=\"red\">Uploading failed:</font> <font color=\"blue\">".$upload_filename."</font> <font color=\"red\">is not a MIDI file!</font></h3>";
+			unlink($midi_import_file);
+			}
+		else {
+			$_POST['upload_filename'] = $upload_filename;
+			echo "<h3 id=\"timespan\"><font color=\"red\">Converting MIDI file:</font> <font color=\"blue\">".$upload_filename."</font></h3>";
+			$midi = new Midi();
+			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi_import_mf2t,$midi,$midi_import_file);
+			$division = $_POST['division'] = $midi_text_bytes[0];
+			$tempo = $_POST['tempo'] = $midi_text_bytes[1];
+			$timesig = $_POST['timesig'] = "0 TimeSig ".$midi_text_bytes[2]." ".$midi_text_bytes[3]." ".$midi_text_bytes[4];
+		/*	$division = $_POST['division'] = $midi_text_bytes[0];
+			$temp_bytes = array();
+			for($i = 1; $i < count($midi_text_bytes); $i++)
+				$temp_bytes[] = $midi_text_bytes[$i];
+			$midi_text_bytes = $temp_bytes; */
+			fix_mf2t_file($midi_import_mf2t,"imported_");
+		//	echo "ok5"; die();
+			}
+		}
+	}
 
 /* if(isset($_POST['savethisfile'])) {
 	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
@@ -33,10 +69,9 @@ echo "<h3>Time base file “".$filename."”</h3>";
 	fclose($handle);
 	} */
 
-if(isset($_POST['savealldata']) OR isset($_POST['addtrack'])) {
+if(isset($_POST['changestatus'])) {
 	$new_track = isset($_POST['addtrack']);
-	echo "<p id=\"timespan\" style=\"color:red;\">Saved all data…</p>";
-//	$handle = fopen($dir."-tb.test.txt","w");
+//	echo "<p id=\"timespan\" style=\"color:red;\">Saved all data…</p>";
 	$handle = fopen($this_file,"w");
 	$file_header = $top_header."\n// Time base file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
 	fwrite($handle,$file_header."\n");
@@ -73,10 +108,9 @@ if(isset($_POST['savealldata']) OR isset($_POST['addtrack'])) {
 			else fwrite($handle,"0\n");
 			}
 		}
-	fwrite($handle,"DATA: ".$_POST['comment']."\n");
+	fwrite($handle,"DATA: ".recode_tags($_POST['comment'])."\n");
 	fclose($handle);
 	}
-
 try_create_new_file($this_file,$filename);
 $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
@@ -96,16 +130,29 @@ $q_clock = 1;
 if(isset($_POST['p_clock'])) $p_clock = $_POST['p_clock'];
 if(isset($_POST['q_clock'])) $q_clock = $_POST['q_clock'];
 
+if(isset($_POST['division']) AND $_POST['division'] > 0) $division = $_POST['division'];
+else $division = 480;
+if(isset($_POST['tempo']) AND $_POST['tempo'] > 0) $tempo = $_POST['tempo'];
+else $tempo = 1000000;
+if(isset($_POST['timesig']) AND $_POST['timesig'] <> '') $timesig = $_POST['timesig'];
+else $timesig = "0 TimeSig 4/4 24 8";
+
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+echo "<input type=\"hidden\" name=\"changestatus\" value=\"1\">";
 echo "<input type=\"hidden\" name=\"maxticks\" value=\"".$maxticks."\">";
 echo "<input type=\"hidden\" name=\"maxbeats\" value=\"".$maxbeats."\">";
-$metronome = round(($p_clock * 60 / $q_clock),2);
+$metronome = round(($p_clock * 60 / $q_clock),3);
 echo "<p style=\"text-align:left;\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savealldata\" value=\"SAVE ALL DATA\">";
-echo "&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"p_clock\" size=\"3\" value=\"".$p_clock."\"> ticks in <input type=\"text\" name=\"q_clock\" size=\"3\" value=\"".$q_clock."\"> sec. ➡ mm = ".$metronome." beats/mn</p>";
-echo "<hr>";
+echo "&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"p_clock\" size=\"8\" value=\"".$p_clock."\"> beats in <input type=\"text\" name=\"q_clock\" size=\"8\" value=\"".$q_clock."\"> sec. ➡ mm = ".$metronome." beats/mn</p>";
+
 echo "<table style=\"background-color:gold;\">";
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	$mute[$i_cycle] = FALSE;
+	if(isset($_POST['mute_'.$i_cycle])) $mute[$i_cycle] = $_POST['mute_'.$i_cycle];
+	if(isset($_POST['inactivate_'.$i_cycle])) $mute[$i_cycle] = TRUE;
+	if(isset($_POST['activate_'.$i_cycle])) $mute[$i_cycle] = FALSE;
+	echo "<input type=\"hidden\" name=\"mute_".$i_cycle."\" value=\"".$mute[$i_cycle]."\">";
 	$j += 2;
 	$TickKey[$i_cycle] = $table[$j++];
 	$TickChannel[$i_cycle] = $table[$j++];
@@ -116,7 +163,16 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	$TickDuration[$i_cycle] = $table[$j++];
 	for($i = 0; $i < $maxbeats; $i++) $ThisTick[$i_cycle][$i] = $table[$j++];
 	echo "<tr>";
-	echo "<td style=\"text-align: center; vertical-align: middle; background-color: gold; font-size: x-large; color:red;\" rowspan = \"2\"><b>".($i_cycle + 1)."</b></td><td style=\"padding:6px;\">Cycle of <input type=\"text\" name=\"TickCycle_".$i_cycle."\" size=\"3\" value=\"".$TickCycle[$i_cycle]."\"> beat(s) [max 40]</td>";
+	echo "<td style=\"text-align: center; vertical-align: middle; background-color: gold; font-size: x-large; color:red;\" rowspan = \"2\"><b>";
+	if($mute[$i_cycle]) echo "(<font color=\"white\">".($i_cycle + 1)."</font>)";
+	else echo ($i_cycle + 1);
+	echo "</b><br />";
+	if(!$mute[$i_cycle])
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"inactivate_".$i_cycle."\" value=\"MUTE\">";
+	else
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"activate_".$i_cycle."\" value=\"ACTIVATE\">";
+	echo "</td>";
+	echo "<td style=\"padding:6px;\">Cycle of <input type=\"text\" name=\"TickCycle_".$i_cycle."\" size=\"3\" value=\"".$TickCycle[$i_cycle]."\"> beat(s) [max 40]</td>";
 	echo "<td style=\"text-align: right;\">Speed ratio <input type=\"text\" name=\"Ptick_".$i_cycle."\" size=\"3\" value=\"".$Ptick[$i_cycle]."\">&nbsp;/&nbsp;<input type=\"text\" name=\"Qtick_".$i_cycle."\" size=\"3\" value=\"".$Qtick[$i_cycle]."\"></td>";
 	echo "</tr>";
 	echo "<tr>";
@@ -133,66 +189,142 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	echo "<tr><td colspan=\"3\" style=\"background-color:gold;\">";
 	echo "</td></tr>";
 	}
+
+$MIDIfile_exists = FALSE;
+if(file_exists($midi_import_mf2t)) {
+	$MIDIfile_exists = TRUE;
+	$i_midifile = $i_cycle;
+	$mute[$i_midifile] = FALSE;
+	if(isset($_POST['mute_'.$i_midifile])) $mute[$i_midifile] = $_POST['mute_'.$i_cycle];
+	if(isset($_POST['inactivate_'.$i_midifile])) $mute[$i_midifile] = TRUE;
+	if(isset($_POST['activate_'.$i_midifile])) $mute[$i_midifile] = FALSE;
+	echo "<input type=\"hidden\" name=\"mute_".$i_midifile."\" value=\"".$mute[$i_midifile]."\">";
+	// We reconstruct the imported MIDI file so that bugs are fixed…
+	$mf2t_content = @file_get_contents($midi_import_mf2t,TRUE);
+	$duration_of_midifile = duration_of_midifile($mf2t_content);
+//	echo "duration_of_midifile = ".$duration_of_midifile."<br />";
+	$beats_of_midifile = round(($duration_of_midifile * $p_clock / $q_clock / 1000), 3);
+//	echo $midi_import_file; die();
+/*	$midi = new Midi();
+	$midi->importTxt($mf2t_content);
+	$midi->saveMidFile($midi_import_file); */
+	echo "<tr id=\"midi\">";
+	echo "<td style=\"text-align: center; vertical-align: middle; background-color: gold; font-size: x-large; color:red;\" rowspan=\"2\"><b>";
+	if($mute[$i_midifile]) echo "(<font color=\"white\">".($i_midifile + 1)."</font>)";
+	else echo ($i_midifile + 1);
+	echo "</b><br />";
+	if(!$mute[$i_midifile])
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"inactivate_".$i_midifile."\" value=\"MUTE\">";
+	else
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"activate_".$i_midifile."\" value=\"ACTIVATE\">";
+	echo "</td>";
+	echo "<td colspan=\"2\" style=\"padding:6px; text-align:center;\">";
+	if(isset($_POST['upload_filename']) AND $_POST['upload_filename'] <> '') $upload_filename = $_POST['upload_filename'];
+	echo "<input type=\"hidden\" name=\"upload_filename\" value=\"".$upload_filename."\">";
+	echo "<a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_import_file."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play “<font color=\"blue\">".$upload_filename."</font>” MIDI file</a>";
+	echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)";
+	echo "<br />Duration = ".round($duration_of_midifile / 1000, 3)." sec = ".$beats_of_midifile." beats<br />Division = <input type=\"text\" name=\"division\" size=\"5\" value=\"".$division."\">&nbsp;&nbsp;&nbsp;Tempo = <input type=\"text\" name=\"tempo\" size=\"7\" value=\"".$tempo."\"> µs ➡ show <a onclick=\"window.open('".$midi_import_mf2t."','importedMIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$midi_import_mf2t."\">MF2T code</a>";
+	echo "</td></tr>";
+	$colspan = 2;
+	}
+else $colspan = 3;
+
+
+echo "<tr><td colspan=\"".$colspan."\" style=\"padding:6px; text-align:center;\">";
+echo "Load (or replace) MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
+echo "</td></tr>";
 if(isset($table[$j])) $comment = $table[$j];
 else $comment = '';
 $comment = trim(str_replace("DATA:",'',$comment));
 $comment = str_ireplace("<HTML>",'',$comment);
 $comment = str_ireplace("</HTML>",'',$comment);
 echo "<tr><td colspan=\"3\" style=\"padding:6px;\">";
-
-
 echo "<div style=\"float:right;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"addtrack\" value=\"ADD ANOTHER TRACK\"></div>";
 
 echo "Comment on this timebase:<br /><input type=\"text\" name=\"comment\" size=\"80\" value=\"".$comment."\">";
 echo "</td></tr>";
 echo "</table>";
-echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"savealldata\" value=\"SAVE ALL DATA\">";
 
 $check_midi = FALSE;
 // $check_midi = TRUE;
 
-if($check_midi) echo "</p>p_clock = ".$p_clock."<br />";
+if($check_midi) echo "p_clock = ".$p_clock."<br />";
 if($check_midi) echo "q_clock = ".$q_clock."<br />";
 
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	if($mute[$i_cycle]) {
+		$duration[$i_cycle] = 0;
+		continue;
+		}
+	$mute[$i_cycle] = TRUE;
+	for($i = 0; $i < $maxbeats; $i++) {
+		if($ThisTick[$i_cycle][$i] == 1) {
+			$mute[$i_cycle] = FALSE; break;
+			}
+		}
+	if($mute[$i_cycle]) {
+		$duration[$i_cycle] = 0;
+		continue;
+		}
 	$duration[$i_cycle] = 1000 * $TickCycle[$i_cycle] * $Qtick[$i_cycle] / $Ptick[$i_cycle];
-	if($check_midi) echo "duration = ".$duration[$i_cycle]."<br />";
+	if($check_midi) echo ($i_cycle+ 1)." duration = ".$duration[$i_cycle]." ms<br />";
+	}
+if($MIDIfile_exists AND !$mute[$i_midifile]) {
+	$duration[$i_midifile] = $duration_of_midifile;
+	if($check_midi) echo "MIDI file duration = ".$duration[$i_midifile]." ms<br />";
 	}
 $gcd = gcd_array($duration,0);
-if($check_midi) echo "gcd = ".$gcd."<br />";
+if($gcd == 0) $gcd = 1;
+if($check_midi) echo "gcd = ".$gcd."<br /><br />";
 
 $mult = 1;
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
-	if($gcd > 0) {
-		$duration[$i_cycle] = round($duration[$i_cycle] / $gcd);
-		$approxQtick[$i_cycle] = round($duration[$i_cycle] * $gcd * $Ptick[$i_cycle] / $TickCycle[$i_cycle] / 1000);
-		}
-	else {
-		$duration[$i_cycle] = round($duration[$i_cycle]);
-		$approxQtick[$i_cycle] = round($duration[$i_cycle] * $Ptick[$i_cycle] / $TickCycle[$i_cycle] / 1000);
-		}
+	if($mute[$i_cycle]) continue;
+	$duration[$i_cycle] = $duration[$i_cycle] / $gcd;
 	$mult = $mult * ($duration[$i_cycle] / gcd($mult,$duration[$i_cycle]));
-	if($check_midi) echo "duration = ".$duration[$i_cycle]."<br />";
+	if($check_midi) echo ($i_cycle+ 1)." relative duration = ".$duration[$i_cycle]."<br />";
 	}
-if($check_midi) echo "mult = ".$mult."<br />";
+if($MIDIfile_exists AND !$mute[$i_midifile]) {
+	$duration[$i_midifile] = $duration[$i_midifile] / $gcd;
+	$mult = $mult * ($duration[$i_midifile] / gcd($mult,$duration[$i_midifile]));
+	if($check_midi) echo "MIDI file relative duration = ".$duration[$i_midifile]."<br />";
+	}
+if($check_midi) echo "mult = ".$mult."<br /><br />";
 
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
-	$repeat[$i_cycle] = $mult / $duration[$i_cycle];
-	if($check_midi) echo "repeat = ".$repeat[$i_cycle]."<br />";
+	if($mute[$i_cycle]) continue;
+	$i_ok = $i_cycle;
+	if($MIDIfile_exists AND !$mute[$i_midifile]) {
+		$repeat[$i_cycle] = round($duration[$i_midifile] / $duration[$i_cycle]);
+		}
+	else $repeat[$i_cycle] = $mult / $duration[$i_cycle];
+	if($check_midi) echo ($i_cycle + 1)." repeat = ".$repeat[$i_cycle]."<br />";
 	}
-$actual_beats_combined = round($repeat[0] * $TickCycle[0] * $Qtick[0] / $Ptick[0]);
-$actual_duration_combined = round($actual_beats_combined * $q_clock / $p_clock);
-echo "<p>Actual duration of combined tracks is ".$actual_beats_combined." beats = ".$actual_duration_combined." seconds with:</p>";
-echo "<ul>";
+
+if($MIDIfile_exists AND !$mute[$i_midifile]) {
+	$actual_duration_combined = round($duration_of_midifile / 1000, 3);
+	$actual_beats_combined = $actual_duration_combined * $p_clock / $q_clock;
+	}
+else {
+	$actual_beats_combined = $repeat[$i_ok] * $TickCycle[$i_ok] * $Qtick[$i_ok] / $Ptick[$i_ok];
+	$actual_duration_combined = $actual_beats_combined * $q_clock / $p_clock;
+	}
+
+$number_of_tracks = 1;
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
-	echo "<li>track #".($i_cycle + 1)." repeated ".$repeat[$i_cycle]." time(s)</li>";
+	if($mute[$i_cycle]) continue;
+	$number_of_tracks++;
 	}
-echo "</ul>";
-	
-$mf2t = $dir.$temp_folder.SLASH."mf2t.txt";
+
+$mf2t_no_header = array();
+if($MIDIfile_exists AND !$mute[$i_midifile]) {
+	$number_of_tracks++;
+	$mf2t_no_header = mf2t_no_header($mf2t_content);
+	}
+$mf2t = $temp_dir.$temp_folder.SLASH."mf2t.txt";
+
 $handle = fopen($mf2t,"w");
-$number_of_tracks = $maxticks;
-$division = 480;
+// $division = 480;
 if(isset($_POST['max_repeat'])) $max_repeat = intval($_POST['max_repeat']);
 else $max_repeat = 3;
 if($max_repeat == 0) $max_repeat = 1;
@@ -200,15 +332,27 @@ if(isset($_POST['max_time_play'])) $max_time_play = $_POST['max_time_play'];
 else $max_time_play = 60 * 2; // Not longer than 2 minutes
 if(isset($_POST['end_silence'])) $end_silence = $_POST['end_silence'];
 else $end_silence = 200; // ms
-$MaxTime = 1000 * $max_time_play;
+if($MIDIfile_exists AND !$mute[$i_midifile]) {
+	$MaxTime = $duration_of_midifile;
+	$max_repeat = 1;
+	}
+else $MaxTime = 1000 * $max_time_play;
 fwrite($handle,"MFile 1 ".$number_of_tracks." ".$division."\n");
+fwrite($handle,"MTrk\n");
+fwrite($handle,"0 Meta TrkName \"header\"\n");
+fwrite($handle,$timesig."\n");
+fwrite($handle,"0 Tempo ".$tempo."\n");
+fwrite($handle,"0 KeySig 0 major\n");
+fwrite($handle,"0 Meta TrkEnd\n");
+fwrite($handle,"TrkEnd\n");
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	if($mute[$i_cycle]) continue;
 	$trk = $i_cycle + 1;
 	$time = $start_time = 0;
 	fwrite($handle,"MTrk\n");
 	$track_name = "track_".$trk;
 	fwrite($handle,"0 Meta TrkName \"".$track_name."\"\n");
-	$delta_t = 1000 * $q_clock *  $approxQtick[$i_cycle] / $p_clock / $Ptick[$i_cycle];
+	$delta_t = 1000 * $q_clock *  $Qtick[$i_cycle] / $p_clock / $Ptick[$i_cycle];
 	for($r = 0; $r < ($max_repeat * $repeat[$i_cycle]); $r++) {
 		if($check_midi) echo $track_name." repeat ".$r."<br />";
 		if($start_time > $MaxTime) break;
@@ -235,19 +379,35 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	fwrite($handle,$time." Meta TrkEnd\n");
 	fwrite($handle,"TrkEnd\n");
 	}
+if(count($mf2t_no_header) > 0) {
+	for($i = 0; $i < count($mf2t_no_header); $i++)
+		fwrite($handle,$mf2t_no_header[$i]."\n");
+	}
 fclose($handle);
+// fix_mf2t_file($mf2t,"unnamed_");
 
-$midi_file = $dir.$temp_folder.SLASH."midicodes.mid";
+$midi_file = $temp_dir.$temp_folder.SLASH."midicodes.mid";
 
 $mf2t_content = @file_get_contents($mf2t,TRUE);
 $midi = new Midi();
 $midi->importTxt($mf2t_content);
 $midi->saveMidFile($midi_file);
+// echo "ok4"; die();
 
 if(file_exists($midi_file)) {
-	echo "&nbsp;<a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play MIDI file</a>";
-	echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>) up to <input type=\"text\" name=\"max_repeat\" size=\"3\" value=\"".$max_repeat."\">&nbsp;repetitions and less than <input type=\"text\" name=\"max_time_play\" size=\"3\" value=\"".$max_time_play."\">&nbsp;sec ending with silence of <input type=\"text\" name=\"end_silence\" size=\"5\" value=\"".$end_silence."\">&nbsp;ms</p>";
+	echo "&nbsp;<a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play combined MIDI file</a>";
+	echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)";
+	if(!$MIDIfile_exists OR $mute[$i_midifile]) echo "<br />up to <input type=\"text\" name=\"max_repeat\" size=\"3\" value=\"".$max_repeat."\">&nbsp;repetitions and less than <input type=\"text\" name=\"max_time_play\" size=\"3\" value=\"".$max_time_play."\">&nbsp;sec ending with silence of <input type=\"text\" name=\"end_silence\" size=\"5\" value=\"".$end_silence."\">&nbsp;ms";
+	echo "&nbsp;&nbsp;&nbsp;➡ Show <a onclick=\"window.open('".$mf2t."','combinedMIDIbytes','width=300,height=500,left=100'); return false;\" href=\"".$mf2t."\">MF2T code</a>";
 	}
+echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"savealldata\" value=\"SAVE ALL DATA\"></p>";
+echo "<p>Actual duration of complete cycle would be ".$actual_beats_combined." beats = ".$actual_duration_combined." seconds with:</p>";
+echo "<ul>";
+for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	if($mute[$i_cycle]) continue;
+	echo "<li>track #".($i_cycle + 1)." repeated ".$repeat[$i_cycle]." time(s)</li>";
+	}
+echo "</ul>";
 echo "</form>";
 
 /*

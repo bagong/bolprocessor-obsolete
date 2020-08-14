@@ -2,13 +2,12 @@
 require_once("_basic_tasks.php");
 
 $url_this_page = "prototype.php";
-define('MAXFILESIZE',1000000);
 
 if(isset($_POST['object_name'])) {
 	$object_name = $_POST['object_name'];
 	$temp_folder = $_POST['temp_folder'];
 	$object_file = $_POST['object_file'];
-	$dir = $_POST['dir'];
+//	$temp_dir = $_POST['temp_dir'];
 	}
 else {
 	"Sound-object prototype's name is not known. First open the ‘-mi’ file!"; die();
@@ -21,10 +20,10 @@ $object_foldername = clean_folder_name($object_name);
 
 if($test) echo "object_foldername = ".$object_foldername."<br />";
 
-$save_codes_dir = $dir.$temp_folder.SLASH.$object_foldername."_codes";
-$deleted_object = $dir.$temp_folder.SLASH.$object_name.".txt.old";
+$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
+$deleted_object = $temp_dir.$temp_folder.SLASH.$object_name.".txt.old";
 
-if($test) echo "dir = ".$dir."<br />";
+if($test) echo "dir = ".$temp_dir."<br />";
 if($test) echo "temp_folder = ".$temp_folder."<br />";
 if($test) echo "save_codes_dir = ".$save_codes_dir."<br />";
 
@@ -60,19 +59,27 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			$midi = new Midi();
 			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi_import,$midi,$midi_file);
 			$division = $_POST['division'] = $midi_text_bytes[0];
+			$tempo = $_POST['tempo'] = $midi_text_bytes[1];
+			$timesig = $_POST['timesig'] = "0 TimeSig ".$midi_text_bytes[2]." ".$midi_text_bytes[3]." ".$midi_text_bytes[4];
 			$temp_bytes = array();
-			for($i = 1; $i < count($midi_text_bytes); $i++)
+			for($i = 5; $i < count($midi_text_bytes); $i++)
 				$temp_bytes[] = $midi_text_bytes[$i];
 			$midi_text_bytes = $temp_bytes;
+			fix_mf2t_file($midi_import,"unnamed_");
 			}
 		}
 	}
 else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
 
+if(isset($_POST['division']) AND $_POST['division'] > 0) $division = $_POST['division'];
+else $division = 1000;
+if(isset($_POST['tempo']) AND $_POST['tempo'] > 0) $tempo = $_POST['tempo'];
+else $tempo = 1000000;
+if(isset($_POST['timesig']) AND $_POST['timesig'] <> '') $timesig = $_POST['timesig'];
+else $timesig = "0 TimeSig 4/4 24 8";
+
 if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats']) OR isset($_POST['adjust_duration']) OR isset($_POST['silence_before']) OR isset($_POST['silence_after']) OR isset($_POST['add_allnotes_off']) OR isset($_POST['suppress_allnotes_off']) OR isset($_POST['quantize_NoteOn']) OR isset($_POST['delete_midi']) OR isset($_POST['cancel'])) {
-	
 	if($test) echo "<br />object_file = ".$object_file."<br />";
-	
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
@@ -85,8 +92,6 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	if(isset($_POST['object_type4'])) $object_type += 4;
 	fwrite($handle,$object_type."\n");
 	$Tref = $_POST['Tref'];
-	if(isset($_POST['division'])) $division = $_POST['division'];
-	else $division = 480;
 	$j = 1;
 	$resolution = $_POST["object_param_".$j++];
 	fwrite($handle,$resolution."\n");
@@ -358,8 +363,10 @@ if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR i
 	if($CsoundInstr == '') $CsoundInstr = -1;
 	fwrite($handle,$CsoundAssignedInstr."\n");
 	fwrite($handle,$CsoundInstr."\n");
-	$Tpict = $_POST['Tpict'];
-	fwrite($handle,$Tpict."\n");
+	if(isset($_POST['tempo']) AND $_POST['tempo'] > 0)
+		$tempo = $_POST['tempo'];
+	else $tempo = 1000000;
+	fwrite($handle,$tempo."\n");
 	
 	fwrite($handle,"65535\n");
 	fwrite($handle,"65535\n");
@@ -427,8 +434,8 @@ if(isset($_POST['playexpression'])) {
 	$expression = $_POST['expression'];
 	echo "<p><font color=\"red\">➡ Playing:</font> <font color=\"blue\"><big>".$expression."</big></font></p>";
 //	echo "temp_folder = ".$temp_folder."<br />";
-	$startup_file = $dir.$temp_folder.SLASH."startup";
-	$alphabet = $dir.$temp_folder.SLASH."-ho.alphabet";
+	$startup_file = $temp_dir.$temp_folder.SLASH."startup";
+	$alphabet = $temp_dir.$temp_folder.SLASH."-ho.alphabet";
 	// $tracefile = $temp_folder."/trace.txt";
 	$handle = fopen($startup_file,"w");
 	fwrite($handle,$expression."\n");
@@ -471,7 +478,7 @@ echo "<input type=\"hidden\" name=\"object_name\" value=\"".$object_name."\">";
 echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file."\">";
 echo "<input type=\"hidden\" name=\"source_file\" value=\"".$source_file."\">";
-echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
+echo "<input type=\"hidden\" name=\"temp_dir\" value=\"".$temp_dir."\">";
 
 $object_comment = recode_tags($object_comment);
 $size = strlen($object_comment);
@@ -606,8 +613,8 @@ $BreakTempoMode = $object_param[$j++];
 $x = $object_param[$j++];
 if(isset($_POST['division'])) $division = $_POST['division'];
 else if($x > 1) $division = $x;
-else $division = 480;
-echo "<input type=\"hidden\" name=\"division\" value=\"".$division."\">";
+else $division = 1000;
+//echo "<input type=\"hidden\" name=\"division\" value=\"".$division."\">";
 $ContBegMode = $object_param[$j++];
 $MaxBegGap = $object_param[$j++];
 $ContEndMode = $object_param[$j++];
@@ -652,11 +659,14 @@ $StrikeAgain = $object_param[$j++];
 $CsoundAssignedInstr = $object_param[$j++];
 $CsoundInstr = $object_param[$j++];
 
-$Tpict = $object_param[$j++];
-if(!is_numeric($Tpict)) {
+if(!isset($_POST['tempo']))
+	$tempo = $object_param[$j];
+$j++;
+if(!is_numeric($tempo)) {
 	echo "<p style=\"color:red;\">WARNING: you are trying to edit an obsolete version of the ‘-mi’ file. Load and save it again in BP2.9.8!</p>";
 	$j -= 4;
 	}
+if($tempo == 0) $tempo = 1000000;
 $red = $object_param[$j++];
 $green = $object_param[$j++];
 $blue = $object_param[$j++];
@@ -1076,8 +1086,8 @@ else $value = '';
 echo ">Force to instrument";
 echo "&nbsp;<input type=\"text\" name=\"CsoundInstr\" size=\"5\" value=\"".$value."\"><br />";
 
-echo "<small><p>Tpict = ".$Tpict." ???</p></small>";
-echo "<input type=\"hidden\" name=\"Tpict\" value=\"".$Tpict."\">";
+// echo "<small><p>Tpict = ".$Tpict." ???</p></small>";
+echo "<input type=\"hidden\" name=\"tempo\" value=\"".$tempo."\">";
 
 echo "<p>CSOUND SCORE</p>";
 echo "<input type=\"hidden\" name=\"object_param_".$j."\" value=\"".$object_param[$j++]."\">";
@@ -1444,13 +1454,19 @@ if(!$no_midi) {
 	$trk = 1;
 	$handle_text = fopen($midi_text,"w");
 	$handle_mf2t = fopen($mf2t,"w");
+	$number_of_tracks++;
 	fwrite($handle_mf2t,"MFile 1 ".$number_of_tracks." ".$division."\n");
 	fwrite($handle_mf2t,"MTrk\n");
-	$track_name = $object_name."_track_".$trk;
+	$track_name = $object_name."_track_".$trk++;
 	fwrite($handle_mf2t,"0 Meta TrkName \"".$track_name."\"\n");
-//	fwrite($handle_mf2t,"0 TimeSig 1/4 24 8\n");
-//	fwrite($handle_mf2t,"0 Tempo 150000\n");
-//	fwrite($handle_mf2t,"0 KeySig 0 major\n");
+	fwrite($handle_mf2t,$timesig."\n");
+	fwrite($handle_mf2t,"0 Tempo ".$tempo."\n");
+	fwrite($handle_mf2t,"0 KeySig 0 major\n");
+	fwrite($handle_mf2t,"0 Meta TrkEnd\n");
+	fwrite($handle_mf2t,"TrkEnd\n");
+	fwrite($handle_mf2t,"MTrk\n");
+	$track_name = $object_name."_track_".$trk++;
+	fwrite($handle_mf2t,"0 Meta TrkName \"".$track_name."\"\n");
 	if($new_midi) $handle_bytes = fopen($midi_bytes,"w");
 	$more = 0; $code_line = $mf2t_line = '';
 	if($new_midi) fwrite($handle_bytes,$kmax."\n");
@@ -1720,7 +1736,7 @@ if(!$no_midi AND file_exists($midi_text)) {
 	echo "<table id=\"midi\" style=\"background-color:white;\"><tr>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em; padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$text_link."','MIDItext','width=300,height=300'); return false;\" href=\"".$text_link."\">EXPLICIT MIDI codes</a></div></td>";
 	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:13em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$bytes_link."','MIDIbytes','width=300,height=500,left=400'); return false;\" href=\"".$bytes_link."\">TIME-STAMPED MIDI bytes</a><br /><small>Top number is the number of bytes</small></div></td>";
-	echo "<td><div style=\"border:2px solid gray; background-color:azure; width:10em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = ".$division."</small></div></td>";
+	echo "<td style=\"white-space:nowrap;\"><div style=\"border:2px solid gray; background-color:azure; width:15em;  padding:2px; text-align:center; border-radius: 6px;\"><a onclick=\"window.open('".$mf2t_link."','MIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$mf2t_link."\">MF2T code</a><br /><small>division = <input type=\"text\" name=\"division\" size=\"5\" value=\"".$division."\"><br />tempo = <input type=\"text\" name=\"tempo\" size=\"7\" value=\"".$tempo."\"> µs<br />timesig = <input type=\"text\" name=\"timesig\" size=\"15\" value=\"".$timesig."\"></small></div></td>";
 
 	$midi_file_link = $midi_file;
 	if(file_exists($midi_file_link)) {

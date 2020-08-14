@@ -39,7 +39,7 @@ if(isset($_POST['create_grammar'])) {
 			unset($_POST['create_grammar']);
 			}
 		else {
-			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
+			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
@@ -57,14 +57,37 @@ if(isset($_POST['create_alphabet'])) {
 		if(file_exists($dir.SLASH.$filename)) {
 			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
 			unset($_POST['create_alphabet']);
-		}
+			}
 		else {
-			echo "<p style=\"color:red;\">Creating ‘".$filename."’…</p>";
+			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
 	else unset($_POST['create_alphabet']);
+	}
+if(isset($_POST['create_timebase'])) {
+	$filename = trim($_POST['filename']);
+	if($filename <> '') {
+		if(!is_integer($pos=strpos($filename,"-tb")) OR $pos > 0) {
+			$filename = trim(str_replace("-tb",'',$filename));
+			$filename = "-tb.".$filename;
+			}
+		$new_file = $filename;
+		if(file_exists($dir.SLASH.$filename)) {
+			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
+			unset($_POST['create_timebase']);
+			}
+		else {
+			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
+			$handle = fopen($dir.SLASH.$filename,"w");
+			$template = $bp_php_path."/timebase_template";
+			$template_content = @file_get_contents($template,TRUE);
+			fwrite($handle,$template_content."\n");
+			fclose($handle);
+			}
+		}
+	else unset($_POST['create_timebase']);
 	}
 
 $folder = str_replace($bp_parent_path.SLASH,'',$dir);
@@ -89,23 +112,30 @@ if(is_integer(strpos($dir,SLASH.$bp_home_dir)) AND $folder <> $bp_home_dir.SLASH
 		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
 		echo "</form>";
 		}
+	if(!isset($_POST['create_timebase'])) {
+		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+		echo "<p style=\"text-align:left;\">";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_timebase\" value=\"CREATE NEW TIMEBASE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+		echo "<font color=\"blue\">".$folder.SLASH."</font>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-tb.\"></p>";
+		echo "</form>";
+		}
 	}
 
 $dircontent = scandir($dir);
-$now = time();
-$yesterday = $now - (24 * 3600);
+//$now = time();
+//$yesterday = $now - (24 * 3600);
 foreach($dircontent as $thisfile) {
 	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
-	$time_saved = filemtime($dir.SLASH.$thisfile);
-	if($time_saved < $yesterday) $old = TRUE;
-	else $old = FALSE;
+//	$time_saved = filemtime($dir.SLASH.$thisfile);
+//	if($time_saved < $yesterday) $old = TRUE;
+//	else $old = FALSE;
 	if(is_dir($dir.SLASH.$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
-	//	$link = $this_page."?path=".urlencode($dir.SLASH.$thisfile);
 		if($path == '') $link = $this_page."?path=".urlencode($thisfile);
 		else $link = $this_page."?path=".urlencode($path.SLASH.$thisfile);
-		if($extension == "temp" AND count($table) > 2) {
+/*		if($extension == "temp" AND count($table) > 2) {
 			$id = $table[count($table) - 2];
 			if($old) {
 				if($id <> session_id()) {
@@ -113,14 +143,14 @@ foreach($dircontent as $thisfile) {
 					continue;
 					}
 				}
-			}
+			} */
 		if($extension <> "temp")
 			echo "<b><a href=\"".$link."\">".$thisfile."</a></b><br />";
 		continue;
 		}
 	$table = explode(".",$thisfile);
 	$extension = end($table);
-	if($old) {
+/*	if($old) {
 		$table = explode('_',$thisfile);
 		$prefix = $table[0];
 		if($prefix == "trace") {
@@ -130,7 +160,7 @@ foreach($dircontent as $thisfile) {
 				continue;
 				}
 			}
-		}
+		} */
 	$table = explode("_",$thisfile);
 	$prefix = $table[0];
 	if($prefix == "trace") continue;
