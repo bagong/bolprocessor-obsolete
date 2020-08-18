@@ -304,7 +304,7 @@ SoundOn = TRUE;
 if(showpianoroll) {
 #if BP_CARBON_GUI
 	// FIXME:  Would like to figure out how to move all of the piano roll code elsewhere ...
-	if(ShowMessages || PlayPrototypeOn) ShowMessage(TRUE,wMessage,"Preparing piano roll…");
+	if(ShowMessages || PlayPrototypeOn) ShowMessage(TRUE,wMessage,"Preparing piano roll...");
 	GetPort(&saveport);
 	minkey = 127; maxkey = 0;
 	tmax = ZERO;
@@ -441,7 +441,7 @@ if(!MIDIfileOn && !cswrite && OutMIDI && !ItemCapture && !FirstTime && !PlayProt
 #else
 		drivertime = GetDriverTime();
 		if(ShowMessages && (Tcurr > drivertime))
-			FlashInfo("Waiting until previous item is over…");
+			FlashInfo("Waiting until previous item is over...");
 		result = WaitForEmptyBuffer();
 		if(result != OK && result != RESUME && result != QUICK) goto OVER;
 		if(result == RESUME) interruptedonce = TRUE;
@@ -450,7 +450,7 @@ if(!MIDIfileOn && !cswrite && OutMIDI && !ItemCapture && !FirstTime && !PlayProt
 			
 		Nbytes = Tbytes2 = ZERO;
 		if(PlayChan > 0) {
-			FlashInfo("Waiting for MIDI sync code…");
+			FlashInfo("Waiting for MIDI sync code...");
 			WhenItStarted = clock();
 			do {
 				// FIXME ? Should non-Carbon builds call a "poll events" callback here ?
@@ -489,7 +489,7 @@ if(!MIDIfileOn && !cswrite && OutMIDI && !ItemCapture && !FirstTime && !PlayProt
 			if(ScriptExecOn && CountOn && WaitEndDate > ZERO) WaitEndDate += LapWait;
 			}
 		else {		/* No MIDI sync key */
-			FlashInfo("Waiting for ‘Start’ or ‘Continue’ MIDI message. Click mouse to resume…");
+			FlashInfo("Waiting for 'Start' or 'Continue' MIDI message. Click mouse to resume...");
 #if BP_CARBON_GUI
 			SetCursor(&KeyboardCursor);
 #endif /* BP_CARBON_GUI */
@@ -528,7 +528,7 @@ START2:
 if(cswrite) {
 	if((result=CompileCsoundObjects()) != OK) goto OVER;
 	if(Jinstr == 1 && (*p_CsInstrumentIndex)[0] == -1) {
-		ShowMessage(TRUE,wMessage,"Couldn't find Csound instrument index. Index ‘1’ will be assigned by default.");
+		ShowMessage(TRUE,wMessage,"Couldn't find Csound instrument index. Index '1' will be assigned by default.");
 		WaitABit(1000L);
 		}
 		
@@ -606,7 +606,7 @@ for(noccurrence = 0; noccurrence < Nplay || SynchroSignal == PLAYFOREVER; noccur
 		drivertime = GetDriverTime();
 		if(ShowMessages
 				&& (Tcurr > drivertime + ((SetUpTime + 600L) / Time_res)))
-			FlashInfo("Waiting until previous item is over…");
+			FlashInfo("Waiting until previous item is over...");
 		result = WaitForEmptyBuffer();
 		HideWindow(Window[wInfo]);
 #endif
@@ -619,7 +619,7 @@ for(noccurrence = 0; noccurrence < Nplay || SynchroSignal == PLAYFOREVER; noccur
 	mustwait = FALSE;
 	
 	if(Improvize && (Nplay > 1 || SynchroSignal == PLAYFOREVER)) {
-		sprintf(Message,"%ldth repetition…",(long)noccurrence+1L);
+		sprintf(Message,"%ldth repetition...",(long)noccurrence+1L);
 		ShowMessage(TRUE,wMessage,Message);
 		}
 		
@@ -690,7 +690,7 @@ TRYCSFILE:
 				Println(wTrace,Message);
 				}
 			if(WriteToFile(NO,CsoundFileFormat,Message,CsRefNum) != OK) {
-				sprintf(Message,"Couldn't write to file ‘%s’. May be it has been closed by another application",
+				sprintf(Message,"Couldn't write to file '%s'. May be it has been closed by another application",
 					CsFileName);
 				Alert1(Message);
 				CloseCsScore();
@@ -1618,7 +1618,7 @@ NEWPERIOD:
 					|| result == EXIT) goto OVER;
 				if(result == AGAIN) {
 					noccurrence--; /* Repeat once */
-					sprintf(Message,"Current item will be played again…");
+					sprintf(Message,"Current item will be played again...");
 					ShowMessage(TRUE,wMessage,Message);
 					}
 #endif
@@ -1959,8 +1959,8 @@ if(EventState == AGAIN) result = AGAIN;
 
 if(cswrite && result == OK) {
 	if(!ConvertMIDItoCsound) {
-		WriteToFile(NO,CsoundFileFormat,"s\r",CsRefNum);
-		if(CsoundTrace) Println(wTrace,"s\r");
+		WriteToFile(NO,CsoundFileFormat,"s\n",CsRefNum);
+		if(CsoundTrace) Println(wTrace,"s\n");
 		}
 	else {
 		Println(wPrototype7,"e");
@@ -2081,7 +2081,7 @@ int x;
 if(ch < 0) ch += 256;
 if(ch < 128) {
 	if(ch > MAXCHAN) {
-		sprintf(Message,"Trying to assign channel #%ld.\rValue should be 1..%ld",
+		sprintf(Message,"Trying to assign channel #%ld.\nValue should be 1..%ld",
 			(long)ch,(long)MAXCHAN);
 		Alert1(Message);
 		return(ABORT);
@@ -2091,7 +2091,7 @@ if(ch < 128) {
 /* Channel is determined by Kx */
 x = ch - 128;
 if(x < 1 || x >= MAXPARAMCTRL) {
-	sprintf(Message,"Trying to fix channel with incorrect K%ld.\rValue should be 1..%ld",
+	sprintf(Message,"Trying to fix channel with incorrect K%ld.\nValue should be 1..%ld",
 		(long)x,(long)MAXPARAMCTRL-1L);
 	Alert1(Message);
 	return(ABORT);
@@ -2099,16 +2099,16 @@ if(x < 1 || x >= MAXPARAMCTRL) {
 ch = ParamValue[x];
 if(ch < 1 || ch > MAXCHAN) {
 	if(ParamControl[x] >= 0) {
-		sprintf(Message,"Trying to assign channel #%ld by K%ld (MIDI controller #%ld).\rValue should be 1..%ld",
+		sprintf(Message,"Trying to assign channel #%ld by K%ld (MIDI controller #%ld).\nValue should be 1..%ld",
 			(long)ch,(long)x,(long)ParamControl[x],(long)MAXCHAN);
 		}
 	else {
 		if(ParamKey[x] >= 0) {
-			sprintf(Message,"Trying to assign channel #%ld by K%ld (Key #%ld).\rValue should be 1..%ld",
+			sprintf(Message,"Trying to assign channel #%ld by K%ld (Key #%ld).\nValue should be 1..%ld",
 				(long)ch,(long)x,(long)ParamKey[x],(long)MAXCHAN);
 			}
 		else {
-		sprintf(Message,"Trying to assign channel #%ld by K%ld.\rValue should be 1..%ld",
+		sprintf(Message,"Trying to assign channel #%ld by K%ld.\nValue should be 1..%ld",
 			(long)ch,(long)x,(long)MAXCHAN);
 			}
 		}
@@ -2166,7 +2166,7 @@ while(Button() || (timeleft = (Tcurr - drivertime)) > buffertime) {
 #endif /* BP_CARBON_GUI */
 	if((timeleft * Time_res / 1000L) != formertime) {
 		formertime = timeleft * Time_res / 1000L;
-		sprintf(Message,"Remaining performance time: %ld sec…",
+		sprintf(Message,"Remaining performance time: %ld sec...",
 			(long)formertime + 1L);
 		ShowMessage(FALSE,wMessage,Message);
 		PleaseWait();
@@ -2358,7 +2358,7 @@ if((*p_control)[seq].param == NULL) {
 	return(ABORT);
 	}
 if((*param)[iparam].ibm <= ZERO) {
-	if(Beta) Print(wTrace,"Err. SendControl(). (*param)[iparam].ibm <= ZERO\r");
+	if(Beta) Print(wTrace,"Err. SendControl(). (*param)[iparam].ibm <= ZERO\n");
 /*	This case was found in item #26 of -da.checkControls.html when played after the
 	two preceding ones */
 	goto INCREMENT;
@@ -2376,7 +2376,7 @@ if(value > 16383. && value < 16384.) value = 16383.;
 
 if(value < 0. || value > 16383.) {
 	if(Beta) {
-		sprintf(Message,"Err. SendControl(). value = %.2f\r",value);
+		sprintf(Message,"Err. SendControl(). value = %.2f\n",value);
 		Print(wTrace,Message);
 		}
 	return(OK);
@@ -2640,11 +2640,11 @@ c = p_map->q1
 		+ Round(((double)(key - p_map->p1) * (p_map->q2 - p_map->q1))
 									/ ((double)p_map->p2 - p_map->p1));
 if(c < 0) {
-	if(Beta) Println(wTrace,"\rErr. KeyImage(). c < 0");
+	if(Beta) Println(wTrace,"\nErr. KeyImage(). c < 0");
 	c = 0;
 	}
 if(c > 127) {
-	if(Beta) Println(wTrace,"\rErr. KeyImage(). c > 127");
+	if(Beta) Println(wTrace,"\nErr. KeyImage(). c > 127");
 	c = 127;
 	}
 return(c);

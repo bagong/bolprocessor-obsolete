@@ -37,6 +37,8 @@
 #endif
 
 #include "-BP2decl.h"
+
+#if BP_CARBON_GUI
 #include "CarbonCompatUtil.h"
 
 #define OKOMS 1
@@ -57,7 +59,7 @@ if(ComputeOn || SetTimeOn || PrintOn || SoundOn || SelectOn || CompileOn || Grap
 	|| PolyOn) return(RESUME);
 if(CompileCheck() != OK) return(FAILED);
 LoadOn++;
-ShowMessage(TRUE,wMessage,"Locate ‘-wg.’ file…");
+ShowMessage(TRUE,wMessage,"Locate '-wg.' file...");
 p_line = p_completeline = NULL;
 if(OldFile(-1,12,PascalLine,&spec)) {
 	MyPtoCstr(255,PascalLine,LineBuff);
@@ -83,7 +85,7 @@ if(OldFile(-1,12,PascalLine,&spec)) {
 		p2cstrcpy(FileName[iWeights],PascalLine);
 		goto NOERR;
 ERR:
-		Alert1("Can't read weight file…");
+		Alert1("Can't read weight file...");
 NOERR:
 		if(FSClose(refnum) == noErr) ;
 		}
@@ -119,7 +121,7 @@ if(ComputeOn || SetTimeOn || PrintOn || SoundOn || SelectOn || CompileOn || Grap
 	|| PolyOn) return(RESUME);
 if(CompileCheck() != OK) return(FAILED);
 err = NSWInitReply(&reply);
-ShowMessage(TRUE,wMessage,"Creating weight file…");
+ShowMessage(TRUE,wMessage,"Creating weight file...");
 if(FileName[iWeights][0] != '\0')
 	strcpy(Message,FileName[iWeights]);
 else if (GetDefaultFileName(iWeights, Message) != OK) return(FAILED);
@@ -156,7 +158,7 @@ if(NewFile(-1,12,fn,&reply)) {
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -182,7 +184,7 @@ if(ReadOne(FALSE,TRUE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED)
 GetDateSaved(p_completeline,&(p_FileInfo[wKeyboard]));
 if(ReadInteger(refnum,&imax,&pos) == FAILED) goto ERR;
 if(imax > 52) {
-	Alert1("This version of BP2 can't read selected ‘-kb.’ file");
+	Alert1("This version of BP2 can't read selected '-kb.' file");
 	goto ERR;
 	}
 for(i=0; i < imax; i++) {
@@ -206,7 +208,7 @@ goto QUIT;
 ERR:
 GetKeyboard();
 result = FAILED;
-sprintf(Message,"Error reading ‘%s’ keyboard file…",FileName[wKeyboard]);
+sprintf(Message,"Error reading '%s' keyboard file...",FileName[wKeyboard]);
 Alert1(Message);
 FileName[wKeyboard][0] = '\0';
 
@@ -215,7 +217,7 @@ MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
 SetKeyboard();
 if(Token) AppendScript(66); else AppendScript(67);
 if(FSClose(refnum) != noErr) {
-	sprintf(Message,"Error closing ‘%s’ keyboard file…",FileName[wKeyboard]);
+	sprintf(Message,"Error closing '%s' keyboard file...",FileName[wKeyboard]);
 	Alert1(Message);
 	result = FAILED;
 	}
@@ -271,7 +273,7 @@ WRITE:
 			}
 		sprintf(LineBuff,"%ld",(long)KeyboardType);
 		WriteToFile(NO,MAC,LineBuff,refnum);
-		WriteToFile(NO,MAC,"1\r1\r1\r1\r0\r0\r0\r0\r\0",refnum);
+		WriteToFile(NO,MAC,"1\n1\n1\n1\n0\n0\n0\n0\n\0",refnum);
 		WriteEnd(wKeyboard,refnum);
 		GetFPos(refnum,&count);
 		SetEOF(refnum,count);
@@ -289,7 +291,7 @@ WRITE:
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -316,11 +318,11 @@ GetDateSaved(p_completeline,&(p_FileInfo[wTimeBase]));
 if(ReadInteger(refnum,&y,&pos) == FAILED) goto ERR; maxticks = y;
 if(ReadInteger(refnum,&y,&pos) == FAILED) goto ERR; maxbeats = y;
 if(maxticks > MAXTICKS) {
-	Alert1("This version of BP2 can't read selected ‘-tb.’ file");
+	Alert1("This version of BP2 can't read selected '-tb.' file");
 	goto ERR;
 	}
 if(maxbeats > MAXBEATS) {
-	Alert1("This version of BP2 can't read selected ‘-tb.’ file");
+	Alert1("This version of BP2 can't read selected '-tb.' file");
 	goto ERR;
 	}
 TickThere = FALSE;
@@ -358,7 +360,7 @@ goto QUIT;
 ERR:
 GetTimeBase(); GetTickParameters();
 result = FAILED;
-sprintf(Message,"Error reading ‘%s’ time base file…",FileName[wTimeBase]);
+sprintf(Message,"Error reading '%s' time base file...",FileName[wTimeBase]);
 Alert1(Message);
 FileName[wTimeBase][0] = '\0';
 
@@ -368,7 +370,7 @@ MyDisposeHandle((Handle*)&p_completeline);
 for(i=0; i < MAXTICKS; i++) SetTickParameters(i+1,MAXBEATS);
 SetTickParameters(0,MAXBEATS);
 if(FSClose(refnum) != noErr) {
-	sprintf(Message,"Error closing ‘%s’ time base file…",FileName[wTimeBase]);
+	sprintf(Message,"Error closing '%s' time base file...",FileName[wTimeBase]);
 	Alert1(Message);
 	result = FAILED;
 	}
@@ -422,9 +424,9 @@ WRITE:
 		sprintf(LineBuff,"%ld",(long)MAXTICKS); WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)MAXBEATS); WriteToFile(NO,MAC,LineBuff,refnum);
 		for(i=0; i < MAXTICKS; i++) {
-			sprintf(LineBuff,"1\r7");	/* '1' is the type and '4' the number of parameters */
+			sprintf(LineBuff,"1\n7");	/* '1' is the type and '4' the number of parameters */
 			WriteToFile(NO,MAC,LineBuff,refnum);
-			sprintf(LineBuff,"%ld\r%ld\r%ld\r%ld\r%ld\r%ld\r%ld",
+			sprintf(LineBuff,"%ld\n%ld\n%ld\n%ld\n%ld\n%ld\n%ld",
 				(long)TickKey[i],(long)TickChannel[i],
 				(long)TickVelocity[i],(long)TickCycle[i],(long)Ptick[i],
 				(long)Qtick[i],(long)TickDuration[i]);
@@ -453,7 +455,7 @@ WRITE:
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -654,7 +656,7 @@ for(j=0; j < jmax; j++) {
 	if(i < 1) continue;
 	if(i > IPMAX) {
 		if(Beta) Alert1("Err. LoadCsoundInstruments(). i > IPMAX");
-		Alert1("This ‘-cs’ file was created by a newer version of BP2. Some parameters may be ignored");
+		Alert1("This '-cs' file was created by a newer version of BP2. Some parameters may be ignored");
 		i = IPMAX;
 		}
 	if((ptr3=(CsoundParam**) GiveSpace((Size)(IPMAX * sizeof(CsoundParam)))) == NULL)
@@ -706,7 +708,7 @@ for(j=0; j < jmax; j++) {
 			(*((*p_CsInstrument)[j].paramlist))[ip].combinationtype = i;
 			if(i == MULT && fabs(r) < 0.01) {
 				(*((*p_CsInstrument)[j].paramlist))[ip].defaultvalue = 1.;
-				sprintf(Message,"In instrument %ld a default parameter value ‘%.3f’ was replaced with ‘1’ because its combination mode is multiplicative",
+				sprintf(Message,"In instrument %ld a default parameter value '%.3f' was replaced with '1' because its combination mode is multiplicative",
 					(long)(*p_CsInstrumentIndex)[j],r);
 				Alert1(Message);
 				}
@@ -729,7 +731,7 @@ else ClearWindow(YES,wCsoundTables);
 goto QUIT;
 
 ERR:
-sprintf(Message,"Error reading ‘%s’ Csound instrument file…",FileName[wCsoundInstruments]);
+sprintf(Message,"Error reading '%s' Csound instrument file...",FileName[wCsoundInstruments]);
 Alert1(Message);
 FileName[wCsoundInstruments][0] = '\0';
 
@@ -738,7 +740,7 @@ result = OK;
 MyDisposeHandle((Handle*)&p_line);
 MyDisposeHandle((Handle*)&p_completeline);
 if(FSClose(refnum) != noErr) {
-	sprintf(Message,"Error closing ‘%s’ Csound instrument file…",FileName[wCsoundInstruments]);
+	sprintf(Message,"Error closing '%s' Csound instrument file...",FileName[wCsoundInstruments]);
 	Alert1(Message);
 	result = FAILED;
 	}
@@ -916,7 +918,7 @@ WRITE:
 				MystrcpyHandleToString(MAXFIELDCONTENT,0,line,
 					(*((*p_CsInstrument)[j].paramlist))[i].comment);
 				WriteToFile(YES,MAC,line,refnum);
-				sprintf(line,"%ld\r%ld",
+				sprintf(line,"%ld\n%ld",
 					(long)(*((*p_CsInstrument)[j].paramlist))[i].startindex,
 					(long)(*((*p_CsInstrument)[j].paramlist))[i].endindex);
 				WriteToFile(NO,MAC,line,refnum);
@@ -964,7 +966,7 @@ WRITE:
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -1015,7 +1017,7 @@ if(NewFile(iSettings,gFileType[iSettings],fn,&reply)) {
 	if(io == OK) {
 WRITE:
 		SaveOn++;
-		sprintf(Message,"Saving ‘%s’...",line);
+		sprintf(Message,"Saving '%s'...",line);
 		PleaseWait();
 		ShowMessage(TRUE,wMessage,Message);
 		WriteHeader(iSettings,refnum,*p_spec);
@@ -1024,7 +1026,7 @@ WRITE:
 		
 		WriteToFile(NO,MAC," ",refnum);
 		
-		sprintf(LineBuff,"%ld\r%ld\r%ld",(long)Quantization,(long)Time_res,(long)SetUpTime);
+		sprintf(LineBuff,"%ld\n%ld\n%ld",(long)Quantization,(long)Time_res,(long)SetUpTime);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)QuantizeOK); WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)Nature_of_time); WriteToFile(NO,MAC,LineBuff,refnum);
@@ -1036,49 +1038,33 @@ WRITE:
 			sprintf(LineBuff,"%ld",(long)GetControlValue(Hbutt[i]));
 			WriteToFile(NO,MAC,LineBuff,refnum);
 			}
-		sprintf(LineBuff,"%ld\r%ld\r%ld\r%ld\r%ld",(long)SplitTimeObjects,(long)SplitVariables,
+		sprintf(LineBuff,"%ld\n%ld\n%ld\n%ld\n%ld",(long)SplitTimeObjects,(long)SplitVariables,
 			(long)UseTextColor,(long)DeftBufferSize,(long)UseGraphicsColor);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)UseBufferLimit); WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)TimeMax); WriteToFile(NO,MAC,LineBuff,refnum);
 		GetSeed();
-		sprintf(LineBuff,"%.0f\r%ld",(double)Seed,(long)Token);
+		sprintf(LineBuff,"%.0f\n%ld",(double)Seed,(long)Token);
 		WriteToFile(NO,MAC,LineBuff,refnum);
-		sprintf(LineBuff,"%ld\r%ld\r%ld",(long)NoteConvention,(long)StartFromOne,
+		sprintf(LineBuff,"%ld\n%ld\n%ld",(long)NoteConvention,(long)StartFromOne,
 			(long)SmartCursor);
 		WriteToFile(NO,MAC,LineBuff,refnum);
-		sprintf(LineBuff,"%ld\r%ld",(long)GraphicScaleP,(long)GraphicScaleQ);
+		sprintf(LineBuff,"%ld\n%ld",(long)GraphicScaleP,(long)GraphicScaleQ);
 		WriteToFile(NO,MAC,LineBuff,refnum);
-		
-#if USE_OMS
-		if(Oms && OMSinputName[0] != '\0' && OMSinputName[0] != '<') {
-			if(gChosenInputIDbydefault > 0)
-				sprintf(LineBuff,"%ld %s",(long)gChosenInputIDbydefault,OMSinputName);
-			else
-				sprintf(LineBuff,"%ld %s",(long)gChosenInputID,OMSinputName);
-			}
-		else sprintf(LineBuff,"<no input device>");
-#else
+
+		// old settings for OMS
 		sprintf(LineBuff,"<no input device>");
-#endif
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		MoveDisk();
-
-#if USE_OMS
-		if(Oms && OMSoutputName[0] != '\0')
-			sprintf(LineBuff,"%ld %s",(long)gChosenOutputID,OMSoutputName);
-		else sprintf(LineBuff,"<no output device>");
-#else
 		sprintf(LineBuff,"<no output device>");
-#endif
 		WriteToFile(NO,MAC,LineBuff,refnum);
 			
 		sprintf(LineBuff,"%ld",(long)UseBullet); WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)PlayTicks); WriteToFile(NO,MAC,LineBuff,refnum);
 		
-		sprintf(LineBuff,"%ld\r%ld",(long)FileSaveMode,(long)FileWriteMode);
+		sprintf(LineBuff,"%ld\n%ld",(long)FileSaveMode,(long)FileWriteMode);
 		WriteToFile(NO,MAC,LineBuff,refnum);
-		sprintf(LineBuff,"%ld\r%ld\r%ld\r%.2f",(long)MIDIfileType,(long)CsoundFileFormat,
+		sprintf(LineBuff,"%ld\n%ld\n%ld\n%.2f",(long)MIDIfileType,(long)CsoundFileFormat,
 			(long)ProgNrFrom,MIDIfadeOut);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		sprintf(LineBuff,"%ld",(long)C4key);
@@ -1088,7 +1074,7 @@ WRITE:
 		sprintf(LineBuff,"%ld",(long)StrikeAgainDefault);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		
-		sprintf(LineBuff,"%ld\r%ld\r%ld\r%ld\r%ld\r%ld",(long)DeftVolume,(long)VolumeController,
+		sprintf(LineBuff,"%ld\n%ld\n%ld\n%ld\n%ld\n%ld",(long)DeftVolume,(long)VolumeController,
 			(long)DeftVelocity,(long)DeftPanoramic,(long)PanoramicController,(long)SamplingRate);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 			
@@ -1190,7 +1176,7 @@ LASTPART:
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,line);
-		sprintf(Message,"Error creating ‘%s’",line);
+		sprintf(Message,"Error creating '%s'",line);
 		Alert1(Message);
 		result = FAILED;
 		}
@@ -1343,84 +1329,71 @@ void GetStartupSettingsSpec(FSSpecPtr spec)
 
 	return;
 }
+#endif /* BP_CARBON_GUI */
 
-LoadSettings(int anyfile,int changewindows,int startup,int manual,int *p_oms)
+int LoadSettings(const char *filename, int startup)
 {
-int i,ii,imax,j,jmax,io,rep,result,iv,s,type,top,left,bottom,right,w,wmax,connectionok,
-	maxticks,maxbeats,oldoutmidi,oldoutcsound,oldwritemidifile,toldoms,tried,activemem;
-FSSpec spec;
-short refnum,oldomsinput,oldomsoutput,newomsinput,newomsoutput;
-char filename[MAXNAME+1],connectionname[MAXNAME+1],oldinputname[MAXNAME+1];
+int i,j,jmax,rep,result,iv,w,wmax,oldoutmidi,oldoutcsound,oldwritemidifile;
+FILE* sefile;
 long pos,k;
 unsigned long kk;
-FontInfo font;
 double x;
-Rect r;
 char **p_line,**p_completeline;
 
-result = connectionok = OK;
+result = OK;
 oldoutmidi = OutMIDI;
 p_line = p_completeline = NULL;
-if((rep=ClearWindow(FALSE,wStartString)) != OK) return(rep);
+if((rep=ClearWindow(FALSE,wStartString)) != OK) return(rep);	// FIXME: remove this?
 if(startup) {
-	GetStartupSettingsSpec(&spec);
-	p2cstrcpy(LineBuff, spec.name);
-	}
+	// FIXME: set filename = location of a startup settings file and continue?
+	return OK;
+}
 else {
-	spec.vRefNum = TheVRefNum[iSettings];
-	spec.parID = WindowParID[iSettings];
-	strcpy(LineBuff,FileName[iSettings]);
-	c2pstrcpy(spec.name, FileName[iSettings]);
+	// filename cannot be NULL or empty
+	if (filename == NULL || filename[0] == '\0')	{
+		BPPrintMessage(odError, "Err. LoadSettings(): filename was NULL or empty\n");
+		return FAILED;
 	}
-strcpy(filename,LineBuff);
-type = gFileType[iSettings];
-if(anyfile) type = ftiAny;
-if((io=MyOpen(&spec,fsCurPerm,&refnum)) != noErr) {
-	rep = FAILED;
-	if(startup || (rep=CheckFileName(iSettings,LineBuff,&spec,&refnum,type,TRUE)) != OK) {
-		sprintf(Message,"Can't find ‘%s’ setting file...",LineBuff);
-		ShowMessage(TRUE,wMessage,Message);
-		return(rep);
-		}
-	else strcpy(filename,FileName[iSettings]);
-	}
-if(!startup) HideWindow(Window[wMessage]);
-PleaseWait();
+}
+
+// open the file for reading
+sefile = fopen(filename, "r");
+if (sefile == NULL) {
+	BPPrintMessage(odError, "Could not open settings file %s\n", filename);
+	return FAILED;
+}
+
 pos = ZERO; Dirty[iSettings] = Created[iSettings] = FALSE;
 
 LoadOn++;
 
-if(ReadOne(FALSE,FALSE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
+if(ReadOne(FALSE,FALSE,FALSE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
 if(CheckVersion(&iv,p_line,filename) != OK) {
 	result = FAILED;
 	goto QUIT;
 	}
-if(ReadOne(FALSE,FALSE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
+if(ReadOne(FALSE,FALSE,FALSE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
 
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-if(startup) Port = j;
-switch(Port) {
-	case 1:
-		Portbit = PORTA; break;
-	case 2:
-		Portbit = PORTB; break;
-	}
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;	// serial port used by old built-in Midi driver
+// if(startup) Port = j;
 
-if(ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;	/* Not used */
-if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR; Quantization = k;
-if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR; Time_res = k;
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR; SetUpTime = j;
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR; QuantizeOK = j;
+if(ReadOne(FALSE,FALSE,TRUE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;	/* Not used */
+if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR; Quantization = k;
+if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR; Time_res = k;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR; SetUpTime = j;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR; QuantizeOK = j;
+#if BP_CARBON_GUI
 SetTimeAccuracy();
 Dirty[wTimeAccuracy] = FALSE;
+#endif /* BP_CARBON_GUI */
 NotSaidKpress = TRUE;
 
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR; Nature_of_time = j;
-if(ReadUnsignedLong(refnum,&kk,&pos) == FAILED) goto ERR; Pclock = (double)kk;
-if(ReadUnsignedLong(refnum,&kk,&pos) == FAILED) goto ERR; Qclock = (double)kk;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR; Nature_of_time = j;
+if(ReadUnsignedLong(sefile,&kk,&pos) == FAILED) goto ERR; Pclock = (double)kk;
+if(ReadUnsignedLong(sefile,&kk,&pos) == FAILED) goto ERR; Qclock = (double)kk;
 SetTempo(); SetTimeBase(); Dirty[wMetronom] = Dirty[wTimeBase] = FALSE;
 
-if(ReadInteger(refnum,&jmax,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&jmax,&pos) == FAILED) goto ERR;
 if(jmax > Jbutt) {
 	sprintf(Message,"Err. settings file.  jmax = %ld. ",(long)jmax);
 	if(Beta) Alert1(Message);
@@ -1430,257 +1403,107 @@ if(jmax > Jbutt) {
 oldwritemidifile = WriteMIDIfile;
 oldoutcsound = OutCsound;
 
-if(ReadInteger(refnum,&Improvize,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&CyclicPlay,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&UseEachSub,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&AllItems,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&DisplayProduce,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&StepProduce,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&StepGrammars,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&TraceProduce,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&PlanProduce,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&DisplayItems,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&ShowGraphic,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&AllowRandomize,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&Improvize,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&CyclicPlay,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&UseEachSub,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&AllItems,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&DisplayProduce,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&StepProduce,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&StepGrammars,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&TraceProduce,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&PlanProduce,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&DisplayItems,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&ShowGraphic,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&AllowRandomize,&pos) == FAILED) goto ERR;
 if(iv < 15) AllowRandomize = TRUE;
-if(ReadInteger(refnum,&DisplayTimeSet,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&StepTimeSet,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&TraceTimeSet,&pos) == FAILED) goto ERR; 
-if(jmax > 27) ReadInteger(refnum,&CsoundTrace,&pos);
+if(ReadInteger(sefile,&DisplayTimeSet,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&StepTimeSet,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&TraceTimeSet,&pos) == FAILED) goto ERR; 
+if(jmax > 27) ReadInteger(sefile,&CsoundTrace,&pos);
 else CsoundTrace = FALSE;
-if(ReadInteger(refnum,&OutMIDI,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&SynchronizeStart,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&ComputeWhilePlay,&pos) == FAILED) goto ERR; 
-if(ReadInteger(refnum,&Interactive,&pos) == FAILED) goto ERR; 
-if(jmax > 19) ReadInteger(refnum,&ResetWeights,&pos);
+if(ReadInteger(sefile,&OutMIDI,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&SynchronizeStart,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&ComputeWhilePlay,&pos) == FAILED) goto ERR; 
+if(ReadInteger(sefile,&Interactive,&pos) == FAILED) goto ERR; 
+if(jmax > 19) ReadInteger(sefile,&ResetWeights,&pos);
 else ResetWeights = FALSE;
 NeverResetWeights = FALSE;
-if(jmax > 20) ReadInteger(refnum,&ResetFlags,&pos);
+if(jmax > 20) ReadInteger(sefile,&ResetFlags,&pos);
 else ResetFlags = FALSE;
-if(jmax > 21) ReadInteger(refnum,&ResetControllers,&pos);
+if(jmax > 21) ReadInteger(sefile,&ResetControllers,&pos);
 else ResetControllers = FALSE; 
-if(jmax > 22) ReadInteger(refnum,&NoConstraint,&pos);
+if(jmax > 22) ReadInteger(sefile,&NoConstraint,&pos);
 else NoConstraint = FALSE;
-if(jmax > 23) ReadInteger(refnum,&WriteMIDIfile,&pos);
+if(jmax > 23) ReadInteger(sefile,&WriteMIDIfile,&pos);
 else WriteMIDIfile = FALSE; 
-if(jmax > 24) ReadInteger(refnum,&ShowMessages,&pos); 
-if(jmax > 25) ReadInteger(refnum,&OutCsound,&pos);
+if(jmax > 24) ReadInteger(sefile,&ShowMessages,&pos); 
+if(jmax > 25) ReadInteger(sefile,&OutCsound,&pos);
 else OutCsound = FALSE;
-if(jmax > 26) ReadInteger(refnum,p_oms,&pos);
-else *p_oms = FALSE;
+if(jmax > 26) ReadInteger(sefile,&j,&pos); // used to read p_oms
+Oms = FALSE;	// OMS is no more
 
-/* Silently reset these flags if their functionality is not available.
+/* Silently reset this flag if real-time Midi is not available.
    Note that this does not mark the settings file as Dirty either.
    -- 012307 akozar */
 #if !WITH_REAL_TIME_MIDI
   OutMIDI = FALSE;
 #endif
-#if !USE_OMS
-  *p_oms = FALSE;
-  // Oms = FALSE;
-#endif
 
 SetButtons(TRUE);
 
+#if BP_CARBON_GUI
 if(oldoutcsound && !OutCsound && !startup) CloseCsScore();
 if(oldwritemidifile && !WriteMIDIfile && !startup) CloseMIDIFile();
 if(OutMIDI && !oldoutmidi && !InitOn && !startup) ResetMIDI(FALSE);
+#endif /* BP_CARBON_GUI */
 
-if(ReadInteger(refnum,&SplitTimeObjects,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&SplitVariables,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&SplitTimeObjects,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&SplitVariables,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 UseTextColor = (j > 0);
-if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
+if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR;
 DeftBufferSize = BufferSize = k;
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 UseGraphicsColor = (j > 0);
 if(ForceTextColor == 1) UseTextColor = TRUE;
 if(ForceTextColor == -1) UseTextColor = FALSE;
 if(ForceGraphicColor == 1) UseGraphicsColor = TRUE;
 if(ForceGraphicColor == -1) UseGraphicsColor = FALSE;
-if(ReadInteger(refnum,&UseBufferLimit,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&UseBufferLimit,&pos) == FAILED) goto ERR;
+#if BP_CARBON_GUI
 SetBufferSize();
-if(ReadLong(refnum,&TimeMax,&pos) == FAILED) goto ERR;
+#endif /* BP_CARBON_GUI */
+if(ReadLong(sefile,&TimeMax,&pos) == FAILED) goto ERR;
 
-if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
+if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR;
 Seed = (unsigned) (k % 32768L);
-SetSeed(); ResetRandom();
+#if BP_CARBON_GUI
+SetSeed();
+#endif /* BP_CARBON_GUI */
+ResetRandom();
 
-if(ReadInteger(refnum,&Token,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&Token,&pos) == FAILED) goto ERR;
 if(Token > 0) Token = TRUE;
 else Token = FALSE;
-if(ReadInteger(refnum,&NoteConvention,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&StartFromOne,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&NoteConvention,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&StartFromOne,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 SmartCursor = (j == 1);
-if(ReadInteger(refnum,&GraphicScaleP,&pos) == FAILED) goto ERR;
-if(ReadInteger(refnum,&GraphicScaleQ,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&GraphicScaleP,&pos) == FAILED) goto ERR;
+if(ReadInteger(sefile,&GraphicScaleQ,&pos) == FAILED) goto ERR;
+#if BP_CARBON_GUI
 SetGraphicSettings();
+#endif /* BP_CARBON_GUI */
 
-/* Find OMS default input device, and connect it if OMS is active */
-if(ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
-#if USE_OMS
-if((*p_oms) && iv > 14 && OKOMS) {
-	oldomsinput = gChosenInputID;
-	MystrcpyHandleToString(MAXNAME,0,connectionname,p_line);
-	if(Beta) {
-		sprintf(Message,"MIDI input found in settings file: %s",connectionname);
-		ShowMessage(YES,wMessage,Message);
-		}
-	newomsinput = GetIDandName(connectionname);
-	if((strcmp(OMSinputName,connectionname) != 0
-			|| (connectionname[0] == '\0' && newomsinput != 0)) && connectionname[0] != '<') {
-		strcpy(oldinputname,OMSinputName);
-		if(newomsinput != 0) {
-			if(Oms) {
-				OpenOrCloseConnection(startup,FALSE);
-				OMSinputName[0] = '\0';
-				}
-			gChosenInputID = newomsinput;
-			}
-		tried = toldoms = FALSE;
-		
-	TRYOPEN:
-		if(Oms) {
-			if(newomsinput == 0) {
-				tried = TRUE; 
-				gChosenInputID = newomsinput = FindOMSdevice(YES,connectionname);
-				}
-			if(gChosenInputID > 0 && gInputMenu != NULL) {
-				SetOMSDeviceMenuSelection(gInputMenu,0,gChosenInputID,"\p",TRUE);
-				strcpy(OMSinputName,connectionname);
-				}
-			connectionok = OpenOrCloseConnection(startup,TRUE);
-			if(!connectionok) {
-				connectionok = TRUE;
-				if(!tried) {
-					newomsinput = 0;
-					goto TRYOPEN;
-					}
-				else {
-					if(oldomsinput > 0) {
-						gChosenInputID = oldomsinput;
-						if(gInputMenu != NULL)
-							SetOMSDeviceMenuSelection(gInputMenu,0,gChosenInputID,"\p",TRUE);
-						if(OpenOrCloseConnection(startup,TRUE) != OK) {
-							connectionok = FALSE;
-							}
-						else strcpy(OMSinputName,oldinputname);
-						}
-					}
-				}
-			}
-		else {
-			if(connectionname[0] != '\0' || startup) strcpy(OMSinputName,connectionname);
-			if(!startup) {
-				toldoms = TRUE;
-				if(!ScriptExecOn)
-					Alert1("Settings indicate that the intput was routed via OMS. You should install and activate it…");
-				}
-			}
-		}
-	}
-#endif
-
-/* Find OMS default output device, and connect it if OMS is active */
+/* Read OMS default input device, and ignore it */
+if(ReadOne(FALSE,FALSE,TRUE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
+/* Read OMS default output device, and ignore it */
 if(iv > 5) {
-	if(ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
-#if USE_OMS
-	if((*p_oms) && iv > 14 && OKOMS) {
-		oldomsoutput = gChosenOutputID;
-		MystrcpyHandleToString(MAXNAME,0,connectionname,p_line);
-		if(Beta) {
-			sprintf(Message,"MIDI output found in settings file: %s",connectionname);
-			ShowMessage(YES,wMessage,Message);
-			}
-		newomsoutput = GetIDandName(connectionname);
-		if((strcmp(OMSoutputName,connectionname) != 0
-				|| (connectionname[0] == '\0' && newomsoutput != 0)) && connectionname[0] != '<') {
-			if(Oms) {
-				activemem = SchedulerIsActive;
-				SchedulerIsActive = FALSE;
-				gChosenOutputID = newomsoutput;
-				gOutNodeRefNum = OMSUniqueIDToRefNum(gChosenOutputID);
-				if(gOutNodeRefNum == OMSInvalidRefNum) {
-					gChosenOutputID = FindOMSdevice(NO,connectionname);
-					gOutNodeRefNum = OMSUniqueIDToRefNum(gChosenOutputID);
-					}
-				if(gOutNodeRefNum == OMSInvalidRefNum) {
-					if(oldomsoutput > 0) {
-						// Try to reconnect previous device
-						gChosenOutputID = oldomsoutput;
-						gOutNodeRefNum = OMSUniqueIDToRefNum(gChosenOutputID);
-						if(gOutNodeRefNum == OMSInvalidRefNum) {
-							OMSNodeInfoListH info;
-							OMSNodeInfoList node;
-
-							// If it doesn't work, select the first device available
-					/*		info = OMSGetNodeInfo(omsIncludeReal+omsIncludeOutputs);
-							if(info != NULL) {
-								node = (*info)[0];
-								if(node.numNodes > 0) {
-									gChosenOutputID = node.info[0].uniqueID;
-									if(gOutputMenu != NULL)
-										SetOMSDeviceMenuSelection(gOutputMenu,0,gChosenOutputID,"\p",TRUE);
-									gOutNodeRefNum = OMSUniqueIDToRefNum(gChosenOutputID);
-									MyPtoCstr(255,node.info[0].name,OMSoutputName);
-									}
-								OMSDisposeHandle(info);
-								} */
-							connectionok = FALSE;
-							gChosenOutputID = 0;
-							sprintf(Message,
-								"BP2 was unable to reconnect output port ‘%s’. Check MIDI output and save project settings…",
-								connectionname);
-							if(!ScriptExecOn) Alert1(Message);
-							else Println(wTrace,Message);
-							}
-						}
-					}
-				else {
-					strcpy(OMSoutputName,connectionname);
-					io = OMSAddPort('Bel0',gChosenOutputID,omsPortTypeOutput,NULL,0L,&gOutputPortRefNum);
-					if(io != noErr) {
-						if(io == 4) {
-							sprintf(Message,"The ‘%s’ MIDI output port was already open…",
-								connectionname);
-							ShowMessage(TRUE,wMessage,Message);
-							}
-						else {
-							if(Beta) TellError(33,io);
-							SetOMSDeviceMenuSelection(gOutputMenu,0,gChosenOutputID,"\p",FALSE);
-							connectionok = FALSE;
-							gChosenOutputID = 0;
-							OMSoutputName[0] = '\0';
-							sprintf(Message,
-								"BP2 was unable to open output port ‘%s’ for this project. You may need to run OMS setup",
-								connectionname);
-							if(!ScriptExecOn) Alert1(Message);
-							else Println(wTrace,Message);
-							}
-						}
-					else {
-						sprintf(Message,"Opened MIDI output ‘%s’…",connectionname);
-						ShowMessage(TRUE,wMessage,Message);
-						}
-					if(gOutputMenu != NULL && gChosenOutputID != 0)
-						SetOMSDeviceMenuSelection(gOutputMenu,0,gChosenOutputID,"\p",TRUE);
-					}
-				SchedulerIsActive = activemem;
-				}
-			else {
-				if(connectionname[0] != '\0') strcpy(OMSoutputName,connectionname);
-				if(newomsoutput > 0) gChosenOutputID = newomsoutput;
-				if(!startup && !toldoms && !ScriptExecOn)
-					Alert1("Settings indicate that the output was routed via OMS. You should install and activate it…");
-				}
-			}
-		}
-#endif
+	if(ReadOne(FALSE,FALSE,TRUE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
 	}
 
 if(iv > 11) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	if(iv > 15) UseBullet = j;
 	else UseBullet = TRUE;
 	if(UseBullet) Code[7] = '•';
@@ -1688,73 +1511,75 @@ if(iv > 11) {
 	}
 
 PlayTicks = FALSE;
-SwitchOff(NULL,wTimeBase,dPlayTicks);
 ResetTickFlag = TRUE;
 
 if(iv > 7) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	PlayTicks = j;
 	if(PlayTicks && !InitOn && !startup) {
-		ResetMIDI(FALSE);
-		SwitchOn(NULL,wTimeBase,dPlayTicks);
+		ResetMIDI(FALSE); // FIXME: does this make sense in the console version
 		}
 	}
 if(iv > 10) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-	FileSaveMode = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-	FileWriteMode = j;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
+	FileSaveMode = ALLSAME;  // was = j;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
+	FileWriteMode = NOW;     // was = j;
 	}
 else {
-	FileSaveMode = ALLSAMEPROMPT;
-	FileWriteMode = LATER;
+	FileSaveMode = ALLSAME;  // was = ALLSAMEPROMPT;
+	FileWriteMode = NOW;     // was = LATER;
 	}
 if(iv > 11) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	MIDIfileType = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	CsoundFileFormat = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	ProgNrFrom = j;
 	if(ProgNrFrom == 0) {
 /*		if(Beta) Alert1("Old program numbers"); */
 		ProgNrFrom = 1;
 		}
-	if(ReadFloat(refnum,&x,&pos) == FAILED) goto ERR;
+	if(ReadFloat(sefile,&x,&pos) == FAILED) goto ERR;
 	if(iv > 19) MIDIfadeOut = x;
 	else MIDIfadeOut = 2.;
+#if BP_CARBON_GUI
 	sprintf(Message,"%.2f",MIDIfadeOut);
 	SetField(FileSavePreferencesPtr,-1,fFadeOut,Message);
+#endif /* BP_CARBON_GUI */
 	
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	if(j > 1 && j < 128) C4key = j;
 	else C4key = 60;
-	ReadFloat(refnum,&x,&pos);
+	ReadFloat(sefile,&x,&pos);
 	if(x > 1.) A4freq = x;
 	else A4freq = 440.;
 	
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	StrikeAgainDefault = j;
 	}
 else {
-	MIDIfileType = 0;
-	CsoundFileFormat = MAC;
+	MIDIfileType = 1;
+	CsoundFileFormat = UNIX;
 	StrikeAgainDefault = TRUE;
-	C4key = 48;	/* Here we compensate bad convention on old projects */
-	A4freq = 220.;	/* ditto */
+	// C4key = 48;	/* Here we compensate bad convention on old projects */
+	// A4freq = 220.;	/* ditto */
+	C4key = 60;
+	A4freq = 440.0;
 	}
 if(iv > 15) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	DeftVolume = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	VolumeController = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	DeftVelocity = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	DeftPanoramic = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	PanoramicController = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	SamplingRate = j;
 	}
 else {
@@ -1765,35 +1590,35 @@ else {
 	PanoramicController = PANORAMICCONTROL;
 	SamplingRate = SAMPLINGRATE;
 	}
+#if BP_CARBON_GUI
 SetFileSavePreferences();
 SetDefaultPerformanceValues();
 SetTuning();
 SetDefaultStrikeMode();
+#endif /* BP_CARBON_GUI */
 
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+// This block reads in font sizes for Carbon GUI text windows
+if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 wmax = j;
 if(wmax > 0) {
 	for(w=0; w < wmax; w++) {
-		PleaseWait();
-		if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-		if(changewindows && !FreezeWindows && WindowTextSize[w] != j) SetFontSize(w,j);
+		if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 		}
-	MaintainMenus();
 	}
 	
 ResetMIDIFilter();
 
 if(iv > 4) {
-	if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
+	if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR;
 	MIDIoutputFilter = k;
 	if(startup) MIDIoutputFilterstartup = MIDIoutputFilter;
 	GetOutputFilterWord();
 	for(i=0; i < 12; i++) {
-		if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+		if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 		NameChoice[i] = j;
 		}
 	}
-if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
+if(ReadLong(sefile,&k,&pos) == FAILED) goto ERR;
 if(k != 0L) {
 	MIDIinputFilter = k;
 	if(startup) MIDIinputFilterstartup = MIDIinputFilter;
@@ -1802,103 +1627,54 @@ if(k != 0L) {
 		Alert1("Reception of NoteOn's is disabled. Most MIDI data received by BP2 will be meaningless");
 		}
 	}
+#if BP_CARBON_GUI
 SetFilterDialog();
+#endif /* BP_CARBON_GUI */
 
 if(iv > 19) {
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	ShowObjectGraph = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
+	if(ReadInteger(sefile,&j,&pos) == FAILED) goto ERR;
 	ShowPianoRoll = j;
-	if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-	for(i=0; i < j; i++) {
-		if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
-		// PianoColor[i].red = k;
-		if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
-		// PianoColor[i].green = k;
-		if(ReadLong(refnum,&k,&pos) == FAILED) goto ERR;
-		// PianoColor[i].blue = k;
-		}
+	/**** THIS IS WHERE THE SETTINGS FILE ENDS NOW IN BP3 ****/
+	/* Removed code for reading piano roll colors */
 	}
 else {
-	ResetPianoRollColors();
 	ShowObjectGraph = TRUE;
 	ShowPianoRoll = FALSE;
 	}
 				
-if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-NewEnvironment = j;
-if(NewEnvironment) {
-	if(ReadInteger(refnum,&wmax,&pos) == FAILED) goto ERR;
-	for(w=0; w < wmax; w++) {
-		if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-		ChangedCoordinates[w] = j;
-		if(j) {
-			if(ReadInteger(refnum,&top,&pos) == FAILED) goto ERR;
-			if(ReadInteger(refnum,&left,&pos) == FAILED) goto ERR;
-			if(ReadInteger(refnum,&bottom,&pos) == FAILED) goto ERR;
-			if(ReadInteger(refnum,&right,&pos) == FAILED) goto ERR;
-			}
-		if(changewindows && !FreezeWindows) AdjustWindow(j,w,top,left,bottom,right);
-		}
-	}
-if(FreezeWindows) NewEnvironment = FALSE;
-if(iv > 4) {
-	if(ReadInteger(refnum,&imax,&pos) == FAILED) goto ERR;
-	if(imax > 0) {
-		NewColors = TRUE;
-		for(i=0; i < imax; i++) {
-			if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-			Color[i].red = (unsigned) j;
-			if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-			Color[i].green = (unsigned) j;
-			if(ReadInteger(refnum,&j,&pos) == FAILED) goto ERR;
-			Color[i].blue = (unsigned) j;
-			}
-		}
-	}
-if(ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
+/* Removed code for reading "NewEnvironment", window coordinates & text colors */
+
+/* Should we still keep the start string in the settings file? */
+/* if(ReadOne(FALSE,FALSE,TRUE,sefile,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
 if(Mystrcmp(p_line,"STARTSTRING:") != 0) {
-	sprintf(Message,"Incorrect end in ‘%s’ settings file. May be bad version?",
+	sprintf(Message,"Incorrect end in '%s' settings file. May be bad version?",
 			filename);
 	if(Beta) Alert1(Message);
 	goto QUIT;
 	}
-ReadFile(wStartString,refnum);
+ReadFile(wStartString,sefile);
 ShowSelect(CENTRE,wStartString);
 Dirty[wStartString] = FALSE;
+ */
+
 goto QUIT;
 
 ERR:
 result = FAILED;
-sprintf(Message,"Error reading ‘%s’ settings file…",filename);
+sprintf(Message,"Error reading '%s' settings file...",filename);
 Alert1(Message);
 
 QUIT:
 MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
-if(FSClose(refnum) != noErr) {
-	sprintf(Message,"Error closing ‘%s’ settings file…",filename);
-	result = FAILED;	// FIXME: does this really require failure?
-	}
-if(result == OK) {
-	if(!startup) {
-		Created[iSettings] = TRUE;
-		TheVRefNum[iSettings] = spec.vRefNum;
-		WindowParID[iSettings] = spec.parID;
-		}
-	/*else {  // suppressed since can impair finding other files - akozar 040907
-		RefNumbp2 = spec.vRefNum;
-		ParIDbp2 = spec.parID;
-		}*/
-	SetName(iSettings,TRUE,manual && !startup);
-	}
-else Dirty[iSettings] = FALSE;
-if(!startup) HideWindow(Window[wMessage]);
-SetDefaultCursor();
+CloseFile(sefile);
+
 LoadOn--;
-if(!connectionok) return(ABORT);
 return(result);
 }
 
+#if BP_CARBON_GUI
 
 SaveDecisions(void)
 {
@@ -1909,7 +1685,7 @@ long count;
 OSErr err;
 
 err = NSWInitReply(&reply);
-ShowMessage(TRUE,wMessage,"Creating decision file…");
+ShowMessage(TRUE,wMessage,"Creating decision file...");
 PascalLine[0] = 0;
 if(NewFile(-1,4,PascalLine,&reply)) {
 	i = CreateFile(-1,-1,4,PascalLine,&reply,&refnum);
@@ -1926,7 +1702,7 @@ if(NewFile(-1,4,PascalLine,&reply)) {
 		sprintf(LineBuff,"%ld",(long)ProduceStackDepth);
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		for(i=0; i < ProduceStackDepth; i++) {
-			sprintf(LineBuff,"%ld\r%ld\r%ld",
+			sprintf(LineBuff,"%ld\n%ld\n%ld",
 				(long)(*p_MemGram)[i],(long)(*p_MemRul)[i],(long)(*p_MemPos)[i]);
 			WriteToFile(NO,MAC,LineBuff,refnum);
 			}
@@ -1946,7 +1722,7 @@ if(NewFile(-1,4,PascalLine,&reply)) {
 		}
 	else {
 		MyPtoCstr(MAXNAME,PascalLine,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -1966,7 +1742,7 @@ char *p,*q;
 OSErr io;
 char **p_line,**p_completeline;
 
-ShowMessage(TRUE,wMessage,"Locate decision file…");
+ShowMessage(TRUE,wMessage,"Locate decision file...");
 p_line = p_completeline = NULL;
 if(OldFile(-1,4,PascalLine,&spec)) {
 	p2cstrcpy(LineBuff,PascalLine);
@@ -1984,7 +1760,7 @@ if(OldFile(-1,4,PascalLine,&spec)) {
 			goto ERR;
 		if(!loadgrammar && (compiledate != CompileDate)) {
 			if((r = Answer(
-	"Grammar may have changed.\rLoad old version from decision file",'Y'))
+	"Grammar may have changed.\nLoad old version from decision file",'Y'))
 														== OK) {
 				if(ResetProject(FALSE) != OK) goto NOERR;
 				loadgrammar = YES;
@@ -2020,7 +1796,7 @@ if(OldFile(-1,4,PascalLine,&spec)) {
 			}
 		goto NOERR;
 ERR:
-		Alert1("Can't read decision file…");
+		Alert1("Can't read decision file...");
 NOERR:
 		if(FSClose(refnum) == noErr) ;
 		}
@@ -2030,7 +1806,7 @@ NOERR:
 	MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
 	}
 else {
-	/* Alert1("Error reading decision file…"); */  // user may have cancelled
+	/* Alert1("Error reading decision file..."); */  // user may have cancelled
 	HideWindow(Window[wMessage]);
 	return(FAILED);
 	}
@@ -2077,7 +1853,7 @@ if((io=MyOpen(&spec,fsCurPerm,&refnum)) != noErr) {
 		return(FAILED);
 		}
 	}
-sprintf(Message,"Loading %s…",FileName[wInteraction]);
+sprintf(Message,"Loading %s...",FileName[wInteraction]);
 ShowMessage(TRUE,wMessage,Message);
 pos = 0L;
 LoadOn++;
@@ -2237,13 +2013,13 @@ else {
 	if(ReadUnsignedLong(refnum,&kk,&pos) != FAILED) MinPclock = (double) kk;
 	else goto ERR;
 	if(MinPclock < 1.) {
-		Alert1("Err: MinPclock < 1 in LoadInteraction().  Incorrect ‘-in’ file");
+		Alert1("Err: MinPclock < 1 in LoadInteraction().  Incorrect '-in' file");
 		goto ERR;
 		}
 	if(ReadUnsignedLong(refnum,&kk,&pos) != FAILED) MaxPclock = kk;
 	else goto ERR;
 	if(MaxPclock < 1) {
-		Alert1("Err: MaxPclock < 1 in LoadInteraction().  Incorrect ‘-in’ file");
+		Alert1("Err: MaxPclock < 1 in LoadInteraction().  Incorrect '-in' file");
 		goto ERR;
 		}
 	if(ReadUnsignedLong(refnum,&kk,&pos) != FAILED) MinQclock = kk;
@@ -2278,14 +2054,14 @@ goto QUIT;
 
 ERR:
 result = FAILED;
-Alert1("Error reading interactive code file…");
+Alert1("Error reading interactive code file...");
 ForgetFileName(wInteraction); /* 1/3/97 */
 Interactive = FALSE; SetButtons(TRUE);
 
 QUIT:
 MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
 if(FSClose(refnum) != noErr) {
-	if(Beta) Alert1("Error closing interactive code file…");
+	if(Beta) Alert1("Error closing interactive code file...");
 	}
 HideWindow(Window[wMessage]);
 if(result == OK) {
@@ -2329,7 +2105,7 @@ if(Created[wMIDIorchestra] && !doSaveAs) {  // try the existing file first
 		}
 	}
 // else do a "Save As"
-ShowMessage(TRUE,wMessage,"Saving MIDI orchestra file…");
+ShowMessage(TRUE,wMessage,"Saving MIDI orchestra file...");
 if(FileName[wMIDIorchestra][0] == '\0') GetDefaultFileName(wMIDIorchestra, Message);
 else strcpy(Message,FileName[wMIDIorchestra]);
 c2pstrcpy(fn, Message);
@@ -2372,11 +2148,11 @@ WRITE:
 		Created[wMIDIorchestra] = TRUE;
 		result = OK;
 		/* if(type == 1)
-			Alert1("To open this file, click the ‘Load’ button with the ‘option’ key down"); */
+			Alert1("To open this file, click the 'Load' button with the 'option' key down"); */
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"Error creating ‘%s’",LineBuff);
+		sprintf(Message,"Error creating '%s'",LineBuff);
 		Alert1(Message);
 		}
 	}
@@ -2422,7 +2198,7 @@ if(TestMIDIChannel > 0 && TestMIDIChannel <= MAXCHAN) {
 	
 if(!manual) goto READIT;
 
-ShowMessage(TRUE,wMessage,"Locate MIDI orchestra file…");
+ShowMessage(TRUE,wMessage,"Locate MIDI orchestra file...");
 type = gFileType[wMIDIorchestra];
 if(Option /* && Answer("Import any type of file",'Y') == OK */) type = ftiAny;
 if(OldFile(-1,type,PascalLine,&spec)) {
@@ -2430,7 +2206,7 @@ if(OldFile(-1,type,PascalLine,&spec)) {
 	if((io=MyOpen(&spec,fsCurPerm,&refnum)) == noErr) {
 	
 READIT:
-		sprintf(Message,"Loading ‘%s’ orchestra file…",FileName[wMIDIorchestra]);
+		sprintf(Message,"Loading '%s' orchestra file...",FileName[wMIDIorchestra]);
 		ShowMessage(TRUE,wMessage,Message);
 		pos = ZERO;
 		if(ReadOne(FALSE,FALSE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto ERR;
@@ -2487,7 +2263,7 @@ READIT:
 			}
 		goto NOERR;
 ERR:
-		Alert1("Can't read MIDI orchestra file…");
+		Alert1("Can't read MIDI orchestra file...");
 NOERR:
 		if(FSClose(refnum) == noErr) ;
 		if(manual) {
@@ -2585,7 +2361,7 @@ int OpenMidiDriverSettings()
 	int		result;
 	FSSpec	mdfile;
 	
-	sprintf(Message, "Select a %s file…", DocumentTypeName[iMidiDriver]);
+	sprintf(Message, "Select a %s file...", DocumentTypeName[iMidiDriver]);
 	ShowMessage(TRUE,wMessage,Message);
 	result = OldFile(wUnknown, ftiMidiDriver, PascalLine, &mdfile);
 	HideWindow(Window[wMessage]);
@@ -2724,19 +2500,19 @@ int SaveMidiDriverSettings()
 			if (io == OK) {
 				reply.saveCompleted = true;
 				RememberMdFile(&(reply.sfFile));
-				sprintf(Message,"Successfully saved ‘%s’", FileName[iMidiDriver]);
+				sprintf(Message,"Successfully saved '%s'", FileName[iMidiDriver]);
 				ShowMessage(TRUE,wMessage,Message);
 			}
 			else {
 				p2cstrcpy(defaultname, fn);
-				sprintf(Message, "Error writing file ‘%s’", defaultname);
+				sprintf(Message, "Error writing file '%s'", defaultname);
 				Alert1(Message);
 				HideWindow(Window[wMessage]);
 			}
 		}
 		else {
 			MyPtoCstr(MAXNAME,fn,defaultname);
-			sprintf(Message, "Error creating file ‘%s’", defaultname);
+			sprintf(Message, "Error creating file '%s'", defaultname);
 			Alert1(Message);
 		}
 	}		
@@ -2756,7 +2532,7 @@ int WriteMidiDriverSettings(short refnum, FSSpec* spec)
 	
 	SaveOn++;
 	p2cstrcpy(fname, spec->name);
-	sprintf(Message,"Saving ‘%s’...", fname);
+	sprintf(Message,"Saving '%s'...", fname);
 	ShowMessage(TRUE,wMessage,Message);
 	PleaseWait();
 	
@@ -2779,3 +2555,5 @@ int WriteMidiDriverSettings(short refnum, FSSpec* spec)
 	
 	return OK;
 }
+
+#endif /* BP_CARBON_GUI */

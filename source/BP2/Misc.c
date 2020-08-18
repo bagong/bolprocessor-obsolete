@@ -78,14 +78,14 @@ Expect(char c,char* string,char d)
 char line[MAXLIN];
 
 if(isspace(d))
-	sprintf(line,"Expecting ‘%c’ after ‘%s’. Found a space instead.\r",
+	sprintf(line,"Expecting '%c' after '%s'. Found a space instead.\n",
 		c,string);
 else
 	if(isgraph(d))
-		sprintf(line,"Expecting ‘%c’ after ‘%s’. Found ‘%c’ instead.\r",
+		sprintf(line,"Expecting '%c' after '%s'. Found '%c' instead.\n",
 			c,string,d);
 	else
-		sprintf(line,"Expecting ‘%c’ after ‘%s’. Found ‘%c’ (ASCII %ld) instead.\r",
+		sprintf(line,"Expecting '%c' after '%s'. Found '%c' (ASCII %ld) instead.\n",
 			c,string,d,(long)((256L + d) % 256L));
 Print(wTrace,line);
 return(OK);
@@ -150,7 +150,7 @@ MyDisposeHandle((Handle*)&p_line);
 
 /* Load target from help file */
 
-ShowMessage(TRUE,wMessage,"Searching the ‘BP2 help’ data-base…");
+ShowMessage(TRUE,wMessage,"Searching the 'BP2 help' data-base...");
 FlashInfo(target);
 pos1 = GetTextLength(wHelp);
 SetSelect(pos1,pos1,TEH[wHelp]);
@@ -258,7 +258,7 @@ do {
 	if(c == '\0' || !isdigit(c)) break;
 	n = 10L * n + (long) (c - '0'); done = TRUE;
 	if(n > INT_MAX) {	// FIXME: can never be true when sizeof(long) == sizeof(int)
-		sprintf(Message,"\rMaximum integer value: %ld.\r",(long)INT_MAX);
+		sprintf(Message,"\nMaximum integer value: %ld.\n",(long)INT_MAX);
 		Print(wTrace,Message);
 		return(INT_MAX);
 		}
@@ -266,7 +266,7 @@ do {
 	}
 while(c != '\0');
 if(!done) {
-	if(!InitOn && !test) Print(wTrace,"\rNumber missing.\r");
+	if(!InitOn && !test) Print(wTrace,"\nNumber missing.\n");
 	return(INT_MAX);
 	}
 return((int) n * sign);
@@ -285,7 +285,7 @@ if(*p_i >= strlen(line)) return(INT_MAX);
 do {
 	c = line[*p_i];
 	if(!done && c == '-') {
-		Print(wTrace,"\rHexadecimal number should not be negative");
+		Print(wTrace,"\nHexadecimal number should not be negative");
 		return(INT_MAX);
 		}
 	if(c == '\0') break;
@@ -304,7 +304,7 @@ do {
 		}
 	n = 16L * n + (long) j; done = TRUE;
 	if(n > INT_MAX) {	// FIXME: can never be true when sizeof(long) == sizeof(int)
-		sprintf(Message,"\rMaximum integer value: %ld.\r",(long)INT_MAX);
+		sprintf(Message,"\nMaximum integer value: %ld.\n",(long)INT_MAX);
 		Print(wTrace,Message);
 		return(INT_MAX);
 		}
@@ -313,7 +313,7 @@ do {
 while(c != '\0');
 END:
 if(!done) {
-	Print(wTrace,"\rNumber missing.\r");
+	Print(wTrace,"\nNumber missing.\n");
 	return(INT_MAX);
 	}
 return((int) n);
@@ -340,7 +340,7 @@ do {
 	if(c == '\0' || !isdigit(c)) break;
 	n = 10L * n + (long) (c - '0'); done = TRUE;
 	if(n >= Infpos) {	// FIXME: can never be true (Infpos == LONG_MAX)
-		sprintf(Message,"\rMaximum value: %ld.\r",(long)Infpos-1);
+		sprintf(Message,"\nMaximum value: %ld.\n",(long)Infpos-1);
 		Print(wTrace,Message);
 		return(Infpos);
 		}
@@ -348,7 +348,7 @@ do {
 	}
 while(c != '\0');
 if(!done) {
-	Print(wTrace,"\rNumber missing.\r");
+	Print(wTrace,"\nNumber missing.\n");
 	return(Infpos);
 	}
 return(n * sign);
@@ -368,14 +368,14 @@ if(*p_i >= strlen(line)) return(INT_MAX * 2L);	// FIXME: integer overflow (*2UL 
 do {
 	c = line[*p_i];
 	if(!done && c == '-') {
-		Print(wTrace,"\rUnsigned integer should not be negative");
+		Print(wTrace,"\nUnsigned integer should not be negative");
 		return(INT_MAX * 2L);
 		}
 	c = line[*p_i];
 	if(c == '\0' || !isdigit(c)) break;
 	n = 10L * n + (long) (c - '0'); done = TRUE;
 	if(n >= INT_MAX * 2L) {	// FIXME: use wider integers and proper max value
-		sprintf(Message,"\rMaximum unsigned value: %ld.\r",
+		sprintf(Message,"\nMaximum unsigned value: %ld.\n",
 			(long) INT_MAX * 2L - 1L);	// FIXME (UINT16_MAX = INT16_MAX*2 + 1)
 		Print(wTrace,Message);
 		return(INT_MAX * 2L);
@@ -384,7 +384,7 @@ do {
 	}
 while(c != '\0');
 if(!done) {
-	Print(wTrace,"\rNumber missing.\r");
+	Print(wTrace,"\nNumber missing.\n");
 	return(INT_MAX * 2L);
 	}
 return((unsigned) n);
@@ -409,7 +409,7 @@ do {
 			(*p_i)++; signfound = TRUE; continue;
 			}
 		else {
-			Print(wTrace,"\rIncorrect sign in float number.\r");
+			Print(wTrace,"\nIncorrect sign in float number.\n");
 			return(-1.);
 			}
 		}
@@ -418,7 +418,7 @@ do {
 			(*p_i)++; signfound = TRUE; sign = -1.; continue;
 			}
 		else {
-			Print(wTrace,"\rIncorrect sign in float number.\r");
+			Print(wTrace,"\nIncorrect sign in float number.\n");
 			return(-1.);
 			}
 		}
@@ -428,7 +428,7 @@ do {
 			continue;
 			}
 		else {
-			Print(wTrace,"\rSeveral decimal points in float number.\r");
+			Print(wTrace,"\nSeveral decimal points in float number.\n");
 			return(-1.);
 			}
 		}
@@ -443,7 +443,7 @@ do {
 	}
 while(c != '\0');
 if(!done) {
-	Print(wTrace,"\rFloat number incorrect or missing.\r");
+	Print(wTrace,"\nFloat number incorrect or missing.\n");
 	return(-1.);
 	}
 return(n * sign);
@@ -723,7 +723,7 @@ if(GetCtrlValue(wTickDialog,dSpecialTick)) {
 	GetField(NULL,TRUE,wTickDialog,fThisTickVelocity,line,&p,&q);
 	v =  p/q;
 	if(v < 0 || v > 127) {
-		sprintf(line,"Velocity range is 0..127\rCan't accept %ld",(long)v);
+		sprintf(line,"Velocity range is 0..127\nCan't accept %ld",(long)v);
 		Alert1(line);
 		SetField(NULL,wTickDialog,fThisTickVelocity,"[?]");
 		SelectField(NULL,wTickDialog,fThisTickVelocity,TRUE);
@@ -732,7 +732,7 @@ if(GetCtrlValue(wTickDialog,dSpecialTick)) {
 	GetField(NULL,TRUE,wTickDialog,fThisTickChannel,line,&p,&q);
 	c =  p/q;
 	if(c < 1 || c > 16) {
-		sprintf(line,"Channel range is 1..16\rCan't accept %ld",(long)c);
+		sprintf(line,"Channel range is 1..16\nCan't accept %ld",(long)c);
 		Alert1(line);
 		SetField(NULL,wTickDialog,fThisTickChannel,"[?]");
 		SelectField(NULL,wTickDialog,fThisTickChannel,TRUE);
@@ -741,7 +741,7 @@ if(GetCtrlValue(wTickDialog,dSpecialTick)) {
 	GetField(NULL,TRUE,wTickDialog,fThisTickKey,line,&p,&q);
 	k =  p/q;
 	if(k < 0 || k > 127) {
-		sprintf(line,"Key range is 0..127\rCan't accept %ld",(long)k);
+		sprintf(line,"Key range is 0..127\nCan't accept %ld",(long)k);
 		Alert1(line);
 		SetField(NULL,wTickDialog,fThisTickKey,"[?]");
 		SelectField(NULL,wTickDialog,fThisTickKey,TRUE);
@@ -931,7 +931,7 @@ if (GetLinkedFileName(w,wKeyboard,name) == OK) {
 	if(strcmp(FileName[wKeyboard],name) != 0) {
 		strcpy(FileName[wKeyboard],name);
 		if(Token == FALSE && !ScriptExecOn) {
-			if(Answer("Alphabet file indicated keyboard encoding.\rType tokens instead of normal text",
+			if(Answer("Alphabet file indicated keyboard encoding.\nType tokens instead of normal text",
 				'N') == OK) Token = TRUE;
 			}
 		type = gFileType[wKeyboard];
@@ -945,7 +945,7 @@ if (GetLinkedFileName(w,wKeyboard,name) == OK) {
 		}
 	else {
 		if(Token && FileName[wKeyboard][0] == '\0') {
-			if(!ScriptExecOn) Alert1("You can't use tokens (‘Misc’ menu) unless you define ‘-kb.’ file in alphabet");
+			if(!ScriptExecOn) Alert1("You can't use tokens ('Misc' menu) unless you define '-kb.' file in alphabet");
 			Token = FALSE;
 			result = ABORT;
 			}
@@ -1056,7 +1056,7 @@ switch(j) {
 	case 13:
 		MakeRatio((double)ULONG_MAX,x,&p,&q);
 		if(p < 0.) {
-			sprintf(Message,"Metronome cannot be set to negative value. ‘%.4f’ not accepted",
+			sprintf(Message,"Metronome cannot be set to negative value. '%.4f' not accepted",
 				x);
 			Alert1(Message);
 			return(ABORT);
@@ -1071,7 +1071,7 @@ switch(j) {
 		break;
 	case 14:
 		if(Pclock < 1. && !NotFoundMetronom) {
-			Alert1("Setting time to ‘striated’ is inconsistent with having no clock");
+			Alert1("Setting time to 'striated' is inconsistent with having no clock");
 			striated = FALSE;
 			goto MAKECHANGE;
 			}
@@ -1712,7 +1712,7 @@ if(MIDIfadeOut < 0. || MIDIfadeOut > 100.) {
 	BPUpdateDialog(FileSavePreferencesPtr);
 	SelectField(FileSavePreferencesPtr,-1,fFadeOut,TRUE);
 	Alert1("Range for MIDI fade out is 0..100 seconds");
-	result = AnswerWith("Set fade out to…","0.00",line);
+	result = AnswerWith("Set fade out to...","0.00",line);
 	if(result != OK) goto ERR;
 	else {
 		Myatof(line,&p,&q);
@@ -1971,12 +1971,12 @@ while(!WaitNextEvent(everyEvent,&theEvent,3L,NULL) || ((theEvent.what != keyDown
 		while((r = MainEvent()) != RESUME && r != STOP && r != EXIT){};
 		if(r == EXIT) r = STOP;
 		if(Dirty[wAlphabet]) {
-			Alert1("Alphabet changed. Must recompile…");
+			Alert1("Alphabet changed. Must recompile...");
 			return('Q');
 			}
 		Dirty[wAlphabet] = dirtymem;
 		if(compiledmem && !CompiledGr) {
-			Alert1("Grammar changed. Must recompile…");
+			Alert1("Grammar changed. Must recompile...");
 			return('Q');
 			}
 		if(r == STOP) return('Q');
@@ -2087,7 +2087,7 @@ if(found) return(j);
 
 if(j >= MAXSTRINGCONSTANTS) {
 	sprintf(Message,
-			"Too many identifiers found (max %ld)\rCan't store ‘%s’\r",
+			"Too many identifiers found (max %ld)\nCan't store '%s'\n",
 				(long)MAXSTRINGCONSTANTS,line);
 	Alert1(Message);
 	return(ABORT);
@@ -2137,7 +2137,7 @@ for(j=ZERO; j < maxparam; j++) {
 if(j < maxparam) return(j);
 if(j >= 256) {
 	sprintf(Message,
-		"Too many numeric constants found (max 256)\rCan't store ‘%s’\r",line);
+		"Too many numeric constants found (max 256)\nCan't store '%s'\n",line);
 	Alert1(Message);
 	return(ABORT);
 	}

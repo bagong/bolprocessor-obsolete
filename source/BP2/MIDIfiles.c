@@ -38,75 +38,71 @@
 #endif
 
 #include "-BP2decl.h"
+#include "ConsoleGlobals.h"
+#include "ConsoleMessages.h"
 
+#define  BITS0_6    0x7F
+#define  BITS7_13   0x3F80
+#define  BITS14_20  0x1FC000
+#define  BITS21_27  0xFE00000
 
 // A few predefined things
 
-unsigned char MTrk[] = { 'M', 'T', 'r', 'k' };
+byte MTrk[] = { 'M', 'T', 'r', 'k' };
 
-unsigned char header1[] = {
+byte header1[] = {
 0x4D, 0x54, 0x68, 0x64, /* MThd */
 0x00, 0x00, 0x00, 0x06, /* 6 bytes in header chunk */
 0x00};
 
-unsigned char header2[] = {0x00};
+byte header2[] = {0x00};
 
-unsigned char header3[] = {0x03, 0xE8};	/* = 1000 */
+byte header3[] = {0x03, 0xE8};	/* = 1000 */
 /* Delta-times are 1/1000th quarter-note */
 
-unsigned char key_sig[] = {0x00, 0xff, 0x59, 0x02, 0x00, 0x00};
+byte key_sig[] = {0x00, 0xff, 0x59, 0x02, 0x00, 0x00};
 /* key of C, major key */
 
-unsigned char time_sig[] = {0x00, 0xff, 0x58, 0x04, 0x01, 0x02, 0x18, 0x08};
+byte time_sig[] = {0x00, 0xff, 0x58, 0x04, 0x01, 0x02, 0x18, 0x08};
 /* 0x00, 0xff, 0x58, 0x04 identifies time_sig */
 /* 0x01 = 1 beat per measure */
 /* 0x02 = quarter-notes */
 /* 0x18 = 24 clocks in metronome tick */
 /* 0x08 = number of 32-th notes in a quarter-note (24 clocks) */
 
-unsigned char tempo_sig[] = {0x00, 0xff, 0x51, 0x03};
+byte tempo_sig[] = {0x00, 0xff, 0x51, 0x03};
 
-unsigned char end_of_track[] = {0x00, 0xff, 0x2f, 0x00};
+byte end_of_track[] = {0x00, 0xff, 0x2f, 0x00};
 
+int MakeMIDIFile(OutFileInfo* finfo);
+static int WriteMIDIFileHeader(FILE* fout);
+static int WriteBeginningOfTrack(FILE* fout, Boolean inclMetaEvts, Boolean isTempoOnlyTrk);
+static int WriteEndOfTrack(FILE* fout);
+static int WriteRawBytes(FILE* fout, byte* data, size_t numbytes);
+static int WriteVarLenQuantity(FILE* fout, dword value, dword *tracklen);
+static int CloseMIDIFile2(void);
 
-MakeMIDIFile(char* line)
+int MakeMIDIFile(OutFileInfo* finfo)
 {
-short refnum;
-int i,result,vref;
-long count,length;
-unsigned char byte,b0,b1,b2;
+int result;
 Str255 filename;
-unsigned long quarternotedur,deltatimesinquarternote;
-OSErr err;
+FILE *fout;
 
-result = FAILED;
+	BP_NOT_USED(filename);
+	result = FAILED;
 
-// need to save the NSWReply record until we close the file *sigh*
-MIDIfileReply = (NSWReply**)GiveSpace(sizeof(NSWReply));
-MyLock(FALSE, (Handle)MIDIfileReply);
-err = NSWInitReply(*MIDIfileReply);
-
-ShowMessage(TRUE,wMessage,"Create new MIDI file…");
-if(line == NULL || line[0] == '\0') {
-	// make a new filename based on the project's name
-	if (GetProjectBaseName(Message) == OK) {
-		// truncate the base filename, leaving enough room for the extension
-		if (strlen(Message) > (MAXNAME-4))  Message[MAXNAME-4] = '\0';
-		strcat(Message, ".mid");
-		}
-	else strcpy(Message, "untitled.mid");
+	ShowMessage(TRUE,wMessage,"Create new MIDI file...");
+	fout = OpenOutputFile(finfo, "wb");
+	if (!fout) {
+		BPPrintMessage(odError, "Could not open file %s\n", finfo->name);
+		return FAILED;
 	}
-else strcpy(Message,line);
-
-c2pstrcpy(filename, Message);
-/* This converts C to Pascal string; beurk! */
-
-if(NewFile(-1,11,filename,*MIDIfileReply)) {	/* This opens a save-file dialog */
-	result = CreateFile(-1,-1,11,filename,*MIDIfileReply,&refnum);
-	if(result == OK) {
-		MIDIRefNum = refnum;
+	else {
+		OpenMIDIfilePtr = fout;
 		MIDIfileOpened = MIDIfileTrackEmpty = TRUE;
-		MIDIfileSpec = (*MIDIfileReply)->sfFile;
+		MIDIfileTrackNumber = 0;
+
+#if 0
 		/* Below is some interface and scripting business */
 		p2cstrcpy(MIDIfileName,filename);
 		SetField(FileSavePreferencesPtr,-1,fMIDIFileName,MIDIfileName);
@@ -114,116 +110,221 @@ if(NewFile(-1,11,filename,*MIDIfileReply)) {	/* This opens a save-file dialog */
 		MystrcpyStringToTable(ScriptLine.arg,0,Message);
 		AppendScript(181);
 		/* End of interface business */
-				 				 
-		/* Write the MThd block to the new file */
-  		count = sizeof(header1);
-  		FSWrite(MIDIRefNum,&count,header1);
-  		
-  		/* Write the file type */
-  		byte = (unsigned char) (MIDIfileType & 0xff);
-  		count = 1L;
-  		FSWrite(MIDIRefNum,&count,&byte);
-  		
-  		count = sizeof(header2);
-  		FSWrite(MIDIRefNum,&count,header2);
-  		
-  		/* Write number of tracks */
-  		MIDIfileTrackNumber = 1;
-  		/* This is a temporary value since type 2 files may contain more tracks */
-  		
-  		MIDIfileTrackEmpty = FALSE;
-  		
-  		byte = (unsigned char) (MIDIfileTrackNumber & 0xff);
-  		count = 1L;
-  		FSWrite(MIDIRefNum,&count,&byte);
-  		
-  		/* Write division of quarter-note */
-  		if(Pclock > 0.)
-  			deltatimesinquarternote = (Pclock * 1000L) / Qclock;
-  		else
-			deltatimesinquarternote = 1000L;
-		b0 = (unsigned char) (deltatimesinquarternote & 0xff);
-		b1 = (unsigned char) ((deltatimesinquarternote >> 8) & 0xff);
-		count = 1L;
-		FSWrite(MIDIRefNum,&count,&b1);
-		count = 1L;
-		FSWrite(MIDIRefNum,&count,&b0);
+#endif /* BP_CARBON_GUI */
 		
-		Midi_msg = ZERO;
-		OldMIDIfileTime = -1L;
-  		MIDItracklength = ZERO;
-		MIDIbytestate = 0;
-			
-		/* Write the time signature track (type > 0) */
-		/* or the beginning of the unique track (type 0) */
-		
-		count = sizeof(MTrk);
-		FSWrite(MIDIRefNum,&count,MTrk);
-		
-		if(MIDIfileType == 0) {
-			/* Remember where to write the track length */
-			GetFPos(MIDIRefNum,&MidiLen_pos);
-			if(WriteReverse(MIDIRefNum,0x00000000) != OK) return(ABORT);
+		result = WriteMIDIFileHeader(fout);
+		if (result == OK) {
+			if (MIDIfileType == 1) {
+				// write the tempo track for the whole file
+				result = WriteBeginningOfTrack(fout, TRUE, TRUE);
+				if (result == OK) {
+					// start a new track for MIDI events without meta info
+					result = WriteBeginningOfTrack(fout, FALSE, FALSE);
+				}
 			}
-		else {
-			length = sizeof(time_sig) + sizeof(tempo_sig) + 3
-				+ sizeof(key_sig) + sizeof(end_of_track);
-			if(WriteReverse(MIDIRefNum,length) != OK) return(ABORT);
+			else {
+				// For both type 0 & type 2 files,
+				// write tempo/meta info & events into the same track.
+				result = WriteBeginningOfTrack(fout, TRUE, FALSE);
 			}
-		
-		count = sizeof(time_sig);
-		FSWrite(MIDIRefNum,&count,time_sig);
-		
-		count = sizeof(tempo_sig);
-		FSWrite(MIDIRefNum,&count,tempo_sig);
-		
+			if (result == OK) WriteMIDIorchestra();
+		}
+	}
+	
+	if (result != OK) CloseMIDIFile2();
+	return result;
+}
+
+
+static int WriteMIDIFileHeader(FILE* fout)
+{
+	int result;
+	byte byteval,b0,b1;
+	unsigned long deltatimesinquarternote;
+
+	/* Write the MThd block to the new file */
+	result = WriteRawBytes(fout, header1, sizeof(header1));
+	if (result != OK)  return ABORT;
+
+	/* Write the file type */
+	byteval = (byte) (MIDIfileType & 0xff);
+	result = WriteRawBytes(fout, &byteval, 1L);
+	if (result != OK)  return ABORT;
+
+	result = WriteRawBytes(fout, header2, sizeof(header2));
+	if (result != OK)  return ABORT;
+
+	/* Write number of tracks */
+	/* This is a temporary value since type 1 & 2 files may contain more tracks */
+	byteval = (byte) (1 & 0xff);
+	result = WriteRawBytes(fout, &byteval, 1L);
+	if (result != OK)  return ABORT;
+
+	/* Write division of quarter-note */
+	if(Pclock > 0.)
+		deltatimesinquarternote = (Pclock * 1000L) / Qclock;
+	else
+		deltatimesinquarternote = 1000L;
+	b0 = (byte) (deltatimesinquarternote & 0xff);
+	b1 = (byte) ((deltatimesinquarternote >> 8) & 0xff);
+	result = WriteRawBytes(fout, &b1, 1L);
+	if (result != OK)  return ABORT;
+	result = WriteRawBytes(fout, &b0, 1L);
+	if (result != OK)  return ABORT;
+
+	return OK;
+}
+
+
+/*	WriteBeginningOfTrack()
+	
+	Write the beginning of a new track chunk.
+	
+	Parameters:
+	  inclMetaEvts - TRUE if track should include Time Sign., Tempo, & Key Sign. events
+	  isTempoOnlyTrk - TRUE if track is the "tempo track" for a Type-1 MIDI file; only
+		  meta events will be written to the track followed by an "End of Track" event.
+ */
+static int WriteBeginningOfTrack(FILE* fout, Boolean inclMetaEvts, Boolean isTempoOnlyTrk)
+{
+	int i, result;
+	dword length;
+	byte b0,b1,b2;
+	unsigned long quarternotedur;
+	
+	if (isTempoOnlyTrk && !inclMetaEvts) {
+		// this function does not support writing an empty track without meta events
+		BPPrintMessage(odError, "Error in WriteBeginningOfTrack(): inconsistent parameters\n");
+		return ABORT;
+	}
+	
+	Midi_msg = ZERO;
+	OldMIDIfileTime = -1L;
+	MIDItracklength = ZERO;
+	MIDIbytestate = 0;
+	MIDIfileTrackNumber++;
+	MIDIfileTrackEmpty = TRUE;
+	
+	result = WriteRawBytes(fout, MTrk, sizeof(MTrk));
+	if (result != OK)  return ABORT;
+
+	if (!isTempoOnlyTrk) {
+		/* Remember where to write the track length */
+		MidiLen_pos  = ftell(fout);
+		if (MidiLen_pos < 0) {
+			BPPrintMessage(odError, "Error in WriteBeginningOfTrack(): ftell() returned %ld.\n", MidiLen_pos);
+			return ABORT;
+		}
+		if (WriteReverse(fout,(dword)0x00000000) != OK) return(ABORT);
+	}
+	else {
+		// already know the length of a tempo-only track
+		length = sizeof(time_sig) + sizeof(tempo_sig) + 3
+			+ sizeof(key_sig) + sizeof(end_of_track);
+		if(WriteReverse(fout,length) != OK) return(ABORT);
+	}
+	
+	if (inclMetaEvts) {
+		// write meta events for the time signature, tempo, & key signature
+		result = WriteRawBytes(fout, time_sig, sizeof(time_sig));
+		if (result != OK)  return ABORT;
+
+		result = WriteRawBytes(fout, tempo_sig, sizeof(tempo_sig));
+		if (result != OK)  return ABORT;
+
 		if(Pclock > 0.)	/* Striated time, or measured smooth time */
 			quarternotedur = (Pclock * 1000000L) / Qclock;
 		else
 			quarternotedur = 1000000L;
-		b0 = (unsigned char) (quarternotedur & 0xff);
-		b1 = (unsigned char) ((quarternotedur >> 8) & 0xff);
-		b2 = (unsigned char) ((quarternotedur >> 16) & 0xff);
-		count = 1L;
-		FSWrite(MIDIRefNum,&count,&b2);
-		count = 1L;
-		FSWrite(MIDIRefNum,&count,&b1);
-		count = 1L;
-		FSWrite(MIDIRefNum,&count,&b0);
-			
-		count = sizeof(key_sig);
-		FSWrite(MIDIRefNum,&count,key_sig);
+		b0 = (byte) (quarternotedur & 0xff);
+		b1 = (byte) ((quarternotedur >> 8) & 0xff);
+		b2 = (byte) ((quarternotedur >> 16) & 0xff);
+		result = WriteRawBytes(fout, &b2, 1L);
+		if (result != OK)  return ABORT;
+		result = WriteRawBytes(fout, &b1, 1L);
+		if (result != OK)  return ABORT;
+		result = WriteRawBytes(fout, &b0, 1L);
+		if (result != OK)  return ABORT;
 		
-		if(MIDIfileType == 0)
-			MIDItracklength = sizeof(time_sig) + sizeof(tempo_sig) + 3
-				+ sizeof(key_sig);
-		else {
-			count = sizeof(end_of_track);
-			FSWrite(MIDIRefNum,&count,end_of_track);
-			
-			/* Start writing the main music track */
-			MIDIfileTrackNumber++;
-			MIDIfileTrackEmpty = TRUE;
-			count = sizeof(MTrk);
-			FSWrite(MIDIRefNum,&count,MTrk);
-			
-			/* Remember where to write the track length */
-			GetFPos(MIDIRefNum,&MidiLen_pos);
-			if(WriteReverse(MIDIRefNum,0x00000000) != OK) return(ABORT);
-			}
-		WriteMIDIorchestra();
-		for(i=1; i <= MAXCHAN; i++) CurrentVolume[i] = -1;
-		}
-  	else result = ABORT;
+		result = WriteRawBytes(fout, key_sig, sizeof(key_sig));
+		if (result != OK)  return ABORT;
+
+		MIDItracklength = sizeof(time_sig) + sizeof(tempo_sig) + 3
+			+ sizeof(key_sig);
 	}
-else result = ABORT;
-if (MIDIfileReply) MyUnlock((Handle)MIDIfileReply);
-ClearMessage();
-return(result);
+	
+	if (isTempoOnlyTrk) {
+		// Write "End of Track" meta event because no normal MIDI events
+		// will be added to this "tempo track".
+		result = WriteRawBytes(fout, end_of_track, sizeof(end_of_track));
+		if (result != OK)  return ABORT;
+	}
+	
+	for(i=1; i <= MAXCHAN; i++) CurrentVolume[i] = -1;	
+	return OK;
 }
 
 
-WriteMIDIbyte(Milliseconds time,byte midi_byte)
+static int WriteEndOfTrack(FILE* fout)
+{
+	int result;
+	long pos;
+	
+	result = FadeOut();
+	if (result != OK)  return result;
+	
+	if (MIDIbytestate > 0) {
+		/* Write out the final message. */
+		result = Writedword(fout, Midi_msg, MIDIbytestate);
+		if (result != OK) return result;
+		MIDItracklength += MIDIbytestate;
+		MIDIbytestate = 0;
+		Midi_msg = ZERO;
+		MIDIfileTrackEmpty = FALSE;
+	}
+	
+	/* Finish off the track tail */
+	result = WriteRawBytes(fout, end_of_track, sizeof(end_of_track));
+	if (result != OK)  return result;
+	
+	MIDItracklength += sizeof(end_of_track);
+	
+	/* Remember where we are */
+	pos  = ftell(fout);
+	if (pos < 0) {
+		BPPrintMessage(odError, "Error in WriteEndOfTrack(): ftell() returned %ld.\n", pos);
+		return ABORT;
+	}
+	
+	/* Write the track length at the right place. */
+	result = fseek(fout, MidiLen_pos, SEEK_SET);
+	if (result != 0) return ABORT;
+	result = WriteReverse(fout, MIDItracklength);
+	if (result != OK) return result;
+	
+	/* Restore the position at the end of track */
+	result = fseek(fout, pos, SEEK_SET);
+	if (result != 0) return ABORT;
+	
+	return OK;
+}
+
+
+static int WriteRawBytes(FILE* fout, byte* data, size_t numbytes)
+{
+	size_t written;
+	
+	written = fwrite(data, (size_t)1, numbytes, fout);
+	if (written < numbytes)	{
+		BPPrintMessage(odError, "Error while writing to Midi file.\n");
+		return ABORT;
+	}
+	
+	return OK;
+}
+
+
+int WriteMIDIbyte(Milliseconds time,byte midi_byte)
 {
 // time is in milliseconds
 if(SoundOn && !MIDIfileOn) return(OK);
@@ -233,7 +334,7 @@ PleaseWait();
 MIDIfileTrackEmpty = FALSE;
 if(midi_byte & 0x80) {  /* MSBit of MIDI byte is 1 */
 	if(MIDIbytestate > 0) {	/* Write out the accumulated message. */
-		if(Writedword(MIDIRefNum,Midi_msg,MIDIbytestate) != OK) goto BAD;
+		if(Writedword(OpenMIDIfilePtr, Midi_msg, MIDIbytestate) != OK) goto BAD;
 		MIDItracklength += MIDIbytestate;
 		}
 		
@@ -244,7 +345,7 @@ if(midi_byte & 0x80) {  /* MSBit of MIDI byte is 1 */
 	/* This could happen with a bad rounding. Normally BP2 sorts out events */
 		
 	/* Write out variable length delta time value. */
-	if(WriteVarLen(MIDIRefNum,(long)(time-OldMIDIfileTime),
+	if(WriteVarLenQuantity(OpenMIDIfilePtr, (dword)(time-OldMIDIfileTime),
 			&MIDItracklength) != OK) goto BAD;
 	
 	OldMIDIfileTime = time;
@@ -264,210 +365,112 @@ else {
 return(OK);
 
 BAD:
-FSClose(MIDIRefNum);
-FSpDelete(&MIDIfileSpec);
-FlushVol(NULL, MIDIfileSpec.vRefNum);
+CloseMIDIFile2();
 return(ABORT);
 }
 
 
-NewTrack(void)
+int NewTrack(void)
 {
-int i;
-long count,pos;
-unsigned long quarternotedur;
-unsigned char b0,b1,b2;
+int result;
 
 if(!MIDIfileOpened) return(OK);
 
-if(MIDIfileType < 2) {
+if(MIDIfileType != 2) {
 	if(Beta) Alert1("Err.NewTrack(). This is not a type-2 file");
 	}
 
-FadeOut();
+// finish the current track
+result = WriteEndOfTrack(OpenMIDIfilePtr);
+if (result != OK)  return result;
 
-/* Finish off the track tail */
-if(MIDIbytestate > 0) {
-	/* Write out the final message. */
-	if(Writedword(MIDIRefNum,Midi_msg,MIDIbytestate) != OK) {
-		/* Damn! We must delete this incomplete file */
-		FSClose(MIDIRefNum);
-		FSpDelete(&MIDIfileSpec);
-		FlushVol(NULL, MIDIfileSpec.vRefNum);
-		return(ABORT);
-		}
-	MIDItracklength += MIDIbytestate;
-	MIDIfileTrackEmpty = FALSE;
-	}
-count = sizeof(end_of_track);
-FSWrite(MIDIRefNum,&count,end_of_track);
-MIDItracklength += sizeof(end_of_track);
-
-/* Remember where we are */
-GetFPos(MIDIRefNum,&pos);
-
-/* Write the track length at the right place. */
-SetFPos(MIDIRefNum,fsFromStart,MidiLen_pos);
-WriteReverse(MIDIRefNum,(dword)MIDItracklength);
-/* We don't check errors here since we don't take additional disk space */
-
-SetFPos(MIDIRefNum,fsFromStart,pos);
-
-// Making a new track
-
-Midi_msg = ZERO;
-OldMIDIfileTime = -1L;
-MIDItracklength = ZERO;
-MIDIbytestate = 0;
-
-count = sizeof(MTrk);
-FSWrite(MIDIRefNum,&count,MTrk);
-
-GetFPos(MIDIRefNum,&MidiLen_pos);
-if(WriteReverse(MIDIRefNum,0x00000000) != OK) return(ABORT);
-
-count = sizeof(time_sig);
-FSWrite(MIDIRefNum,&count,time_sig);
-
-count = sizeof(tempo_sig);
-FSWrite(MIDIRefNum,&count,tempo_sig);
-
-if(Pclock > 0.)	/* Striated time, or measured smooth time */
-	quarternotedur = (Pclock * 1000000L) / Qclock;
-else
-	quarternotedur = 1000000L;
-b0 = (unsigned char) (quarternotedur & 0xff);
-b1 = (unsigned char) ((quarternotedur >> 8) & 0xff);
-b2 = (unsigned char) ((quarternotedur >> 16) & 0xff);
-count = 1L;
-FSWrite(MIDIRefNum,&count,&b2);
-count = 1L;
-FSWrite(MIDIRefNum,&count,&b1);
-count = 1L;
-FSWrite(MIDIRefNum,&count,&b0);
-	
-count = sizeof(key_sig);
-FSWrite(MIDIRefNum,&count,key_sig);
-
-MIDItracklength = sizeof(time_sig) + sizeof(tempo_sig) + 3
-	+ sizeof(key_sig);
-
-MIDIfileTrackNumber++;
-MIDIfileTrackEmpty = TRUE;
-for(i=1; i <= MAXCHAN; i++) CurrentVolume[i] = -1;
-return(OK);
+// make a new track
+result = WriteBeginningOfTrack(OpenMIDIfilePtr, TRUE, FALSE);
+return result;
 }
 
 
-CloseMIDIFile(void)
+/* Finishes writing the track and MIDI header, then calls CloseMIDIFile2() */
+int CloseMIDIFile(void)
 {
-long count,pos;
-unsigned char byte;
-OSErr err;
+int result;
+byte byteval;
 
 if(!MIDIfileOpened) return(OK);
 
-FadeOut();
+result = WriteEndOfTrack(OpenMIDIfilePtr);
+if (result == OK) {
+	// FIXME: Even if the track is empty, we should probably still count it, right?
+	if(MIDIfileTrackEmpty) MIDIfileTrackNumber--;
 
-if(MIDIbytestate > 0) {
-	/* Write out the final message. */
-	if(Writedword(MIDIRefNum,Midi_msg,MIDIbytestate) != OK) {
-		/* Damn! We must delete this incomplete file */
-		FSClose(MIDIRefNum);
-		FSpDelete(&MIDIfileSpec);
-		FlushVol(NULL, MIDIfileSpec.vRefNum);
-		goto OUT;
-		}
-	MIDItracklength += MIDIbytestate;
-	MIDIbytestate = 0;
-	Midi_msg = ZERO;
-	MIDIfileTrackEmpty = FALSE;
+	/* Write again number of tracks */
+	result = fseek(OpenMIDIfilePtr, sizeof(header1) + 1 + sizeof(header2), SEEK_SET);
+	if (result != 0) {
+		result = FAILED;
 	}
-	
-/* Finish off the track tail */
-count = sizeof(end_of_track);
-FSWrite(MIDIRefNum,&count,end_of_track);
+	else {
+		byteval = (byte) (MIDIfileTrackNumber & 0xff);
+		result = WriteRawBytes(OpenMIDIfilePtr, &byteval, 1L);
+	}
+}
 
-MIDItracklength += sizeof(end_of_track);
+// Need to close the file and cleanup even if the above fails!
+CloseMIDIFile2();
+return result;
+}
 
-/* Remember where we are */
-GetFPos(MIDIRefNum,&pos);
 
-/* Write the track length at the right place. */
-SetFPos(MIDIRefNum,fsFromStart,MidiLen_pos);
-WriteReverse(MIDIRefNum,(dword)MIDItracklength);
-/* We don't check errors here since we don't take additional disk space */
+/* Actually closes the MIDI file and resets globals */
+static int CloseMIDIFile2(void)
+{
+if (gOptions.outputFiles[ofiMidiFile].isOpen) {
+	fflush(gOptions.outputFiles[ofiMidiFile].fout);
+	CloseOutputFile(&(gOptions.outputFiles[ofiMidiFile]));
+	sprintf(Message,"Closed MIDI file '%s'",gOptions.outputFiles[ofiMidiFile].name);
+	ShowMessage(TRUE,wMessage,Message);
+}
 
-if(MIDIfileTrackEmpty) MIDIfileTrackNumber--;
-
-/* Write again number of tracks */
-SetFPos(MIDIRefNum,fsFromStart,sizeof(header1) + 1 + sizeof(header2));
-byte = (unsigned char) (MIDIfileTrackNumber & 0xff);
-count = 1L;
-FSWrite(MIDIRefNum,&count,&byte);
-
-SetFPos(MIDIRefNum,fsFromStart,pos);
-/* Probably useless.  It looks good to do that */
-
-FlushFile(MIDIRefNum);
-FSClose(MIDIRefNum);
-sprintf(Message,"Closed MIDI file ‘%s’",MIDIfileName);
-ShowMessage(TRUE,wMessage,Message);
-
-OUT:
 MIDIfileOpened = FALSE;
-if (MIDIfileReply) {
-	MyLock(FALSE, (Handle)MIDIfileReply);
-	(*MIDIfileReply)->saveCompleted = true;
-	err = NSWCleanupReply(*MIDIfileReply);
-	MyDisposeHandle((Handle*)&MIDIfileReply);
-}
 NewOrchestra = TRUE;
+OpenMIDIfilePtr = NULL;
 MIDIfileName[0] = '\0';
-SetField(FileSavePreferencesPtr,-1,fMIDIFileName,MIDIfileName);
+return OK;
+}
+
+
+int WriteReverse(FILE* fout, dword x)
+// Write a dword high byteval first
+{
+byte byteval;
+int result;
+
+byteval = (byte)((x >> 24) & 0xff);
+result = WriteRawBytes(fout, &byteval, 1L);
+if (result != OK)  return ABORT;
+byteval = (byte)((x >> 16) & 0xff);
+result = WriteRawBytes(fout, &byteval, 1L);
+if (result != OK)  return ABORT;
+byteval = (byte)((x >> 8) & 0xff);
+result = WriteRawBytes(fout, &byteval, 1L);
+if (result != OK)  return ABORT;
+byteval = (byte)(x & 0xff);
+result = WriteRawBytes(fout, &byteval, 1L);
+if (result != OK)  return ABORT;
+
 return(OK);
 }
 
 
-WriteReverse(short refnum,long x)
-// Write a dword high byte first
+int Writedword(FILE* fout, dword x, int n)
+//  Writes n bytes of the dword x to the MIDI file, high byteval last
 {
-unsigned char byte;
-char line[5];
-long count;
-OSErr io;
-
-byte = (unsigned char)((x >> 24) & 0xff);
-count = 1L;
-io = FSWrite(refnum,&count,&byte);
-if(io != noErr) return(TellError(69,io));
-byte = (unsigned char)((x >> 16) & 0xff);
-count = 1L;
-io = FSWrite(refnum,&count,&byte);
-if(io != noErr) return(TellError(70,io));
-byte = (unsigned char)((x >> 8) & 0xff);
-count = 1L;
-io = FSWrite(refnum,&count,&byte);
-if(io != noErr) return(TellError(71,io));
-byte = (unsigned char)(x & 0xff);
-count = 1L;
-io = FSWrite(refnum,&count,&byte);
-if(io != noErr) return(TellError(72,io));
-return(OK);
-}
-
-
-Writedword(short refnum,dword x,int n)
-//  Writes n bytes of the dword x to the MIDI file, high byte last
-{
-unsigned char byte;
-long count = 1L;
-OSErr io;
+byte byteval;
+int result;
 
 while(n > 0) {
-	byte = (unsigned char)(x & 0xff);
-	io = FSWrite(refnum,&count,&byte);
-	if(io != noErr) return(TellError(73,io));
+	byteval = (byte)(x & 0xff);
+	result = WriteRawBytes(fout, &byteval, 1L);
+	if (result != OK)  return ABORT;
 	x >>= 8;
 	n--;
 	}
@@ -475,59 +478,97 @@ return(OK);
 }
 
 
-WriteVarLen(short refnum,long value,long *pcnt)
-// Writes a dword in 'variable length' format as required by the 
-// MIDI file specs
+/*  "Variable Length Quantities" are used in Midi files to represent
+	timestamps and other values.  They can be 1-4 bytes long depending
+	on the value to be represented.  Each byte stores only 7 significant 
+	bits of the value.  The most significant bit of each byte is 1 except 
+	for the last byte where it is 0.  The bytes of the "VLQ" are ordered
+	so that the most significant bits of the value come first.  Values
+	that can be stored in n bytes are
+	
+		# bytes		range
+		----------------------------------
+			1		0-127
+			2		128-16383
+			3		16384-2097151
+			4		2097152-268435455
+	
+	Ex. 3,500,000 (0x35 67 E0) in binary is 
+		00110101 01100111 11100000  in octets, or
+		0000001 1010101 1001111 1100000  in heptets.
+		
+		So, the VLQ encoding would be
+		10000001 11010101 11001111 01100000
+		which is 0x81 D5 CF 60 in hexadecimal.
+ */
+static int WriteVarLenQuantity(FILE* fout, dword value, dword *tracklen)
 {
-register long buffer;
-unsigned char byte;
-long count;
-OSErr io;
-  
-buffer = value & 0x7f;
-while ((value >>= 7) > 0) {
-	buffer <<= 8;
-	buffer |= 0x80;
-	buffer += (value & 0x7f);
+	int  result;
+	byte varlen[4];
+	long numbytes = 1;
+	
+	if (value > 268435455)	{
+		if (Beta)	{
+			BPPrintMessage(odError, "Err. WriteVarLenQuantity(): value %u is out of range.", value);
+		}
+		return FAILED;
 	}
-  
-while(TRUE) {
-	count = 1L;
-	byte = (unsigned char)(buffer & 0xff);
-	io = FSWrite(refnum,&count,&byte);
-	if(io != noErr) return(TellError(74,io));
-	(*pcnt)++;
-	if(buffer & 0x80) buffer >>= 8;
-	else break;
+	
+	// split value into 7-bit chunks
+	varlen[3] = (byte)(value & BITS0_6);
+	varlen[2] = (byte)((value & BITS7_13) >> 7);
+	varlen[1] = (byte)((value & BITS14_20) >> 14);
+	varlen[0] = (byte)((value & BITS21_27) >> 21);
+	
+	// set the high bit of significant bytes (except least sig.)
+	if (varlen[0]) {
+		varlen[0] |= 0x80;
+		varlen[1] |= 0x80;
+		varlen[2] |= 0x80;
+		numbytes = 4;
 	}
-return(OK);
+	else if (varlen[1]) {
+		varlen[1] |= 0x80;
+		varlen[2] |= 0x80;
+		numbytes = 3;
+	}
+	else if (varlen[2]) {
+		varlen[2] |= 0x80;
+		numbytes = 2;
+	}
+	
+	// write only the significant bytes
+	result = WriteRawBytes(fout, &(varlen[4-numbytes]), numbytes);
+	*tracklen += numbytes;
+	return result;
 }
 
 
+#if BP_CARBON_GUI
 dword ReadVarLen(short refnum,int *p_result,long *p_nbytes)
 {
 dword value;
-unsigned char byte;
+byte byteval;
 long count;
 int howmany;
 
 *p_result = OK;
 count = 1L;
-if(FSRead(refnum,&count,&byte) != noErr) goto ERR;
+if(FSRead(refnum,&count,&byteval) != noErr) goto ERR;
 (*p_nbytes)++;
 howmany = 1;
 
-value = byte;
+value = byteval;
 if(value & 0x80) {
 	value &= 0x7f;
 	do {
 		count = 1L;
-		if(FSRead(refnum,&count,&byte) != noErr) goto ERR;
+		if(FSRead(refnum,&count,&byteval) != noErr) goto ERR;
 		(*p_nbytes)++;
 		howmany++;
-		value = (value << 7) + (byte & 0x7f);
+		value = (value << 7) + (byteval & 0x7f);
 		}
-	while((byte & 0x80) && howmany < 4);
+	while((byteval & 0x80) && howmany < 4);
 	}
 return(value);
 
@@ -535,6 +576,7 @@ ERR:
 *p_result = FAILED;
 return(value);
 }
+#endif /* BP_CARBON_GUI */
 
 
 #if BP_CARBON_GUI
@@ -558,35 +600,43 @@ return(OK);
 #endif /* BP_CARBON_GUI */
 
 
-PrepareMIDIFile(void)
+int PrepareMIDIFile(void)
 {
 int rep;
 
 WriteMIDIorchestra();
 if(!MIDIfileOpened) {
-	if((rep=GetMIDIfileName()) == OK) return(MakeMIDIFile(MIDIfileName));
-	if(rep == FAILED) return(FAILED);
+	/* Console version of PrepareMIDIFile() assumes that score file name
+	   has been set by a command-line argument */
+	if (gOptions.outputFiles[ofiMidiFile].name != NULL) {
+		return MakeMIDIFile(&(gOptions.outputFiles[ofiMidiFile]));
+		}
+	else {
+		BPPrintMessage(odError, "Error in PrepareMIDIFile(): file name is NULL.\n");
+		return FAILED;
+		}
 	}
-switch(FileSaveMode) {
+// else MIDI file is already open
+switch(FileSaveMode) {	// FIXME !!!!
 	case ALLSAME:
 		return(OK);
 		break;
 	case ALLSAMEPROMPT:
-		sprintf(Message,"Current MIDI file is ‘%s’. Change it",MIDIfileName);
+		sprintf(Message,"Current MIDI file is '%s'. Change it",MIDIfileName);
 		rep = Answer(Message,'N');
 		if(rep == ABORT) return(rep);
 		if(rep == NO) return(OK);
 		/* no break */
 	case NEWFILE:
 		CloseMIDIFile();
-		return(MakeMIDIFile(NULL));
+		return(MakeMIDIFile(&(gOptions.outputFiles[ofiMidiFile])));
 		break;
 	}
 return(OK);
 }
 
 
-ResetMIDIfile(void)
+int ResetMIDIfile(void)
 {
 if(MIDIfileOpened) {
 	if(FileSaveMode == NEWFILE) CloseMIDIFile();
@@ -599,7 +649,8 @@ return(OK);
 }
 
 
-ImportMIDIfile(int j)
+#if BP_CARBON_GUI
+int ImportMIDIfile(int j)
 {
 int result,preservechannel;
 Handle ptr;
@@ -635,7 +686,7 @@ return(result);
 }
 
 
-ReadMIDIfile(int *p_preservechannel)
+int ReadMIDIfile(int *p_preservechannel)
 {
 int itrack,ibyte,ibytemax,anyfile,type,result,status,format,track,ntracks,trackmin,uniquechan,
 	deltatimesinquarternote,reftrack,err,said,notsaidaboutchannel,channelevent,seentempo,
@@ -645,7 +696,7 @@ short refnum;
 Str255 fn;
 OSErr io;
 char line[MAXLIN];
-unsigned char byte,metaeventtype,**p_buffer;
+byte byteval,metaeventtype,**p_buffer;
 long i,j,count,nbytes,buffersize,maxevents,totalbytes;
 dword chunklength,deltatime,eventlength;
 unsigned long quarternotedur,qn;
@@ -670,7 +721,7 @@ if(anyfile == ABORT) return(FAILED);
 TRYLOAD:
 LastAction = NO;
 
-sprintf(Message,"Locate MIDI file…");
+sprintf(Message,"Locate MIDI file...");
 ShowMessage(TRUE,wMessage,Message);
 
 type = 11;
@@ -683,7 +734,7 @@ if((p_buffer=(unsigned char**) GiveSpace((Size)(buffersize * sizeof(unsigned cha
 if(OldFile(-1,type,fn,&spec)) {
 	p2cstrcpy(LineBuff,fn);
 	if((io=MyOpen(&spec,fsRdPerm,&refnum)) == noErr) {
-		sprintf(Message,"Loading MIDI file…");
+		sprintf(Message,"Loading MIDI file...");
 		ShowMessage(TRUE,wMessage,Message);
 		
 		/* Read header */
@@ -820,7 +871,7 @@ if(OldFile(-1,type,fn,&spec)) {
 					}
 NEXTBYTE:				
 				count = 1L;
-				io = FSRead(refnum,&count,&byte);
+				io = FSRead(refnum,&count,&byteval);
 				nbytes++;
 				if(io != noErr) {
 					err = 12;
@@ -828,7 +879,7 @@ NEXTBYTE:
 					}
 
 META:	
-				if(byte == 0xff) {	/* meta-event */
+				if(byteval == 0xff) {	/* meta-event */
 					count = 1L;
 					io = FSRead(refnum,&count,&metaeventtype);
 					nbytes++;
@@ -846,7 +897,7 @@ META:
 						if(eventlength >= buffersize) {	/* Skip long meta-events */
 							for(i=0; i < eventlength; i++) {
 								count = 1L;
-								io = FSRead(refnum,&count,&byte);
+								io = FSRead(refnum,&count,&byteval);
 								nbytes++;
 								if(io != noErr) {
 									err = 14;
@@ -920,7 +971,7 @@ META:
 					continue;
 					}
 					
-				if(byte == 0xf0 || byte == 0xf7) {	/* System exclusive */
+				if(byteval == 0xf0 || byteval == 0xf7) {	/* System exclusive */
 //					totalbytes += nbytes;
 					eventlength = ReadVarLen(refnum,&result,&nbytes);
 					if(result != OK) {
@@ -931,7 +982,7 @@ META:
 						/* Skip these messages */
 						for(i=0; i < eventlength; i++) {
 							count = 1L;
-							io = FSRead(refnum,&count,&byte);
+							io = FSRead(refnum,&count,&byteval);
 							if(io != noErr) {
 								err = 19;
 								goto ERR;
@@ -943,12 +994,12 @@ META:
 					}
 					
 STORE:
-				/* 'byte' is a MIDI message */
-				(*p_buffer)[ibyte++] = byte;
+				/* 'byteval' is a MIDI message */
+				(*p_buffer)[ibyte++] = byteval;
 				
-				if(byte & 0x80) {
-					/* byte >= 128 */
-					status = ByteToInt(byte);
+				if(byteval & 0x80) {
+					/* byteval >= 128 */
+					status = ByteToInt(byteval);
 					channelevent = FALSE;
 					if(ChannelEvent(status)) {
 						channelevent = TRUE;
@@ -964,13 +1015,13 @@ PRESERVE:
 							(*p_preservechannel) = reply;
 							if(!(*p_preservechannel)) {
 GETCHANNEL:
-								if((reply=AnswerWith("Force to channel…","1",Message)) == ABORT) {
+								if((reply=AnswerWith("Force to channel...","1",Message)) == ABORT) {
 									result = ABORT; goto OUT;
 									}
 								if(reply == NO) goto PRESERVE;
 								uniquechan = ((int) atol(Message)) - 1;
 								if(uniquechan < 0 || uniquechan > 15) {
-									sprintf(Message,"Channel range 1..16\rCan't accept ‘%ld’",
+									sprintf(Message,"Channel range 1..16\nCan't accept '%ld'",
 										(long)uniquechan + 1L);
 									Alert1(Message);
 									goto GETCHANNEL;
@@ -1043,7 +1094,7 @@ STREAM:
 			}
 		}
 	else {
-		sprintf(Message,"Unexpected error opening ‘%s’",LineBuff);
+		sprintf(Message,"Unexpected error opening '%s'",LineBuff);
 		ShowMessage(TRUE,wMessage,Message);
 		TellError(75,io);
 		result = FAILED;
@@ -1131,27 +1182,27 @@ switch(err) {
 	case 13:
 	case 14:
 	case 15:
-		strcat(Message,"Unexpected end of file…");
+		strcat(Message,"Unexpected end of file...");
 		break;
 	case 19:
 	case 20:
-		strcat(Message,"Unexpected end of file while reading system-exclusive codes…");
+		strcat(Message,"Unexpected end of file while reading system-exclusive codes...");
 		break;
 	case 2:
-		strcat(Message,"‘MThd’ not found…");
+		strcat(Message,"'MThd' not found...");
 		break;
 	case 5:
 		strcat(Message,"Format > 2");
 		break;
 	case 9:
-		strcat(Message,"‘MTrk’ not found…");
+		strcat(Message,"'MTrk' not found...");
 		break;
 	case 6:
 	case 10:
-		strcat(Message,"Out of memory…");
+		strcat(Message,"Out of memory...");
 		break;
 	case 24:
-		strcat(Message,"Missing ‘End of track’ meta-event. May be this file is still open for writing?");
+		strcat(Message,"Missing 'End of track' meta-event. May be this file is still open for writing?");
 		break;
 	default: break;
 	}
@@ -1160,9 +1211,10 @@ Alert1("This file is incomplete or in a format that BP2 can't read");
 result = FAILED;
 goto OUT;
 }
+#endif /* BP_CARBON_GUI */
 
 
-WriteMIDIorchestra(void)
+int WriteMIDIorchestra(void)
 {
 int i,w,rs;
 MIDI_Event e;
@@ -1186,7 +1238,7 @@ return(OK);
 }
 
 
-FadeOut(void)
+int FadeOut(void)
 {
 int i,maxfadeout,rs,chan,value;
 float fadeout;

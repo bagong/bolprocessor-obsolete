@@ -111,31 +111,12 @@
 #  endif
 #endif
 
-// enable or disable OMS Midi driver
-#ifndef USE_OMS
-#  if !TARGET_API_MAC_CARBON
-#    define USE_OMS 1
-#  else
-#    define USE_OMS 0
-#  endif
-#endif
-
-#if USE_BUILT_IN_MIDI_DRIVER || USE_OMS
+#if USE_BUILT_IN_MIDI_DRIVER
 #  define WITH_REAL_TIME_MIDI 1
 #  define WITH_REAL_TIME_SCHEDULER 1
 #endif
 
 //#include <ansi_prefix.mac.h>	// commented out - 010507 akozar
-
-#if USE_OMS
-// These are used by OMS.
-#  define InputPortID 'in  '
-#  define OutputPortID 'out '
-#  define DEFTMAXOMSINPUTBUFFERSIZE 5000L
-
-#  include "OMS.h"
-#  include "OMSDeviceMenu.h"
-#endif
 
 #if UseMIDIMgr
 #  include <MIDI.h>
@@ -307,13 +288,6 @@ enum {
 #define MAC 0
 #define DOS 1
 #define UNIX 2
-
-// Character for outputting line endings
-#if BP_CARBON_GUI
-  #define NEWLINECHAR '\r'
-#else
-  #define NEWLINECHAR '\n'
-#endif
 
 // More values for SynchroSignal
 #define PLAYNOW 1
@@ -1639,7 +1613,7 @@ typedef enum {
 // --------------  Types -----------------------------
 
 // Decide between pointers and handles.
-// I always notate Òp_XÓ the handle of table X
+// I always notate "p_X" the handle of table X
 // #if MACOS
 //	#define h_(x) *p_(x)
 // #else
@@ -1690,7 +1664,7 @@ typedef struct s_chunck ChunkPointer;
 typedef int (*IntProcPtr)(int);
 typedef int (*Int2ProcPtr)(short,int);
 
-typedef unsigned long dword;
+typedef uint32_t dword;
 typedef unsigned char byte;
 
 typedef int tokenbyte;

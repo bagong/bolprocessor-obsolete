@@ -90,7 +90,7 @@ if(w == wScript) {
 	if(AppendStringList(FileName[wScript]) != OK) goto QUIT1;
 	if((posmax > pos) && !quick) {
 		ShowSelect(CENTRE,w);
-		// sprintf(Message,"Execute script ‘%s’",FileName[w]);  // suppressed 041007, akozar
+		// sprintf(Message,"Execute script '%s'",FileName[w]);  // suppressed 041007, akozar
 		// if(Answer(Message,'Y') != OK) goto QUIT1;
 		if((r=Answer("Execute only the current selection",'Y')) == ABORT) goto QUIT1;
 		if(r == YES) {
@@ -117,7 +117,7 @@ if(Beta && w == wScript) {
 	}
 r = OK;
 if(w != wScript) goto HERE;
-sprintf(Message,"Running script ‘%s’\rExecute step by step",FileName[w]);
+sprintf(Message,"Running script '%s'\nExecute step by step",FileName[w]);
 if(!quick && (r=Answer(Message,'N')) == OK) StepScript = TRUE;
 if(r == ABORT) goto QUIT1;
 ScriptExecOn = 1; OkWait = OK;
@@ -222,7 +222,7 @@ i = GetTextLength(wScript) - 1L;
 while(isspace(GetTextChar(wScript,i))) i--;
 SetSelect(i+1,GetTextLength(wScript),TEH[wScript]);
 TextDelete(wScript);
-if(i > 0) Print(wScript,"\r");
+if(i > 0) Print(wScript,"\n");
 ShowSelect(CENTRE,wScript);
 CurrentVref = TheVRefNum[wScript];
 CurrentDir = WindowParID[wScript];
@@ -254,7 +254,7 @@ if(ScriptRecOn) {
 			PrintBehind(wScript," ");
 			}
 		}
-	PrintBehind(wScript,"\r");
+	PrintBehind(wScript,"\n");
 	ShowSelect(CENTRE,wScript);
 	}
 return(OK);
@@ -275,7 +275,7 @@ StopCount(int i)
 if(!CountOn) {
 	if(TypeScript && i != 16 && ScriptRecOn) {
 		TypeScript = FALSE;
-		PrintBehind(wScript,"\r");
+		PrintBehind(wScript,"\n");
 		}
 	return(OK);
 	}
@@ -340,7 +340,7 @@ return(OK);
 WaitForSyncScript(void)
 {
 if(!ScriptRecOn) {
-	Alert1("‘REC’ should be on"); return(OK);
+	Alert1("'REC' should be on"); return(OK);
 	}
 if(Answer("Define MIDI synchronisation code or key stroke",'Y') != YES) return(OK);
 SwitchOn(NULL,wScriptDialog,bWaitForSyncScript);
@@ -484,7 +484,7 @@ r = FAILED;
 
 ERR:
 if(!nocomment) {
-	sprintf(Message,">>> Script aborted on: %s\r",*p_line);
+	sprintf(Message,">>> Script aborted on: %s\n",*p_line);
 	Print(wTrace,Message);
 	if(r != EXIT) r = ABORT;
 	}
@@ -521,7 +521,7 @@ if(ScriptRecOn && ((p_event->modifiers & cmdKey) == 0)) {
 	if(thechar == '\b') {	/* Delete key */
 		if(TypeScript) {
 			TypeScript = FALSE;
-			PrintBehind(wScript,"\r");
+			PrintBehind(wScript,"\n");
 			}
 		else {
 			RecordEditWindow(w);
@@ -531,7 +531,7 @@ if(ScriptRecOn && ((p_event->modifiers & cmdKey) == 0)) {
 		}
 	else {
 		if(thechar == '\r') {
-			if(TypeScript) PrintBehind(wScript,"\r");
+			if(TypeScript) PrintBehind(wScript,"\n");
 			else RecordEditWindow(w);
 			TypeScript = FALSE;
 			MystrcpyStringToTable(ScriptLine.arg,0,"<return>");
@@ -658,7 +658,7 @@ if(ScriptExecOn == 0) {
 	Maxitems = ZERO; OkWait = OK;
 	}
 if(check && ClearWindow(FALSE,wTrace) != OK) {
-	sprintf(Message,"\r\rInterrupted script ‘%s’\r\r",filename);
+	sprintf(Message,"\n\nInterrupted script '%s'\n\n",filename);
 	Print(wTrace,Message);
 	return(ABORT);
 	}
@@ -672,8 +672,8 @@ CurrentVref = spec.vRefNum;
 if(ReadOne(TRUE,FALSE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto END;
 if(CheckVersion(&iv,p_line,filename) != OK) goto END;
 if(ReadOne(TRUE,FALSE,FALSE,refnum,TRUE,&p_line,&p_completeline,&pos) == FAILED) goto END;
-if(!check) sprintf(Message,"Running script ‘%s’",filename);
-else sprintf(Message,"Checking script ‘%s’",filename);
+if(!check) sprintf(Message,"Running script '%s'",filename);
+else sprintf(Message,"Checking script '%s'",filename);
 ShowMessage(TRUE,wMessage,Message);
 good = YES;
 StartScript();
@@ -683,7 +683,7 @@ while((rr=ReadOne(TRUE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos)) != 
 		MyLock(FALSE,(Handle)p_line);
 		FlashInfo(*p_line);
 		MyUnlock((Handle)p_line);
-		sprintf(Message,"Running script ‘%s’",filename);
+		sprintf(Message,"Running script '%s'",filename);
 		ShowMessage(TRUE,wMessage,Message);
 		}
 	if((r=MyButton(0)) != FAILED || (!check && StepScript)) {
@@ -705,7 +705,7 @@ while((rr=ReadOne(TRUE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos)) != 
 	keep = TRUE;
 	if((r=ExecScriptLine(NULL,wScript,check,FALSE,p_line,posline,&posdir,&changed,&keep))
 			== ABORT) {
-		sprintf(Message,"\rInterrupted script ‘%s’\r\r",filename);
+		sprintf(Message,"\nInterrupted script '%s'\n\n",filename);
 		Print(wTrace,Message);
 		good = NO;
 		break;
@@ -722,7 +722,7 @@ while((rr=ReadOne(TRUE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,&pos)) != 
 		good = NO;
 		if(!check) {
 			MyLock(FALSE,(Handle)p_line);
-			sprintf(Message,">>> Error in script ‘%s’: %s\r",filename,*p_line);
+			sprintf(Message,">>> Error in script '%s': %s\n",filename,*p_line);
 			MyUnlock((Handle)p_line);
 			Print(wTrace,Message);
 			ShowSelect(CENTRE,wScript);
@@ -767,7 +767,7 @@ if(check && !good /* && !changed */) {
 		SetName(wScript,TRUE,TRUE);
 		}
 	else {
-		sprintf(Message,"Can't read ‘%s’…",FileName[wScript]);
+		sprintf(Message,"Can't read '%s'...",FileName[wScript]);
 		Alert1(Message);
 		}
 	ShowSelect(CENTRE,wTrace);
@@ -775,7 +775,7 @@ if(check && !good /* && !changed */) {
 	result = ABORT;
 	}
 if(FSClose(refnum) != noErr) {
-	sprintf(Message,"Error closing ‘%s’ script file…",filename);
+	sprintf(Message,"Error closing '%s' script file...",filename);
 	Alert1(Message);
 	}
 EndScript();

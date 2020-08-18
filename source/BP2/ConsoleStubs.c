@@ -3,7 +3,7 @@
 
 /*  This file is a part of Bol Processor 2
 Copyright (c) 1990-2000 by Bernard Bel, Jim Kippen and Srikumar K. Subramanian
-Copyright (c) 2013 by Anthony Kozar
+Copyright (c) 2013, 2020 by Anthony Kozar
 All rights reserved. 
 
 Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,7 @@ int LoadGlossary(int anyfile,int manual)
 	}	
 }
 
-int LoadSettings(int anyfile,int changewindows,int startup,int manual,int *p_oms)
+/* int LoadSettings(int anyfile,int changewindows,int startup,int manual,int *p_oms)
 {
 	BP_NOT_USED(anyfile);
 	BP_NOT_USED(changewindows);
@@ -177,7 +177,7 @@ int LoadSettings(int anyfile,int changewindows,int startup,int manual,int *p_oms
 	// For now, this is only called from ResetProject() shortly before exiting.
 	// Keeping that call b/c might eventually make ResetProject() an API function.
 	return OK;
-}
+} */
 
 int ClearWindow(int reset,int w)
 {
@@ -219,32 +219,6 @@ int InterruptCompute(int igram,t_gram *p_gram,int repeat,int grtype,int mode)
 			"do not work yet in the console version.\n");
 	}
 	BPPrintMessage(odWarning, "Continuing from InterruptCompute()...\n");
-	return OK;
-}
-
-/* Console version of GetMIDIfileName() just assumes that MIDIfileName 
-   has been set by a command-line argument */
-int GetMIDIfileName(void)
-{
-	if (strlen(MIDIfileName) != 0) return OK;
-	else return FAILED;
-}
-
-int PrepareMIDIFile(void)
-{
-	BPPrintMessage(odWarning, "Midi file output does not work yet in the console version.\n");
-	return OK;
-}
-
-int ResetMIDIfile(void)
-{
-	return OK;
-}
-
-int WriteMIDIbyte(Milliseconds time,byte midi_byte)
-{
-	BP_NOT_USED(time);
-	BP_NOT_USED(midi_byte);
 	return OK;
 }
 
@@ -299,7 +273,7 @@ static int MakeCsoundScoreFile(OutFileInfo* finfo)
 	// WriteFile(TRUE,CsoundFileFormat,CsRefNum,wCsoundTables,length);
 
 	// TEMP:
-	if(WriteToFile(NO,CsoundFileFormat,"f1 0 32768 10 1 ; This table may be changed\r",CsRefNum) != OK) {
+	if(WriteToFile(NO,CsoundFileFormat,"f1 0 32768 10 1 ; This table may be changed\n",CsRefNum) != OK) {
 		Alert1("Can't write to Csound score file. Unknown error");
 		CloseCsScore();
 		return(ABORT);

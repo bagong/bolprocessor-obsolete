@@ -86,7 +86,7 @@ else return(FAILED);
 ClearMessage();
 
 SelectBehind(GetTextLength(wTrace),GetTextLength(wTrace),TEH[wTrace]);
-PrintBehind(wTrace,"\r");
+PrintBehind(wTrace,"\n");
 SelectBehind(GetTextLength(wGrammar),GetTextLength(wGrammar),TEH[wGrammar]);
 
 LoadOn++;
@@ -476,7 +476,7 @@ if(rightisnum) rightis = 2;
 
 // Now we read the table...
 
-PrintBehind(wScrap,"Grammar with original line numbers (before compiling):\r\r");
+PrintBehind(wScrap,"Grammar with original line numbers (before compiling):\n\n");
 if(appendtoalphabet) {
 	if(!IsEmpty(wAlphabet)) {
 		if((result=Answer("Clear existing alphabet",'N')) == ABORT) return(ABORT);
@@ -487,13 +487,13 @@ if(appendtoalphabet) {
 			ForgetFileName(wAlphabet);
 			}
 		SelectBehind(GetTextLength(wAlphabet),GetTextLength(wAlphabet),TEH[wAlphabet]);
-		PrintBehind(wAlphabet,"\r");
+		PrintBehind(wAlphabet,"\n");
 		}
 	UpdateDirty(TRUE,wAlphabet);
 	}
-if(appendtogrammar) Print(wGrammar,"\r-------------\r");
+if(appendtogrammar) Print(wGrammar,"\n-------------\n");
 Date(line);
-sprintf(Message,"// Created from file ‘%s’ - %s\r",filename,line);
+sprintf(Message,"// Created from file '%s' - %s\n",filename,line);
 Println(wGrammar,Message);
 if(rnd) Println(wGrammar,"RND");
 if(ord) Println(wGrammar,"ORD");
@@ -540,8 +540,8 @@ while(TRUE) {
 		i++;
 		}
 	if(GetArgumentInTableLine(1,p_line,i,apref,leftis,appendtoalphabet,removespacesleft) != OK) {
-		Print(wGrammar,"\r");
-		PrintBehind(wScrap,"\r");
+		Print(wGrammar,"\n");
+		PrintBehind(wScrap,"\n");
 		errors++;
 		goto READMORE;
 		}
@@ -587,8 +587,8 @@ while(TRUE) {
 			PrintBehind(wScrap,Message);
 			}
 		}
-	Print(wGrammar,"\r");
-	PrintBehind(wScrap,"\r");
+	Print(wGrammar,"\n");
+	PrintBehind(wScrap,"\n");
 
 READMORE:
 	if(rr == STOP) break;
@@ -598,7 +598,7 @@ OVER:
 
 LoadOn--;
 
-if(result != OK) Println(wGrammar,"\r\r<< Reading grammar from table aborted >>");
+if(result != OK) Println(wGrammar,"\n\n<< Reading grammar from table aborted >>");
 if(appendtoalphabet) {
 	BPActivateWindow(SLOW,wAlphabet);
 	ShowSelect(CENTRE,wAlphabet);
@@ -611,7 +611,7 @@ if(errors > 0) {
 MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
 if(FSClose(refnum) != noErr) {
 	MyPtoCstr(MAXNAME,fn,filename);
-	sprintf(Message,"Unknown error closing ‘%s’ table file…",filename);
+	sprintf(Message,"Unknown error closing '%s' table file...",filename);
 	Alert1(Message);
 	return(FAILED);
 	}
@@ -620,7 +620,7 @@ if(result == OK && rulefound && Answer("Check determinism",'Y') == YES) {
 	if(CompileCheck() != OK) return(FAILED);
 	if(CheckDeterminism(&Gram) == FAILED) {
 		BPActivateWindow(SLOW,wScrap);
-		Alert1("Check original line numbers in ‘Scrap’ window");
+		Alert1("Check original line numbers in 'Scrap' window");
 		}
 	}
 return(result);
@@ -877,7 +877,7 @@ while(TRUE) {
 				}
 			break;
 		case bSelectFieldHelp:
-			DisplayHelp("Transliterate text file…");
+			DisplayHelp("Transliterate text file...");
 			goto TRYENTER;
 		}
 	}
@@ -895,7 +895,7 @@ for(iwork=0; iwork < 13; iwork++) {
 		i = p / q;
 		if(i < 1 || i > maxfields) {
 			SelectField(filepreviewptr,-1,fSelectFieldNumber + (4 * iwork),TRUE);
-			sprintf(Message,"Field range seems to be 1 to %ld. Try to display next record, it might increase…",
+			sprintf(Message,"Field range seems to be 1 to %ld. Try to display next record, it might increase...",
 				(long)maxfields);
 			Alert1(Message);
 			goto TRYENTER;
@@ -1029,7 +1029,7 @@ strcpy(defaultvalue,"1");
 if((result=AnswerWith("Start from record...",defaultvalue,value)) != OK) goto OVER;
 irecordmin = (int) atol(value);
 if(irecordmin < 1) {
-	Alert1("You must start at least with record ‘1’");
+	Alert1("You must start at least with record '1'");
 	}
 strcpy(Message,filename);
 Message[MAXNAME-5] = '\0';	// FIXME: should replace MAXNAME with strlen(Message) or actually search for a file extension - 011607 akozar
@@ -1052,7 +1052,7 @@ while(TRUE) {
 	if(imax == 0) {
 		if(rr == STOP) break;
 		count = 1L;
-		io = FSWrite(refnumout,&count,"\r");
+		io = FSWrite(refnumout,&count,"\n");
 		if(io != noErr)	{
 			if(io == dskFulErr) Alert1("No more space on this disk... Task aborted");
 			else TellError(101,io);
@@ -1063,7 +1063,7 @@ while(TRUE) {
 		}
 	if(irecord < irecordmin) goto READMORE;
 	result = TransliterateRecord(p_completeline,p_fieldlist,refnumout,outfields,&err);
-	sprintf(Message,"%ld records processed…",(long)irecord);
+	sprintf(Message,"%ld records processed...",(long)irecord);
 	FlashInfo(Message);
 	if(result != OK) {
 		err++; break;
@@ -1089,16 +1089,16 @@ MyDisposeHandle((Handle*)&p_line); MyDisposeHandle((Handle*)&p_completeline);
 MyDisposeHandle((Handle*)&p_fieldlist);
 if(FSClose(refnum) != noErr) {
 	MyPtoCstr(MAXNAME,fn,LineBuff);
-	sprintf(Message,"Unknown error closing ‘%s’ table file…",LineBuff);
+	sprintf(Message,"Unknown error closing '%s' table file...",LineBuff);
 	Alert1(Message);
 	return(FAILED);
 	}
 if(err > 0) {
-	sprintf(Message,"%ld records have been processed (NOT all of them)…",(long)irecord);
+	sprintf(Message,"%ld records have been processed (NOT all of them)...",(long)irecord);
 	Alert1(Message);
 	}
 else {
-	sprintf(Message,"%ld records have been processed…",(long)irecord);
+	sprintf(Message,"%ld records have been processed...",(long)irecord);
 	if(irecord > 0) Alert1(Message);
 	}
 HideWindow(Window[wInfo]);
@@ -1141,7 +1141,7 @@ for(ifield=0; ifield < nfields; ifield++) {
 	(*p_field)[j] = '\0';
 	i++;
 	PrintHandleBehind(wNotice,p_field);
-	PrintBehind(wNotice,"\r");
+	PrintBehind(wNotice,"\n");
 	}
 PrintBehindln(wNotice,"------------------------");
 ShowSelect(CENTRE,wNotice);
@@ -1182,7 +1182,7 @@ for(ifield=1; ifield <= outfields; ifield++) {
 		if(result == OK) while((result = MainEvent()) != RESUME && result != STOP && result != EXIT){};
 		if(result == EXIT) goto OUT;
 		if(Dirty[wAlphabet]) {
-			Alert1("Alphabet changed. Must recompile…");
+			Alert1("Alphabet changed. Must recompile...");
 			result = ABORT; goto OUT;
 			}
 		Dirty[wAlphabet] = dirtymem;
@@ -1237,7 +1237,7 @@ DOFIELD:
 		}
 	}
 count = 1L;
-io = FSWrite(refnum,&count,"\r");
+io = FSWrite(refnum,&count,"\n");
 
 OUT:
 MyDisposeHandle((Handle*)&p_field);
@@ -1268,7 +1268,7 @@ TRYRULE:
 do {
 	irul++;
 	if(irul > subgram.number_rule) {
-		sprintf(Message,"\rNo valid rule in first subgrammar (%ld). Can't use this grammar...",
+		sprintf(Message,"\nNo valid rule in first subgrammar (%ld). Can't use this grammar...",
 			(long)subgramstart);
 		Println(wTrace,Message);
 		return(ABORT);
@@ -1289,13 +1289,13 @@ apref = (*((*p_Bol)[p]))[0];
 
 // Tokenizing the field
 if((p_a = (tokenbyte**) GiveSpace((Size) 2L * ((2L*imax)+2L) * sizeof(tokenbyte))) == NULL) return(ABORT);
-/* We keep enough space to insert ‘-’ */
+/* We keep enough space to insert '-' */
 posmax = MyGetHandleSize((Handle)p_a) / sizeof(tokenbyte) - 6L;
 
 pos = ZERO;
 if((*p_field)[0] != ' ') {
 	(*p_a)[pos++] = T3;
-	(*p_a)[pos++] = 1;	/* every line will start with ‘-’ */
+	(*p_a)[pos++] = 1;	/* every line will start with '-' */
 	}
 	
 for(i=0; i < imax; i++) {
@@ -1306,11 +1306,13 @@ for(i=0; i < imax; i++) {
 	c = (*p_field)[i];
 	switch(c) {
 		case ' ':	/* Space */
-			(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* replace space with ‘-’ */
+			(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* replace space with '-' */
 			continue;
 			break;
-		case '':	/* Line-feed */
-			(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* every line will end with ‘-’ */
+		case '\n':	/* Line-feed */
+			/* (FIXME? There was an embedded vertical tab character btw '' above.
+		       Was \v or \n intended?  -- akozar 20200731 */
+			(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* every line will end with '-' */
 			break;
 		}
 	k = ByteToInt(c);
@@ -1322,7 +1324,7 @@ for(i=0; i < imax; i++) {
 	(*p_a)[pos++] = T3; (*p_a)[pos++] = j;
 	}
 if((*p_a)[pos-2] != T3 || (*p_a)[pos-1] != 1) {
-	(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* every line will end with ‘-’ */
+	(*p_a)[pos++] = T3; (*p_a)[pos++] = 1;	/* every line will end with '-' */
 	}
 (*p_a)[pos++] = TEND;
 (*p_a)[pos] = TEND;
@@ -1337,7 +1339,7 @@ start = TRUE;
 
 for(i=0,pos=ZERO; ((*p_a)[pos] != TEND || (*p_a)[pos+1] != TEND); pos += 2L) {
 	m = (*p_a)[pos]; p = (*p_a)[pos+1];
-	if(m == T3 && p == 1) {		/* ‘-’ */
+	if(m == T3 && p == 1) {		/* '-' */
 		if(start) continue;
 		else {
 			(*p_field)[i] = ' ';

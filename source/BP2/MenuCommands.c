@@ -53,9 +53,9 @@ rep = NO;
 ReadKeyBoardOn = FALSE; Jcontrol = -1;
 HideWindow(Window[wMessage]);
 if((LastEditWindow == wGrammar
-		&& (rep=Answer("Insert pattern\rin current grammar",'Y')) == OK)
+		&& (rep=Answer("Insert pattern\nin current grammar",'Y')) == OK)
 	|| (LastEditWindow == wAlphabet
-		&& (rep=Answer("Insert pattern\rin current alphabet",'Y')) == OK)) {
+		&& (rep=Answer("Insert pattern\nin current alphabet",'Y')) == OK)) {
 	LoadTimePattern(LastEditWindow);
 	}
 if(rep == ABORT) return(OK);
@@ -95,7 +95,7 @@ mShowMessages(int wind)
 int j;
 
 ClearWindow(NO,wNotice);
-Print(wNotice,"LAST MESSAGES:\r");
+Print(wNotice,"LAST MESSAGES:\n");
 if(Jmessage < MAXMESSAGE - 1) {
 	for(j=Jmessage+1; j < MAXMESSAGE; j++) {
 		if((*p_MessageMem[j])[0] != '\0') {
@@ -106,7 +106,7 @@ if(Jmessage < MAXMESSAGE - 1) {
 for(j=0; j <= Jmessage; j++) {
 	PrintHandleln(wNotice,p_MessageMem[j]);
 	}
-Print(wNotice,"\r");
+Print(wNotice,"\n");
 /* SetSelect(ZERO,ZERO,TEH[wNotice]); */
 ShowSelect(CENTRE,wNotice);
 ShowWindow(Window[wNotice]);
@@ -265,7 +265,7 @@ mMIDIinputcheck(int wind)
 TextOffset selbegin, selend;
 
 if(!OutMIDI) {
-	Alert1("MIDI input is inactive (check the ‘Devices’ menu)");
+	Alert1("MIDI input is inactive (check the 'Devices' menu)");
 	return(FAILED);
 	}
 
@@ -279,19 +279,11 @@ else if (InBuiltDriverOn) FlashInfo("OMS is inactive. In-built MIDI driver is be
   mShowCMSettings(wind);
 #endif
 
-Alert1("Notes played on external MIDI device will be shown in the ‘Data’ window. Otherwise select the proper input…");
+Alert1("Notes played on external MIDI device will be shown in the 'Data' window. Otherwise select the proper input...");
 mTypeNote(wData);
 TextGetSelection(&selbegin, &selend, TEH[wData]);
 SetSelect(selend, selend,TEH[wData]);
 ShowSelect(CENTRE,wData);
-
-#if USE_OMS
-ShowWindow(GetDialogWindow(OMSinoutPtr));
-SelectWindow(GetDialogWindow(OMSinoutPtr));
-if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-UpdateWindow(FALSE, GetDialogWindow(OMSinoutPtr));
-#endif /* USE_OMS */
 #endif /* WITH_REAL_TIME_MIDI */
 
 return(OK);
@@ -301,7 +293,7 @@ return(OK);
 mMIDIoutputcheck(int wind)
 {
 if(!OutMIDI) {
-	Alert1("MIDI output is inactive (check the ‘Devices’ menu)");
+	Alert1("MIDI output is inactive (check the 'Devices' menu)");
 	return(FAILED);
 	}
 
@@ -593,45 +585,9 @@ return(OK);
 
 mOMS(int wind)
 {
-OSErr io;
-
-#if !USE_OMS
 	Alert1("The OMS driver is not available in this version of Bol Processor.");
 	Oms = FALSE;
 	return OK;
-#else
-HideWindow(Window[wInfo]);
-if(Oms) {
-	if(!ScriptExecOn) {
-		if(Answer("Are you sure you want do disable OMS and use the built-in MIDI driver",
-			'N') != OK) return(FAILED);
-		if(!NEWTIMER && Answer("The ‘Mute’ command will be disabled, and flushing the output may be problematic. Continue",
-			'N') != OK) return(FAILED);
-		}
-	if(gSignedInToMIDIMgr) SignOutFromMIDIMgr();
-	ExitOMS();
-	if((io = DriverOpen("\p.MIDI")) != noErr) {
-		Alert1("Unexpected error opening MIDI driver. OMS is off, but some other device might be conflicting");
-		return(OK);
-		}
-	AppendScript(183);
-	ShowMessage(TRUE,wMessage,"OMS has been disabled. Built-in MIDI driver is now active.");
-	}
-else {
-	if(InBuiltDriverOn) CloseCurrentDriver(FALSE);
-	io = InitOMS('Bel0');
-	if(io!= noErr) return(FAILED);
-	Oms = TRUE;
-	ShowMessage(TRUE,wMessage,"OMS has been enabled. Built-in MIDI driver is now inactive.");
-	AppendScript(182);
-	}
-if(SetDriver() != OK && Beta) Alert1("Err. mOMS(). SetDriver() != OK");
-ResetTicks(FALSE,TRUE,ZERO,0);
-ReadKeyBoardOn = FALSE;
-Jcontrol = -1;
-SetButtons(TRUE);
-return(OK);
-#endif
 }
 
 
@@ -656,48 +612,6 @@ return(OK);
 mCsoundInstrumentsSpecs(int wind)
 {
 BPActivateWindow(SLOW,wCsoundInstruments);
-return(OK);
-}
-
-
-mOMSmidisetup(int wind)
-{
-#if USE_OMS
-if(Oms) {
-	StopWait();
-	OMSMIDISetupDialog();
-	/* SetDriver(); */
-	}
-#endif
-return(OK);
-}
-
-
-mOMSstudiosetup(int wind)
-{
-#if USE_OMS
-if(Oms) {
-	StopWait();
-	OMSOpenCurrentStudioSetup();
-	/* SetDriver(); */
-	}
-#endif
-return(OK);
-}
-
-
-mOMSinout(int wind)
-{
-#if USE_OMS
-if(Oms && !InitOn) {
-	StopWait();
-	ShowWindow(GetDialogWindow(OMSinoutPtr));
-	SelectWindow(GetDialogWindow(OMSinoutPtr));
-	if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-	if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-	UpdateWindow(FALSE, GetDialogWindow(OMSinoutPtr));
-	}
-#endif
 return(OK);
 }
 
@@ -735,7 +649,7 @@ return(OK);
 
 mSmartCursor(int wind)
 {
-Alert1("‘Smart cursor’, a wonderful idea, will soon be implemented…");
+Alert1("'Smart cursor', a wonderful idea, will soon be implemented...");
 return(OK);	/* $$$ */
 SmartCursor = 1 - SmartCursor;
 Dirty[iSettings] = TRUE;
@@ -744,7 +658,7 @@ if(SmartCursor) {
 		KillSubTree(PrefixTree); KillSubTree(SuffixTree);
 		UpdateAutomata();
 		}
-	Alert1("‘Smart cursor’ is ON");
+	Alert1("'Smart cursor' is ON");
 	}
 return(OK);
 }
@@ -766,7 +680,7 @@ if(!ReadKeyBoardOn) {
 	FoundNote = FALSE; TickDone = FALSE;
 	EmptyBeat = TRUE;
 	ShowMessage(TRUE,wMessage,
-		"Entering data from MIDI keyboard. Type cmd-J to return to text mode…");
+		"Entering data from MIDI keyboard. Type cmd-J to return to text mode...");
 	ResetMIDI(FALSE);
 //	#ifndef __POWERPC
 	FlushEvents(driverEvt,0);
@@ -868,10 +782,10 @@ TRYLOAD:
 if(OldFile(wGrammar,5,fn,&spec)) {
 	if(IdentifyBPFileType(&spec) != wGrammar) {
 		MyPtoCstr(MAXNAME,fn,LineBuff);
-		sprintf(Message,"BP2 is not sure that ‘%s’ is a grammar file. Do you want to load it anyway", LineBuff);
+		sprintf(Message,"BP2 is not sure that '%s' is a grammar file. Do you want to load it anyway", LineBuff);
 		rep = Answer(Message,'N');
 		if(rep != YES) {
-			if(rep == NO) ShowMessage(TRUE,wMessage,"Hint: You can use the ‘Scrap’ window to load any file…");
+			if(rep == NO) ShowMessage(TRUE,wMessage,"Hint: You can use the 'Scrap' window to load any file...");
 			goto TRYLOAD;
 			}
 		}
@@ -972,7 +886,7 @@ if(Answer("Load and save MIDI data from device",'Y') == YES) {
 		WriteToFile(NO,MAC,LineBuff,refnum);
 		for(i=ZERO; i < im; i++) {
 			PleaseWait();
-			sprintf(Message,"%ld\r",(long)ByteToInt((*p_Code)[i].byte));
+			sprintf(Message,"%ld\n",(long)ByteToInt((*p_Code)[i].byte));
 			count = (long) strlen(Message);
 			FSWrite(refnum,&count,Message);
 			}
@@ -1032,8 +946,8 @@ if(OldFile(-1,1,PascalLine,&spec)) {
 			return(FAILED);
 		sysex = Answer("Is it system exclusive data",'Y');
 		if(sysex == ABORT) goto ERR2;
-		Alert1("Set MIDI device ready to ‘receive’ mode and click ‘OK’");
-		sprintf(Message,"Reading %ld bytes from file…",(long)im);
+		Alert1("Set MIDI device ready to 'receive' mode and click 'OK'");
+		sprintf(Message,"Reading %ld bytes from file...",(long)im);
 		ShowMessage(TRUE,wMessage,Message);
 		SetCursor(&WatchCursor);
 		while(Button()){};
@@ -1141,7 +1055,7 @@ if((w == wGrammar || w == iObjects || w == wGlossary || w == wInteraction
 		|| w == wAlphabet || w == wPrototype7 || w == wMIDIorchestra)
 		&& (ComputeOn || SetTimeOn || PrintOn || SoundOn || SelectOn
 		|| CompileOn || GraphicOn || PolyOn)) {
-	Alert1("Can't change this file because a task using this file is being executed…");
+	Alert1("Can't change this file because a task using this file is being executed...");
 	return(FAILED);
 	}
 r = OK;
@@ -1184,11 +1098,11 @@ switch(w) {
 		break;
 	case iObjects:
 		if(IsEmpty(wAlphabet)) {
-			if(Answer("Your alphabet is empty. Loading prototypes will generate a new alphabet.\rFirst load an alphabet file",
+			if(Answer("Your alphabet is empty. Loading prototypes will generate a new alphabet.\nFirst load an alphabet file",
 				'N') == OK) mOpenFile(wAlphabet);
 			}
 		else {
-			if(Answer("Your alphabet is not empty. Loading prototypes will generate new symbols.\rFirst clear current alphabet and grammar",
+			if(Answer("Your alphabet is not empty. Loading prototypes will generate new symbols.\nFirst clear current alphabet and grammar",
 				'Y') == OK) {
 				if(ResetProject(FALSE) != OK) return(ABORT);
 				}
@@ -1221,7 +1135,7 @@ switch(w) {
 	}
 clear = FALSE; r = OK;
 if(Editable[w] && !IsEmpty(w) && w != wGrammar) {
-	sprintf(Message,"Clear ‘%s’ window",WindowName[w]);
+	sprintf(Message,"Clear '%s' window",WindowName[w]);
 	if((r=Answer(Message,'Y')) == YES) {
 		clear = TRUE;
 		sprintf(Message,"\"%s\"",WindowName[w]);
@@ -1240,7 +1154,7 @@ if(r == ABORT) return(FAILED);
 TRYLOAD:
 LastAction = NO;
 if(DocumentTypeName[w][0] != '\0' && w != wTrace) {
-	sprintf(Message,"Select a %s file…",DocumentTypeName[w]);
+	sprintf(Message,"Select a %s file...",DocumentTypeName[w]);
 	ShowMessage(TRUE,wMessage,Message);
 	}
 type = gFileType[w];
@@ -1250,11 +1164,11 @@ if(OldFile(w,type,fn,&spec)) {
 	if(gFileType[w] != ftiAny && gFileType[w] != ftiText && IdentifyBPFileType(&spec) != w) {
 		//anyfile = TRUE;
 		p2cstrcpy(LineBuff,fn);
-		sprintf(Message,"BP2 is not sure that ‘%s’ is a(n) %s file. Do you want to load it anyway", LineBuff, 
+		sprintf(Message,"BP2 is not sure that '%s' is a(n) %s file. Do you want to load it anyway", LineBuff, 
 			DocumentTypeName[w]);
 		r = Answer(Message,'N');
 		if(r != YES) {
-			if(r == NO) ShowMessage(TRUE,wMessage,"Hint: You can use the ‘Scrap’ window to load any file…");
+			if(r == NO) ShowMessage(TRUE,wMessage,"Hint: You can use the 'Scrap' window to load any file...");
 			return(ABORT);
 			}
 		// check if file has prefix or extension of a BP
@@ -1366,12 +1280,12 @@ if(OldFile(w,type,fn,&spec)) {
 				if(w != wScrap && FileName[w][0] != '\0') AppendScript(24);
 				}
 			else {
-				sprintf(Message,"Can't read ‘%s’… (no data)",FileName[w]);
+				sprintf(Message,"Can't read '%s'... (no data)",FileName[w]);
 				Alert1(Message);
 				result = FAILED;
 				}
 			if(FSClose(refnum) != noErr) {
-				if(Beta) Alert1("Error closing file…");
+				if(Beta) Alert1("Error closing file...");
 				}
 			if(result == OK) {
 				if(Editable[w]) SetSelect(ZERO,ZERO,TEH[w]);
@@ -1399,7 +1313,7 @@ if(OldFile(w,type,fn,&spec)) {
 			}
 		}
 	else {
-		sprintf(Message,"Unexpected error opening ‘%s’",LineBuff);
+		sprintf(Message,"Unexpected error opening '%s'",LineBuff);
 		ShowMessage(TRUE,wMessage,Message);
 		TellError(8,io);
 		}
@@ -1500,7 +1414,7 @@ else {
 	// spec.vRefNum = TheVRefNum[w1];
 	// spec.parID = WindowParID[w1];
 	// c2pstrcpy(spec.name, FileName[w1]);
-	sprintf(Message,"Saving ‘%s’…",FileName[w1]);
+	sprintf(Message,"Saving '%s'...",FileName[w1]);
 	ShowMessage(TRUE,wMessage,Message);
 	switch(w1) {
 		case iObjects:
@@ -1522,7 +1436,7 @@ else {
 // HideWindow(Window[wMessage]); // was hiding error messages
 /* BPActivateWindow(SLOW,w); */
 if (rep == OK) {
-	sprintf(Message,"Successfully saved ‘%s’", FileName[w1]);
+	sprintf(Message,"Successfully saved '%s'", FileName[w1]);
 	ShowMessage(TRUE,wMessage,Message);
 	}
 return(rep);
@@ -1583,7 +1497,7 @@ int rep,oms,anyfile;
 
 if(CheckEmergency() != OK) return(FAILED);
 if(Dirty[iSettings] && Created[iSettings] && FileName[iSettings][0] != 0) {
-	sprintf(Message, "Save changes in current settings to file ‘%s’", FileName[iSettings]);
+	sprintf(Message, "Save changes in current settings to file '%s'", FileName[iSettings]);
 	if((rep=Answer(Message, 'Y')) == OK) mSaveSettings(wind);
 	if(rep == ABORT) return(FAILED);
 	// Dirty[iSettings] = FALSE; // not true yet - akozar 061107
@@ -1631,24 +1545,6 @@ FSSpec spec;
 
 if(Dirty[wData]) GetSeName(wData);
 if(Dirty[wGrammar]) GetSeName(wGrammar);
-
-#if USE_OMS
-TRYINPUTNAME:
-if(Oms && OMSinputName[0] != '\0' && OMSinputName[0] != '<') {
-	sprintf(Message,"The current input device is ‘%s’. Save it to settings",
-		OMSinputName);
-	rep = Answer(Message,'Y');
-	if(rep == CANCEL) return(FAILED);
-	if(rep == NO) {
-		rep = Answer("Set to <no input device>",'Y');
-		if(rep == CANCEL) return(FAILED);
-		if(rep == NO) goto TRYINPUTNAME;
-		OpenOrCloseConnection(FALSE,FALSE);
-		OMSinputName[0] = '\0';
-		}
-	}
-#endif
-
 c2pstrcpy(fn, FileName[iSettings]);
 spec.vRefNum = TheVRefNum[iSettings];
 spec.parID = WindowParID[iSettings];
@@ -1665,24 +1561,6 @@ int rep;
 FSSpec spec;
 
 if(Answer("Save current settings as startup",'Y') != OK) return(FAILED);
-
-#if USE_OMS
-TRYINPUTNAME:
-if(Oms && OMSinputName[0] != '\0') {
-	sprintf(Message,"The current input device is ‘%s’. Save it as default",
-		OMSinputName);
-	rep = Answer(Message,'Y');
-	if(rep == CANCEL) return(FAILED);
-	if(rep == NO) {
-		rep = Answer("Set to <no input device>",'Y');
-		if(rep == CANCEL) return(FAILED);
-		if(rep == NO) goto TRYINPUTNAME;
-		OpenOrCloseConnection(FALSE,FALSE);
-		OMSinputName[0] = '\0';
-		}
-	}
-#endif
-
 GetStartupSettingsSpec(&spec);
 SaveSettings(YES,YES,spec.name,&spec);
 return(OK);
@@ -1696,7 +1574,7 @@ if(ProduceStackDepth == 0) {
 	}
 else {
 	if(ProduceStackDepth == -1) {
-		Alert1("Can't save… Decisions are lost!");
+		Alert1("Can't save... Decisions are lost!");
 		}
 	else SaveDecisions();
 	}
@@ -1717,7 +1595,7 @@ wind = FindGoodIndex(wind);
 if(wind == wPrototype7) wind = iObjects;
 if(wind < 0 || wind >= WMAX || LockedWindow[wind] || FileName[wind][0] == '\0')
 	return(FAILED);
-sprintf(Message,"Revert to last saved version\rof %s",FileName[wind]);
+sprintf(Message,"Revert to last saved version\nof %s",FileName[wind]);
 rep = Answer(Message,'N');
 switch (rep) {
 	case YES:
@@ -1784,7 +1662,7 @@ switch (rep) {
 #endif
 						}
 					else {
-						sprintf(Message,"Can't read ‘%s’… (no data)",FileName[wind]);
+						sprintf(Message,"Can't read '%s'... (no data)",FileName[wind]);
 						Alert1(Message);
 						FSClose(refnum);
 						return(FAILED);
@@ -1846,7 +1724,7 @@ Rect r;
 	Alert1("Bol Processor Carbon is not able to print yet.  Try opening your documents in a text editor.");
 #else
 if(wind < 0 || wind >= WMAX || (!Editable[wind] && !GrafWindow[wind])) return(FAILED);
-sprintf(Message,"Printing ‘%s’ window…",WindowName[wind]);
+sprintf(Message,"Printing '%s' window...",WindowName[wind]);
 ShowMessage(TRUE,wMessage,Message);
 
 WaitForLastTicks();
@@ -2337,7 +2215,7 @@ int found=FALSE;
 AppendScript(35);
 found = TRUE;
 if(found) BPActivateWindow(SLOW,wGraphic);
-else Alert1("First load or produce items…");
+else Alert1("First load or produce items...");
 ReadKeyBoardOn = FALSE; Jcontrol = -1;
 HideWindow(Window[wMessage]);
 return(OK);
@@ -2359,7 +2237,7 @@ Rect r;
 WindowPtr wp;
 
 if(wind < 0 || wind >= WMAX || !Editable[wind]) {
-	Alert1("You can search only text window…");
+	Alert1("You can search only text window...");
 	return(OK);
 	}
 TargetWindow = LastEditWindow = wind;
@@ -2385,7 +2263,7 @@ long scrapOffset, rc;
 TextOffset selbegin, selend;
 
 if(wind < 0 || wind >= WMAX || !Editable[wind]) {
-	Alert1("You can search only text window…");
+	Alert1("You can search only text window...");
 	return(OK);
 	}
 ReadKeyBoardOn = FALSE; Jcontrol = -1;
@@ -2428,7 +2306,7 @@ return(OK);
 mFindAgain(int wind)
 {
 if(wind < 0 || wind >= WMAX || !Editable[wind]) {
-	Alert1("You can search only text window…");
+	Alert1("You can search only text window...");
 	return(OK);
 	}
 ReadKeyBoardOn = FALSE; Jcontrol = -1;
@@ -2450,7 +2328,7 @@ if(p_Var == NULL) {
 	return(OK);
 	}
 ClearWindow(NO,wNotice);
-Print(wNotice,"VARIABLES USED IN GRAMMAR:\r");
+Print(wNotice,"VARIABLES USED IN GRAMMAR:\n");
 undefined = unreachable = 0;
 for(j=1; j <= Jvar; j++) { 
 	s = (*p_VarStatus)[j];
@@ -2460,9 +2338,9 @@ for(j=1; j <= Jvar; j++) {
 	if((s & 2) && !(s & 1) && !(s & 4))
 		undefined++;
 	}
-Print(wNotice,"\r");
+Print(wNotice,"\n");
 if(undefined) {
-	Print(wNotice,"\rUNDEFINED VARIABLES:\r");
+	Print(wNotice,"\nUNDEFINED VARIABLES:\n");
 	for(j=1; j <= Jvar; j++) {
 		s = (*p_VarStatus)[j];
 		if((s & 2) && !(s & 1) && !(s & 4)) { 
@@ -2470,10 +2348,10 @@ if(undefined) {
 			Print(wNotice,Message);
 			}
 		}
-	Print(wNotice,"\r");
+	Print(wNotice,"\n");
 	}
 if(unreachable) {
-	Print(wNotice,"\rUNREACHABLE VARIABLES:\r");
+	Print(wNotice,"\nUNREACHABLE VARIABLES:\n");
 	for(j=1; j <= Jvar; j++) {
 		s = (*p_VarStatus)[j];
 		if((s & 1) && !(s & 2))  {
@@ -2493,40 +2371,40 @@ mListReserved(int wind)
 int i,j,ii;
 
 ClearWindow(NO,wNotice);
-Print(wNotice,"RESERVED WORDS:\r\r");
+Print(wNotice,"RESERVED WORDS:\n\n");
 Println(wNotice,"Miscellaneous operators and markers (see doc):");
 for(i=0; i < (MAXCODE-2); i++) {
 	sprintf(Message,"%c ",Code[i]);
 	Print(wNotice,Message);
 	}
 Print(wNotice,"* \\");
-Print(wNotice,"\r\rNote conventions used in Apple Event 'conv' (not case sensitive): ");
+Print(wNotice,"\n\nNote conventions used in Apple Event 'conv' (not case sensitive): ");
 for(i=0; i < MAXCONVENTIONS-1; i++) {
 	sprintf(Message,"%s, ",ConventionString[i]);
 	Print(wNotice,Message);
 	}
-sprintf(Message,"%s\r\r",ConventionString[MAXCONVENTIONS-1]);
+sprintf(Message,"%s\n\n",ConventionString[MAXCONVENTIONS-1]);
 Print(wNotice,Message);
-sprintf(Message,"‘%s’ for initialisation line on top of grammar\r\r",InitToken);
+sprintf(Message,"'%s' for initialisation line on top of grammar\n\n",InitToken);
 Print(wNotice,Message);
 Print(wNotice,"Subgrammar types: ");
 for(i=0; i < MAXTYPE; i++) {
 	sprintf(Message,"%s ",SubgramType[i]);
 	Print(wNotice,Message);
 	}
-Print(wNotice,"\r\r");
+Print(wNotice,"\n\n");
 Print(wNotice,"Rule operators: ");
 for(i=0; i < MAXARROW; i++) {
 	sprintf(Message,"%s ",Arrow[i]);
 	Print(wNotice,Message);
 	}
-Print(wNotice,"\r\r");
+Print(wNotice,"\n\n");
 Print(wNotice,"Rule derive modes: ");
 for(i=0; i < MAXMODE; i++) {
 	sprintf(Message,"%s ",Mode[i]);
 	Print(wNotice,Message);
 	}
-Print(wNotice,"\r\r");
+Print(wNotice,"\n\n");
 Print(wNotice,"Grammar procedures (not case sensitive): ");
 for(j=0; j < MaxProc; j++) {
 	i = (*p_ProcNdx)[j];
@@ -2539,7 +2417,7 @@ for(j=0; j < MaxProc; j++) {
 		}
 	else Print(wNotice," ");
 	}
-Print(wNotice,"\r\r");
+Print(wNotice,"\n\n");
 Print(wNotice,"Performance control (not case sensitive): ");
 for(j=0; j < MaxPerformanceControl; j++) {
 	i = (*p_PerfCtrlNdx)[j];
@@ -2552,15 +2430,15 @@ for(j=0; j < MaxPerformanceControl; j++) {
 		}
 	else Print(wNotice," ");
 	}
-Print(wNotice,"\r\r");
+Print(wNotice,"\n\n");
 Print(wNotice,"Null string (equivalent symbols): ");
 for(i=0; i < MAXNIL; i++) {
 	sprintf(Message,"%s ",NilString[i]);
 	Print(wNotice,Message);
 	}
-Print(wNotice,"\r\r");
-Println(wNotice,"Templates in a grammar start on a ‘TEMPLATES:’ header");
-Println(wNotice,"Grammars may terminate on a ‘COMMENTS:’ or ‘DATA:’ header");
+Print(wNotice,"\n\n");
+Println(wNotice,"Templates in a grammar start on a 'TEMPLATES:' header");
+Println(wNotice,"Grammars may terminate on a 'COMMENTS:' or 'DATA:' header");
 SetSelect(ZERO,ZERO,TEH[wNotice]);
 ShowSelect(CENTRE,wNotice);
 return(OK);
@@ -2580,7 +2458,7 @@ if(Jbol < 3) {
 	return(OK);
 	}
 ClearWindow(NO,wNotice);
-Print(wNotice,"\rTERMINAL SYMBOLS (ALPHABET):\r");
+Print(wNotice,"\nTERMINAL SYMBOLS (ALPHABET):\n");
 for(j=2; j < Jbol; j++) {
 	sprintf(Message,"%s ",*((*p_Bol)[j]));
 	Print(wNotice,Message);
@@ -2705,7 +2583,7 @@ if(CompileCheck() != OK) return(FAILED);
 if(WillRandomize) {
 //	ReseedOrShuffle(RANDOMIZE);
 	if(!AllowRandomize) {
-		Alert1("Since ‘_randomize’ was found, button ‘Allow randomize’ has been checked");
+		Alert1("Since '_randomize' was found, button 'Allow randomize' has been checked");
 		AllowRandomize = TRUE; SetButtons(TRUE);
 		BPActivateWindow(QUICK,wSettingsTop);
 		}
@@ -2890,22 +2768,6 @@ return(OK);
 }
 
 
-mModemPort(int wind)
-{
-#if USE_BUILT_IN_MIDI_DRIVER
-  return(FixPort(1));
-#endif
-}
-
-
-mPrinterPort(int wind)
-{
-#if USE_BUILT_IN_MIDI_DRIVER
-  return(FixPort(2));
-#endif
-}
-
-
 mObjectPrototypes(int wind)
 {
 int r,longerCsound;
@@ -2918,7 +2780,7 @@ if(!NeedAlphabet) {
 	if(Jbol > 2) NeedAlphabet = TRUE;	/* Added if(Jbol > 2) on 31/3/98 */
 	}
 if(!ObjectMode && !ObjectTry && NeedAlphabet && LoadObjectPrototypes(YES,NO) != OK) {
-	if((r=Answer("Load an existing ‘-mi’ sound-object prototype file",'N')) == YES) {
+	if((r=Answer("Load an existing '-mi' sound-object prototype file",'N')) == YES) {
 		if((r=CheckPrototypes()) != OK) return(r);
 		}
 	else {
@@ -2973,7 +2835,7 @@ while((r = MainEvent()) != RESUME && r != STOP && r != ABORT && r != EXIT
 /* ButtonOn = oldbuttonon; */
 if(r == ABORT || r == EXIT) EventState = r;
 if(datemem != CompileDate) {
-	ShowMessage(TRUE,wMessage,"Grammar changed or recompiled. Must abort…");
+	ShowMessage(TRUE,wMessage,"Grammar changed or recompiled. Must abort...");
 	EventState = ABORT;
 	}
 if(r == STOP) EventState = ABORT;
@@ -3058,7 +2920,7 @@ sprintf(Message,"Elapsed time in this session: %.0f seconds",
 if(ScriptExecOn) {
 	w = OutputWindow;
 	if(w < 0 || w >= WMAX || !Editable[w]) w = wTrace;
-	PrintBehind(w,"\r");
+	PrintBehind(w,"\n");
 	PrintBehindln(w,Message);
 	ShowSelect(CENTRE,w);
 	}
@@ -3126,13 +2988,13 @@ if(r != ABORT && changed) {
 				SetName(wScript,TRUE,TRUE);
 				}
 			else {
-				sprintf(Message,"Can't read ‘%s’…",FileName[wScript]);
+				sprintf(Message,"Can't read '%s'...",FileName[wScript]);
 				Alert1(Message);
 				}
 			if(FSClose(refnum) == noErr);
 			}
 		else {
-			Alert1("Unknown error: unable to reload the script…");
+			Alert1("Unknown error: unable to reload the script...");
 			if(Beta) TellError(10,io);
 			ClearWindow(FALSE,wScript);
 			ForgetFileName(wScript);
@@ -3143,12 +3005,12 @@ if(r != ABORT && changed) {
 	goto END;
 	}
 if(r != OK) {
-	Alert1("Syntax errors have been reported in the ‘Trace’ window");
+	Alert1("Syntax errors have been reported in the 'Trace' window");
 	BPActivateWindow(SLOW,wTrace);
 	ShowSelect(CENTRE,wTrace);
 	}
 else {
-	Alert1("Script syntax is OK.\r(Smooth execution is not certified)");
+	Alert1("Script syntax is OK.\n(Smooth execution is not certified)");
 	BPActivateWindow(SLOW,wScript);
 	}
 

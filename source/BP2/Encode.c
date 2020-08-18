@@ -89,7 +89,7 @@ for(; (*pp) <= (*pp2);) {
 	(*p_result) = OK;
 	if(EventState != NO) goto ERR;
 #endif /* BP_CARBON_GUI */
-	while(GetNilString(pp) == OK){}; /* Skip “lambda” */
+	while(GetNilString(pp) == OK){}; /* Skip "lambda" */
 	c = NextChar(pp);
 	if(isdigit(c)) {
 SEARCHNUMBER:
@@ -113,10 +113,10 @@ SEARCHNUMBER:
 			goto SEARCHHOMO;
 			}
 		(*p_buff)[i++] = T0;
-		(*p_buff)[i++] = 21; /* ‘*’ scale up */
+		(*p_buff)[i++] = 21; /* '*' scale up */
 		c = (**pp);
 		if(c == '*') {
-			(*p_buff)[--i] = 24; /* ‘**’ scale down */
+			(*p_buff)[--i] = 24; /* '**' scale down */
 			i++;
 			}
 		c = NextChar(pp);	
@@ -133,20 +133,20 @@ NOTSCALE:
 	if(c == '[') {
 		if(arg_nr == 0 || arg_nr == 2 || arg_nr == 8) break;
 		else {
-			sprintf(Message,"Misplaced comment in left argument\r");
+			sprintf(Message,"Misplaced comment in left argument\n");
 			Print(wTrace,Message);
 			goto ERR;
 			}
 		}
 	if(c == '>') {
 		sprintf(Message,
-			"Found illegal character ‘>’…\r");
+			"Found illegal character '>'...\n");
 		Print(wTrace,Message);
 		goto ERR;
 		}
 	if(rightcontext) {	/* Remote right context has been read */
 		sprintf(Message,
-			"Can't make sense of expression between parentheses. May be found incorrect grammar procedure, performance control, or misplaced right context…\r");
+			"Can't make sense of expression between parentheses. May be found incorrect grammar procedure, performance control, or misplaced right context...\n");
 		Print(wTrace,Message);
 		goto ERR;
 		}
@@ -347,7 +347,7 @@ NOTSCALE:
 				}
 			if((ii=(*(Gram.p_subgram))[igram].type) == SUBtype || ii == SUB1type || ii == POSLONGtype) {
 				sprintf(Message,
-					"Can't accept rule procedure ‘_goto’, etc., in SUB or SUB1 or POSLONG subgrammar\r");
+					"Can't accept rule procedure '_goto', etc., in SUB or SUB1 or POSLONG subgrammar\n");
 				Print(wTrace,Message);
 				goto ERR;
 				}
@@ -396,19 +396,19 @@ NOTSCALE:
 			c = NextChar(pp);
 			continue;
 			}
-		goto SEARCHTERMINAL2;	/* Found “_” */
+		goto SEARCHTERMINAL2;	/* Found "_" */
 		}
 //	if(isupper(c)) goto SEARCHCODE;
 	if(islower(c)) goto SEARCHNOTE;
 	if(c == '/') {		/* Look for /flag/ */
 		q = *pp;
 		c = *(++q);
-		if(c == '/' && arg_nr == 0) { /* Remark starting with “//” */ 
+		if(c == '/' && arg_nr == 0) { /* Remark starting with "//" */ 
 			break;
 			}
 		if(!isdigit(c)) { /*  not a tempo marker */
 			if(arg_nr == 0 || arg_nr > 2) {
-				sprintf(Message,"Slash is used to denote flags in grammar rules only!\r");
+				sprintf(Message,"Slash is used to denote flags in grammar rules only!\n");
 				Print(wTrace,Message);
 				goto ERR;
 				}
@@ -420,7 +420,7 @@ NOTSCALE:
 				(*p_x)[l++] = c;
 				if(l >= BOLSIZE) {
 					ShowError(4,igram,irul);
-					sprintf(Message,"Max flag length: %ld chars!\r",(long)BOLSIZE);
+					sprintf(Message,"Max flag length: %ld chars!\n",(long)BOLSIZE);
 					Print(wTrace,Message);
 					goto ERR;
 					}
@@ -461,7 +461,7 @@ NOTSCALE:
 							(*p_x)[j++] = d;
 							if(j >= BOLSIZE) {
 								ShowError(4,igram,irul);
-								sprintf(Message,"Max flag length: %ld chars!\r",(long)BOLSIZE);
+								sprintf(Message,"Max flag length: %ld chars!\n",(long)BOLSIZE);
 								Print(wTrace,Message);
 								goto ERR;
 								}
@@ -561,7 +561,7 @@ STOREFLAG:
 			while((c=(**pp)) != '>' && c != '\335') {
 				if(!isdigit(c)) {
 					sprintf(Message,
-				"Expecting integer in synchonization tag '<<Wx>>'\r");
+				"Expecting integer in synchonization tag '<<Wx>>'\n");
 					Print(wTrace,Message);
 					ShowError(42,igram,irul);
 					goto ERR;
@@ -571,7 +571,7 @@ STOREFLAG:
 				}
 			if(l > MAXWAIT){
 				sprintf(Message,
-			"Tag '<<W%ld>>' inacceptable.  Not more than %ld tags allowed\r",
+			"Tag '<<W%ld>>' inacceptable.  Not more than %ld tags allowed\n",
 					(long)l,(long)MAXWAIT);
 				Print(wTrace,Message);
 				ShowError(42,igram,irul);
@@ -594,7 +594,7 @@ STOREFLAG:
 			(*p_x)[l++] = c;
 			(*p_x)[l] = '\0';
 			sprintf(Message,
-			"Terminal <<%s…>> starts with incorrect character ‘%c’\r",(*p_x),c);
+			"Terminal <<%s...>> starts with incorrect character '%c'\n",(*p_x),c);
 			Print(wTrace,Message);
 			ShowError(27,igram,irul);
 			goto ERR;
@@ -604,14 +604,14 @@ STOREFLAG:
 			if(!OkBolChar2(c) || c == '-') {
 				(*p_x)[l] = '\0';
 				sprintf(Message,
-				"Terminal <<%s…>> contains incorrect character ‘%c’\r",(*p_x),c);
+				"Terminal <<%s...>> contains incorrect character '%c'\n",(*p_x),c);
 				Print(wTrace,Message);
 				ShowError(27,igram,irul);
 				goto ERR;
 				}
 			if(l >= BOLSIZE) {
 				(*p_x)[l] = '\0';
-				sprintf(Message,"Terminal <<%s…>> is too long. Max length: %ld chars.\r",
+				sprintf(Message,"Terminal <<%s...>> is too long. Max length: %ld chars.\n",
 					(*p_x),(long)BOLSIZE);
 				Print(wTrace,Message);
 				ShowError(22,igram,irul);
@@ -658,7 +658,7 @@ FOUNDNOTE1:
 			(*p_buff)[i++] = T7;
 			jj += (C4key - 60);
 			if(jj < 0 || jj > 127) {
-				Alert1("Simple note is out of range. (May be check “Tuning”)");
+				Alert1("Simple note is out of range. (May be check \"Tuning\")");
 				ShowWindow(GetDialogWindow(TuningPtr));
 				SelectWindow(GetDialogWindow(TuningPtr));
 				goto ERR;
@@ -675,7 +675,7 @@ FOUNDNOTE1:
 		/* It must be an out-time sound-object */
 		if(l >= BOLSIZE) {
 			ShowError(4,igram,irul);
-			sprintf(Message,"Max length: %ld chars!\r",(long)BOLSIZE);
+			sprintf(Message,"Max length: %ld chars!\n",(long)BOLSIZE);
 			Print(wTrace,Message);
 			goto ERR;
 			}
@@ -705,7 +705,7 @@ SEARCHCONTEXT:
 		if((d != '=') && (d != ':')) {		/* Context */
 			if(arg_nr != 1) {
 				sprintf(Message,
-					"Remote context should only be in left argument of grammar rule. May be misspelled ‘_goto’,‘_failed’,‘_chan’…\r");
+					"Remote context should only be in left argument of grammar rule. May be misspelled '_goto','_failed','_chan'...\n");
 				Print(wTrace,Message);
 				goto ERR;
 				}
@@ -716,7 +716,7 @@ SEARCHCONTEXT:
 				if(GetContext(igram,irul,pp,pp2,
 					p_pleftcontext,p_meta) == FAILED) {
 					sprintf(Message,
-						"Error in left context!\r");
+						"Error in left context!\n");
 					Print(wTrace,Message);
 					goto ERR;
 					}
@@ -727,7 +727,7 @@ SEARCHCONTEXT:
 				if(GetContext(igram,irul,
 					pp,pp2,p_prightcontext,p_meta) == FAILED) {
 					sprintf(Message,
-						"Error in right context!\r");
+						"Error in right context!\n");
 					Print(wTrace,Message);
 					goto ERR;
 					}
@@ -758,7 +758,7 @@ SEARCHCONTEXT:
 			while(d >= '0' && d <= '9') {
 				n = (10 * n) + d - '0';
 				if(n > MAXMETA) {
-					sprintf(Message,"Maxi %ld wildcards!\r",(long)MAXMETA);
+					sprintf(Message,"Maxi %ld wildcards!\n",(long)MAXMETA);
 					Print(wTrace,Message);
 					ShowError(28,igram,irul);
 					
@@ -804,7 +804,7 @@ FOUNDNOTE2:
 		(*p_buff)[i++] = T25;
 		jj += (C4key - 60);
 		if(jj < 0 || jj > 127) {
-			Alert1("Simple note is out of range. (May be check “Tuning”)");
+			Alert1("Simple note is out of range. (May be check \"Tuning\")");
 			ShowWindow(GetDialogWindow(TuningPtr));
 			SelectWindow(GetDialogWindow(TuningPtr));
 			goto ERR;
@@ -944,7 +944,7 @@ OKCODE:
 			if(l >= BOLSIZE-4) {
 				(*p_x)[++l] = '\0';
 				sprintf(Message,
-				"Terminal %s…' is too long. Max length: %ld chars.\r",(*p_x),(long)BOLSIZE);
+				"Terminal %s...' is too long. Max length: %ld chars.\n",(*p_x),(long)BOLSIZE);
 				Print(wTrace,Message);
 				ShowError(22,igram,irul);
 				
@@ -954,7 +954,7 @@ OKCODE:
 			(*pp)++;
 			if((*pp) > (*pp2)) {
 				(*p_x)[l] = '\0';
-				sprintf(Message,"Missing single quote for terminal %s…\r",(*p_x));
+				sprintf(Message,"Missing single quote for terminal %s...\n",(*p_x));
 				Print(wTrace,Message);
 				ShowError(11,igram,irul);
 				
@@ -987,7 +987,7 @@ SEARCHVAR:
 
 	if(!OkChar(c) && c != '|') {
 		ShowError(55,igram,irul);
-		sprintf(Message,"Can't accept ‘%c’\r",c);
+		sprintf(Message,"Can't accept '%c'\n",c);
 		Print(wTrace,Message);
 		goto ERR;
 		}
@@ -1066,7 +1066,7 @@ for(levpar = 1; (*pp) <= (*ppmax); (*pp)++) {
 	}
 /* printf("levpar=%ld",(long)levpar); Pause(0); */
 if(levpar != 0) {
-	sprintf(Message,"Incorrect bracketting.\r");
+	sprintf(Message,"Incorrect bracketting.\n");
 	Print(wTrace,Message);
 	return(FAILED);
 	}
@@ -1145,12 +1145,12 @@ if(!isupper(c) && !bracket) {
 					line[i] = **pp;
 	line[i] = '\0'; im = i;
 	sprintf(Message,
-	"\rVariable must start with uppercase character or ‘|’. Can't make sense of “%s”",
+	"\nVariable must start with uppercase character or '|'. Can't make sense of \"%s\"",
 		line);
 	Print(wTrace,Message);
 	if(OkBolChar(c)) {
 		sprintf(Message,
-			"\rMay be unknown terminal symbol, time-pattern or incorrect note convention?");
+			"\nMay be unknown terminal symbol, time-pattern or incorrect note convention?");
 		Print(wTrace,Message);
 		}
 	return(ABORT);
@@ -1173,7 +1173,7 @@ for(i=0; (*pp) <= (*ppmax)+1; (*pp)++,i++) {
 	c = **pp;
 	if(MaxVar > 0 && i >= MAXLIN) {
 		(*((*p_Var)[Jvar]))[i-1] = '\0';
-		sprintf(Message,"Max %ld chars in variable! Can't accept “%s…”",
+		sprintf(Message,"Max %ld chars in variable! Can't accept \"%s...\"",
 			(long)MAXLIN-1L,(*((*p_Var)[Jvar])));
 		Print(wTrace,Message);
 		ptr = (*p_Var)[Jvar];
@@ -1185,7 +1185,7 @@ for(i=0; (*pp) <= (*ppmax)+1; (*pp)++,i++) {
 	if((c == '|' && bracket) || (!bracket && (!OkChar(c))) || ((*pp) > (*ppmax))) {
 			if(MaxVar > 0 && i == 0) {
 				Print(wTrace,
-				"Variable name can't be empty. (May be you forgot a space before ‘-->’)");
+				"Variable name can't be empty. (May be you forgot a space before '-->')");
 				ptr = (*p_Var)[Jvar];
 				MyDisposeHandle((Handle*)&ptr);
 				(*p_Var)[Jvar] = NULL;
@@ -1206,7 +1206,7 @@ for(i=0; (*pp) <= (*ppmax)+1; (*pp)++,i++) {
 				(*p_Var)[Jvar] = ptr;
 				for(i=0; i < MAXMODE; i++) {
 					if(Mystrcmp((*p_Var)[Jvar],Mode[i]) == 0) {
-						sprintf(Message,"Misplaced ‘%s’: it should be placed immediately after the weight",
+						sprintf(Message,"Misplaced '%s': it should be placed immediately after the weight",
 							Mode[i]);
 						Print(wTrace,Message);
 						ptr = (*p_Var)[Jvar];
@@ -1292,7 +1292,7 @@ while(i < (*p_imax)-1) {
 			j = (int)(**pp_buff)[i+1];
 			nhomo++;
 			if(nhomo >= MAXLEVEL) {
-				if(Beta) Alert1("Increase ‘MAXLEVEL’.  Err Recode()");
+				if(Beta) Alert1("Increase 'MAXLEVEL'.  Err Recode()");
 				return(20);
 				}
 			depth[nhomo] = levpar;
@@ -1306,11 +1306,11 @@ while(i < (*p_imax)-1) {
 nbmaster = 0;
 // FIXME ? FindMaster() currently always returns 0; should it return -1 if LastSymbol() returns 0 ?
 if(FindMaster(pp_buff,orgmaster,endmaster,&nbmaster,p_imax) == -1) return(16);
-/* Print(wTrace,"\rList of masters:\r");
-if(nbmaster == 0) Print(wTrace,"none\r");
+/* Print(wTrace,"\nList of masters:\n");
+if(nbmaster == 0) Print(wTrace,"none\n");
 else
 	for(j=1; j<= nbmaster; j++) {
-		sprintf(Message,"\r<%ld> ",(long)j);
+		sprintf(Message,"\n<%ld> ",(long)j);
 		Print(wTrace,Message);
 		for(i=orgmaster[j]; i <= endmaster[j]; i=i+2) {
 			sprintf(Message," %ld.%ld",(long)(**pp_buff)[i],(long)(**pp_buff)[i+1]);
@@ -1394,7 +1394,7 @@ for(i=levpar=nhomo=islave=0; i < (*p_imax)-1; i+=2) {
 	if((**pp_buff)[i] == T5) {
 		nhomo++;
 		if(nhomo >= MAXLEVEL) {
-			if(Beta) Alert1("Increase ‘MAXLEVEL’.  Err Recode()");
+			if(Beta) Alert1("Increase 'MAXLEVEL'.  Err Recode()");
 			MyDisposeHandle((Handle*)&p_a);
 			return(20);	// should this be error 25 or 40 ? - akozar
 			}
@@ -1411,7 +1411,7 @@ for(i=levpar=nhomo=islave=0; i < (*p_imax)-1; i+=2) {
 		(*p_a)[i+1] = (tokenbyte) j;
 		length[islave++] = endmaster[j] - orgmaster[j] + 2;
 		if(islave >= MAXLEVEL) {
-			if(Beta) Alert1("Increase ‘MAXLEVEL’.  Err BindSlaves(). ");
+			if(Beta) Alert1("Increase 'MAXLEVEL'.  Err BindSlaves(). ");
 			MyDisposeHandle((Handle*)&p_a);
 			return(40);
 			}
@@ -1540,7 +1540,7 @@ if(pp_a == NULL || *pp_a == NULL || **pp_a == NULL) return(FALSE);
 for(i=0; ; i+=2) {
 	m = (int)(**pp_a)[i]; p = (int)(**pp_a)[i+1];
 	if(m == TEND && p == TEND) break;
-	if(m == T0 && p == 7) {		/* ‘•’ */
+	if(m == T0 && p == 7) {		/* '•' */
 		return(TRUE);
 		}
 	}
@@ -1563,11 +1563,11 @@ static char* err[] = {"",
 "subgrammar type",		/* 7 */
 "incorrect expression or bad derivation",			/* 8 */
 "error in remote context",	/* 9 */
-"unterminated comment: can't find ‘]’ nor ‘*/’",		/* 10 */
+"unterminated comment: can't find ']' nor '*/'",		/* 10 */
 "incorrect terminal",		/* 11 */
 "variable name too long",	/* 12 */
 "too many variables",		/* 13 */
-"argument too large: increase ‘FIELDSIZE’!",	/* 14 */
+"argument too large: increase 'FIELDSIZE'!",	/* 14 */
 "argument syntax",			/* 15 */
 "bad slave marker",			/* 16 */
 "slave has no reference (may be incorrect homomorphism in alphabet)",	/* 17 */
@@ -1576,7 +1576,7 @@ static char* err[] = {"",
 "incorrect weight",							/* 20 */
 "can't read this file",						/* 21 */
 "terminal name too long",					/* 22 */
-"variable name can't be empty (could be missing space before ‘-->’)",
+"variable name can't be empty (could be missing space before '-->')",
 																/* 23 */
 "incorrect homomorphism",					/* 24 */
 "too many homomorphisms",					/* 25 */
@@ -1592,33 +1592,33 @@ static char* err[] = {"",
 "subgrammar type should be one single word:'ORD','LEFT','LIN','SUB'", /* 35 */
 "too many sound-objects",							/* 36 */
 "can't set time",									/* 37 */
-"item ignored…",									/* 38 */
+"item ignored...",									/* 38 */
 "'{' and '}' not balanced",							/* 39 */
-"too many parenthesis levels: increase ‘MAXLEVEL’",	/* 40 */
+"too many parenthesis levels: increase 'MAXLEVEL'",	/* 40 */
 "weight misplaced or incorrect <<out-time object>>",		/* 41 */
 "incorrect tag",									/* 42 */
 "number should be less than 256",					/* 43 */
-"procedure should be single word, e.g. ‘_destru’",	/* 44 */
+"procedure should be single word, e.g. '_destru'",	/* 44 */
 "only one flag allowed in left argument",			/* 45 */
 "incorrect time pattern name(s)",						/* 46 */
 "incorrect time value in pattern(s)",					/* 47 */
 "same pattern(s) defined twice",						/* 48 */
 "/flags/ not allowed in SUB or SUB1 or POSLONG subgrammar or glossary",	/* 49 */
-"/flag = …/ assignment or comparison should occur only in argument of rule", /* 50 */
+"/flag = .../ assignment or comparison should occur only in argument of rule", /* 50 */
 "/flag/ incrementation or comparison should occur only in left argument of rule",	/* 51 */
 "Missing slash after /flag/",	/* 52 */
 "Incorrect integer value for /flag/ assignment or incrementation",	/* 53 */
-"Reserved words ‘lambda’, ‘nil’, ‘empty’ and ‘null’ can't be redefined as terminals", /* 54 */
+"Reserved words 'lambda', 'nil', 'empty' and 'null' can't be redefined as terminals", /* 54 */
 "Incorrect character in argument" /* 55 */
 	};
 
 if(i < 0) return(TRUE);
-sprintf(Message,"§§§ Error code %ld: %s",(long)i,err[i]);
+sprintf(Message,"*** Error code %ld: %s",(long)i,err[i]);
 if(igram != 0) {
-	sprintf(t," in gram#%ld rule %ld\r",(long)igram,(long)irul);
+	sprintf(t," in gram#%ld rule %ld\n",(long)igram,(long)irul);
 	}
 else {
-	strcpy(t,"\r");
+	strcpy(t,"\n");
 	}
 strcat(Message,t);
 BPActivateWindow(SLOW,wTrace);

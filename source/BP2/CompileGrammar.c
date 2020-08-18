@@ -55,7 +55,7 @@ if(GetTuning() != OK) return(ABORT);
 ResetPannel();
 #endif /* BP_CARBON_GUI */
 SelectBehind(GetTextLength(wTrace),GetTextLength(wTrace),TEH[wTrace]);
-if(!ScriptExecOn) PrintBehind(wTrace,"\r");
+if(!ScriptExecOn) PrintBehind(wTrace,"\n");
 fatal = changednumber = FALSE;
 CompiledGr = Gram.trueBP = Gram.hasTEMP = Gram.hasproc = WillRandomize = FALSE;
 NotBPCase[8] = NotFoundMetronom = NotFoundNatureTime = TRUE;
@@ -164,7 +164,7 @@ onerulefound = FALSE;
 pos = posline = ZERO;
 posmax = GetTextLength(wGrammar);
 
-ShowMessage(TRUE,wMessage,"Compiling subgrammar #1…");
+ShowMessage(TRUE,wMessage,"Compiling subgrammar #1...");
 for(i=0; i < MAXNOTBPCASES; i++) NotBPCase[i] = FALSE;
 NotBPCase[8] = NotBPCase[3] = TRUE;
 for(i=1; i < MAXPARAMCTRL; i++) ParamInit[i] = ParamValue[i] = INT_MAX;
@@ -206,7 +206,7 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 		posinstr = origin;
 		if(origin >= end) goto NEXTLINE;
 		if((end - origin) >= MAXLIN) {
-			Print(wTrace,"Too long argument for ‘INIT:’\r");
+			Print(wTrace,"Too long argument for 'INIT:'\n");
 			ReleaseGrammarSpace();
 			MyDisposeHandle((Handle*)&p_line);
 			if(CompileOn) CompileOn--;
@@ -230,7 +230,7 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 		rep = ExecScriptLine(NULL,wScript,check,FALSE,p_line2,dummy,&posinstr,&i,&i);
 		EndScript();
 		if(rep == OK) {
-			/* This will set InitThere to 1 if “Play…” instruction has been found. */
+			/* This will set InitThere to 1 if "Play…" instruction has been found. */
 			if(InitThere == 0) {
 				InitThere = 2;
 				if((p_InitScriptLine=(char**) GiveSpace((Size)
@@ -245,7 +245,7 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 			MyDisposeHandle((Handle*)&p_line2);
 			goto NEXTLINE;
 			}
-		else Print(wTrace,"Unable to make sense of ‘INIT:’\r");
+		else Print(wTrace,"Unable to make sense of 'INIT:'\n");
 		MyDisposeHandle((Handle*)&p_line2);
 		if(rep != OK) {
 			ReleaseGrammarSpace();
@@ -295,15 +295,15 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 			if(EmergencyExit) return(ABORT);
 			else return(i);
 			}
-		Print(wTrace,"\r");
+		Print(wTrace,"\n");
 		fatal = ShowError(i,igram,irul);
 		Print(wTrace,"??? ");
 		Println(wTrace,*p_line);
-		Print(wTrace,"\r");
+		Print(wTrace,"\n");
 		N_err++;
 		if(fatal) {
-			if(!ScriptExecOn) Alert1("Fatal error found.  Compilation aborted…");
-			else PrintBehindln(wTrace,"Fatal error found.  Compilation aborted…");
+			if(!ScriptExecOn) Alert1("Fatal error found.  Compilation aborted...");
+			else PrintBehindln(wTrace,"Fatal error found.  Compilation aborted...");
 			break;
 			}
 		}
@@ -342,7 +342,7 @@ OUT:
 
 END:
 MyDisposeHandle((Handle*)&p_line);
-if(tracecompile) Print(wTrace,"\r");
+if(tracecompile) Print(wTrace,"\n");
 if((*(Gram.p_subgram))[Gram.number_gram].number_rule > MaxRul) {
 	sprintf(Message,"Err. number rules gram#%ld.",(long)Gram.number_gram);
 	if(Beta) Alert1(Message);
@@ -411,7 +411,7 @@ else {
 }
 
 
-InsertSubgramTypes(void)	/* Insert ‘ORD’, ‘RND’, etc. */
+InsertSubgramTypes(void)	/* Insert 'ORD', 'RND', etc. */
 {
 long pos,posmax,posline;
 double n,d;
@@ -471,9 +471,9 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 			}
 		if(NotFoundNatureTime) {
 			if(Nature_of_time == STRIATED)
-				sprintf(Message,"%s\r",*((*p_GramProcedure)[14]));
+				sprintf(Message,"%s\n",*((*p_GramProcedure)[14]));
 			else
-				sprintf(Message,"%s\r",*((*p_GramProcedure)[15]));
+				sprintf(Message,"%s\n",*((*p_GramProcedure)[15]));
 			PrintBehind(wGrammar,Message);
 			dif = strlen(Message);
 			MaintainSelectionInGrammar(pos,dif);
@@ -490,7 +490,7 @@ while(ReadLine(YES,wGrammar,&pos,posmax,&p_line,&gap) == OK) {
 		if(!found) {
 PUTIT:
 			SelectBehind(posline+gap,posline+gap,TEH[wGrammar]);
-			sprintf(Message,"%s\r",SubgramType[(*(Gram.p_subgram))[igram].type]);
+			sprintf(Message,"%s\n",SubgramType[(*(Gram.p_subgram))[igram].type]);
 			PrintBehind(wGrammar,Message);
 			dif = strlen(Message);
 			MaintainSelectionInGrammar(posline+gap,dif);
@@ -530,14 +530,14 @@ for(i=0; i < MAXLIN; i++) {
 	if((*p_line)[i] == '\0') break;
 	line2[i] = (*p_line)[i];
 	}
-line2[i] = '\0';	/* Gram numbers are in the beginning of ‘line’… */
+line2[i] = '\0';	/* Gram numbers are in the beginning of 'line'… */
 					/* No need to check beyond MAXLIN. */
 if(line2[0] == '\0') return(OK);
 
 j = MyHandleLen(p_line) - 1; while(j > 0 && MySpace((*p_line)[j])) j--;
 i = 0; while(MySpace(c=(*p_line)[i]) && i < j) i++;
 
-/* Insert ‘gram#’ */
+/* Insert 'gram#' */
 p = &line2[i]; q = &GRAMstring[0]; pos3 = posline;
 insertedgram = TRUE;
 if(Match(FALSE,&p,&q,5)) {
@@ -575,7 +575,7 @@ if(Match(FALSE,&p,&q,5)) {
 		}
 	}
 else {
-	/* Insert ‘gram#’ and subgram index */
+	/* Insert 'gram#' and subgram index */
 	*p_changednumber = TRUE;
 	SelectBehind(posline,posline,TEH[wGrammar]);
 	sprintf(line2,"%s%ld",GRAMstring,(long)igram);
@@ -650,7 +650,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 			if((i=(*(Gram.p_subgram))[igram].type) == SUBtype ||
 					i == SUB1type || i == POSLONGtype) {
 				sprintf(Message,
-					"gram#%ld is ‘SUB’ or ‘SUB1’ or ‘POSLONG’ and should not contain ‘%s’.\r",
+					"gram#%ld is 'SUB' or 'SUB1' or 'POSLONG' and should not contain '%s'.\n",
 					(long)igram,*((*p_GramProcedure)[2]));
 				N_err++;
 				Print(wTrace,Message);
@@ -662,7 +662,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 			if((i=(*(Gram.p_subgram))[igram].type) == SUBtype ||
 					i == SUB1type || i == POSLONGtype) {
 				sprintf(Message,
-					"gram#%ld is ‘SUB’ or ‘SUB1’ or ‘POSLONG’ and should not contain ‘%s’.\r",
+					"gram#%ld is 'SUB' or 'SUB1' or 'POSLONG' and should not contain '%s'.\n",
 					(long)igram,*((*p_GramProcedure)[0]));
 				N_err++;
 				Print(wTrace,Message);
@@ -675,7 +675,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 				UpdateProcedureIndex(0,igram,irul,newig,newir,0);
 				}
 			if(newig > Gram.number_gram) {
-				sprintf(Message,"gram#%ld[%ld] has incorrect grammar index in ‘%s’\r",
+				sprintf(Message,"gram#%ld[%ld] has incorrect grammar index in '%s'\n",
 					(long)igram,(long)irul,*((*p_GramProcedure)[0]));
 				N_err++;
 				Print(wTrace,Message);
@@ -685,7 +685,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 				if(((i=(*(Gram.p_subgram))[newig].type) == SUBtype ||
 					i == SUB1type || i == POSLONGtype) && newir > 0) {
 					sprintf(Message,
-						"gram#%ld[%ld] contains ‘%s’ addressing rule in ‘SUB’ or ‘SUB1’ or ‘POSLONG’ subgrammar.\r",
+						"gram#%ld[%ld] contains '%s' addressing rule in 'SUB' or 'SUB1' or 'POSLONG' subgrammar.\n",
 						(long)igram,(long)irul,*((*p_GramProcedure)[0]));
 					N_err++;
 					Print(wTrace,Message);
@@ -693,7 +693,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 					}
 				else {
 					if(newir > (*(Gram.p_subgram))[newig].number_rule) {
-						sprintf(Message,"gram#%ld[%ld] has incorrect rule index in ‘%s’\r",
+						sprintf(Message,"gram#%ld[%ld] has incorrect rule index in '%s'\n",
 							(long)igram,(long)irul,*((*p_GramProcedure)[0]));
 						N_err++;
 						Print(wTrace,Message);
@@ -708,7 +708,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 			if((i=(*(Gram.p_subgram))[igram].type) == SUBtype ||
 					i == SUB1type || i == POSLONGtype) {
 				sprintf(Message,
-					"gram#%ld is ‘SUB’ or ‘SUB1’ or ‘POSLONG’ and should not contain ‘%s’.\r",
+					"gram#%ld is 'SUB' or 'SUB1' or 'POSLONG' and should not contain '%s'.\n",
 					(long)igram,*((*p_GramProcedure)[1]));
 				N_err++;
 				Print(wTrace,Message);
@@ -721,7 +721,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 				UpdateProcedureIndex(1,igram,irul,newig,newir,0);
 				}
 			if(newig > Gram.number_gram) {
-				sprintf(Message,"gram#%ld[%ld] has incorrect grammar index in ‘%s’\r",
+				sprintf(Message,"gram#%ld[%ld] has incorrect grammar index in '%s'\n",
 					(long)igram,(long)irul,*((*p_GramProcedure)[1]));
 				N_err++;
 				Print(wTrace,Message);
@@ -731,7 +731,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 				if(((i=(*(Gram.p_subgram))[newig].type) == SUBtype ||
 						i == SUB1type || i == POSLONGtype) && newir > 0) {
 					sprintf(Message,
-						"gram#%ld[%ld] contains ‘%s’ addressing rule in ‘SUB’ or ‘SUB1’ or ‘POSLONG’ subgrammar.\r",
+						"gram#%ld[%ld] contains '%s' addressing rule in 'SUB' or 'SUB1' or 'POSLONG' subgrammar.\n",
 						(long)igram,(long)irul,*((*p_GramProcedure)[1]));
 					N_err++;
 					Print(wTrace,Message);
@@ -739,7 +739,7 @@ for(igram=1; igram <= Gram.number_gram; igram++) {
 					}
 				else {
 					if(newir > (*(Gram.p_subgram))[newig].number_rule) {
-						sprintf(Message,"gram#%ld[%ld] has incorrect rule index in ‘%s’\r",
+						sprintf(Message,"gram#%ld[%ld] has incorrect rule index in '%s'\n",
 							(long)igram,(long)irul,*((*p_GramProcedure)[1]));
 						N_err++;
 						Print(wTrace,Message);
@@ -862,7 +862,7 @@ N_err = 0;
 if(GetTuning() != OK) return(ABORT);
 #endif /* BP_CARBON_GUI */
 if(ReleaseObjectPrototypes() != OK) return(ABORT);
-ShowMessage(TRUE,wMessage,"Compiling alphabet…");
+ShowMessage(TRUE,wMessage,"Compiling alphabet...");
 if(!NoAlphabet && IsEmpty(wAlphabet) && (LoadAlphabet(-1,NULL) != OK)) goto ERR;
 
 GetMiName();
@@ -1054,8 +1054,8 @@ if(CompileOn) CompileOn--;
 if(Jbol < 3) NoAlphabet = TRUE;
 else NoAlphabet = FALSE;
 if(N_err) {
-	if(!ScriptExecOn) Alert1("Alphabet is incorrect…");
-	else PrintBehindln(wTrace,"Alphabet is incorrect…");
+	if(!ScriptExecOn) Alert1("Alphabet is incorrect...");
+	else PrintBehindln(wTrace,"Alphabet is incorrect...");
 	return(FAILED);
 	}
 else return(OK);
@@ -1127,7 +1127,7 @@ if((p_y = (char**) GiveSpace((Size)((BOLSIZE+1) * sizeof(char)))) == NULL) {
 r = 0;
 for(i=0,k1=0; i <= l;) {
 	if((length=GetBol(p_line,&i)) > BOLSIZE) {
-		sprintf(Message,"\rMaximum length: %ld chars.\r",(long)BOLSIZE);
+		sprintf(Message,"\nMaximum length: %ld chars.\n",(long)BOLSIZE);
 		Print(wTrace,Message);
 		ShowError(22,0,0);
 		MyDisposeHandle((Handle*)&p_y);
@@ -1140,7 +1140,7 @@ for(i=0,k1=0; i <= l;) {
 	j = i + length;
 	c = (*p_line)[j];
 	if(!isspace(c) && c != '\0') {
-		sprintf(Message,"Can't accept character ‘%c’ in alphabet\r",c);
+		sprintf(Message,"Can't accept character '%c' in alphabet\n",c);
 		Print(wTrace,Message);
 		r = ABORT; goto QUIT;
 		} 
@@ -1164,7 +1164,7 @@ for(i=0,k1=0; i <= l;) {
 	if(operatorthere) {
 		p = &((*p_line)[j]); q = &Arrowstring[0];
 		if(!Match(TRUE,&p,&q,3)) {
-			sprintf(Message,"'-->' not found!\r");
+			sprintf(Message,"'-->' not found!\n");
 			Print(wTrace,Message);
 			r = 24; goto QUIT;
 			}
@@ -1198,7 +1198,7 @@ else {
 	if(!OkBolChar((*p_line)[*p_i])) goto ERR;
 	for(j=(*p_i)+1; OkBolChar2(c=(*p_line)[j]); j++) {
 		if(c == '-') {
-			Print(wTrace,"Found '-' in terminal symbol\r");
+			Print(wTrace,"Found '-' in terminal symbol\n");
 			goto ERR;
 			}
 		}
@@ -1214,7 +1214,7 @@ while(TRUE) {
 	i++;
 	}
 line[j] = '\0';
-sprintf(Message,"Can't make sense of “%s”\r",line);
+sprintf(Message,"Can't make sense of \"%s\"\n",line);
 Print(wTrace,Message);
 return(-1);
 }
@@ -1397,7 +1397,7 @@ FOUNDNOTE:
 			j += (C4key - 60);
 			if(j < 0 || j > 127) {
 				sprintf(Message,
-					"Simple note ‘%s’ is out of range. (May be check “Tuning”)",
+					"Simple note '%s' is out of range. (Maybe check \"Tuning\")",
 					line);
 				Alert1(Message);
 				ShowWindow(GetDialogWindow(TuningPtr));
@@ -1429,7 +1429,7 @@ if(diff) {
 			compiledptmem = CompiledPt;
 			SelectBehind(GetTextLength(wAlphabet),GetTextLength(wAlphabet),
 																		TEH[wAlphabet]);
-			sprintf(Message,"\r%s",*p_x);
+			sprintf(Message,"\n%s",*p_x);
 			PrintBehind(wAlphabet,Message);
 			CompiledAl = TRUE;
 			Dirty[wAlphabet] = dirtyalphabetmem;
@@ -1443,7 +1443,7 @@ if(diff) {
 	jmax++;
 	}
 else if(type == PATTERN) {
-	sprintf(Message,"\rCan't accept %s\r",*p_x);
+	sprintf(Message,"\nCan't accept %s\n",*p_x);
 	Print(wTrace,Message);
 	ShowError(48,0,0);
 	return(ABORT);
@@ -1489,7 +1489,7 @@ if(newsubgram) {
 		if(Beta) Alert1(Message);
 		N_err++; return(2);
 		}
-	if(tracecompile) Print(wTrace,"------------------------\r");
+	if(tracecompile) Print(wTrace,"------------------------\n");
 	if((++Gram.number_gram) > MaxGram) {
 		sprintf(Message,"Err. number grams = %ld  MaxGram = %ld. ",
 				(long)Gram.number_gram,(long)MaxGram);
@@ -1498,7 +1498,7 @@ if(newsubgram) {
 		}
 	*p_igram = ++igram;
 	(*(Gram.p_subgram))[igram].number_rule = *p_irul = 0;
-	sprintf(Message,"Compiling subgrammar #%ld…",(long)igram);
+	sprintf(Message,"Compiling subgrammar #%ld...",(long)igram);
 	ShowMessage(TRUE,wMessage,Message);
 	(*(Gram.p_subgram))[igram].type = RNDtype;
 	(*(Gram.p_subgram))[igram].oldindex = 0;
@@ -1546,10 +1546,10 @@ if(newsubgram) {
 ptr = &p; pp1 = &p1; pp2 = &p2; pp3 = &p3; pp4 = &p4;
 p = &((*p_line)[0]); beforefirstrule = TRUE;
 if((c=NextChar(ptr))  == '\0') return(0);
-if(c == '/' && (*ptr)[1] == '/') return(0);	/* Found ‘//’ */
+if(c == '/' && (*ptr)[1] == '/') return(0);	/* Found '//' */
 if(c != '_' && !isalpha(c)) beforefirstrule = FALSE;
 *pp1 = *ptr; q = &GRAMstring[0];
-if(Match(FALSE,ptr,&q,strlen(GRAMstring))) {	/* Found ‘gram#’ */
+if(Match(FALSE,ptr,&q,strlen(GRAMstring))) {	/* Found 'gram#' */
 	beforefirstrule = FALSE;
 	(*ptr) += strlen(GRAMstring);	/* Skip subgram number */
 	while(MySpace(**ptr)) (*ptr)++;
@@ -1607,7 +1607,7 @@ if(beforefirstrule && irul == 0) {
 						break;
 					case 13:	/* _mm */
 						if(!NotFoundMetronom) {
-							Println(wTrace,"Instruction ‘_mm()’ should not appear more than once in the grammar");
+							Println(wTrace,"Instruction '_mm()' should not appear more than once in the grammar");
 							return(7);
 							}
 						NotFoundMetronom = FALSE;
@@ -1616,7 +1616,7 @@ if(beforefirstrule && irul == 0) {
 					case 14:	/* _striated */
 					case 15:	/* _smooth */
 						if(!NotFoundNatureTime) {
-							Println(wTrace,"Instruction ‘_smooth’ or ‘_striated’ should not appear more than once in the grammar");
+							Println(wTrace,"Instruction '_smooth' or '_striated' should not appear more than once in the grammar");
 							return(7);
 							}
 						NotFoundNatureTime = FALSE;
@@ -1631,7 +1631,7 @@ if(beforefirstrule && irul == 0) {
 		}
 	if(proc) {
 		if(((c=NextChar(ptr)) != '\0') && c != '[') {
-			Print(wTrace,"This line should contain only procedures\r");
+			Print(wTrace,"This line should contain only procedures\n");
 			return(7);
 			}
 		else return(0);
@@ -1648,7 +1648,7 @@ if((**ptr) == '<' || (**ptr) == '\334') {
 			i = - w - 1;
 			NotBPCase[5] = TRUE;
 			if(i < 1 || i >= MAXPARAMCTRL) {
-				sprintf(Message,"‘<K%ld>’ not accepted.  Range [1,%ld]\r",
+				sprintf(Message,"'<K%ld>' not accepted.  Range [1,%ld]\n",
 					(long)i,(long)MAXPARAMCTRL-1);
 				Print(wTrace,Message);
 				return(20);
@@ -1658,7 +1658,7 @@ if((**ptr) == '<' || (**ptr) == '\334') {
 				}
 			else {	/* Found '<Kx=y>' */
 				if(initparam < 0) {
-					sprintf(Message,"Negative weight ‘<K%ld=%ld>’ not allowed…\r",
+					sprintf(Message,"Negative weight '<K%ld=%ld>' not allowed...\n",
 						(long)i,(long)initparam);
 					Print(wTrace,Message);
 					return(20);
@@ -1668,7 +1668,7 @@ if((**ptr) == '<' || (**ptr) == '\334') {
 				else {
 					if(ParamInit[i] != initparam) {
 						sprintf(Message,
-							"Initial value of ‘<K%ld>’ already set to %ld…\r",
+							"Initial value of '<K%ld>' already set to %ld...\n",
 								(long)i,(long)ParamInit[i]);
 						Print(wTrace,Message);
 						return(20);
@@ -1679,7 +1679,7 @@ if((**ptr) == '<' || (**ptr) == '\334') {
 		else {
 			if(w == INT_MIN) w = INT_MAX;
 			if(w < 0) {
-				sprintf(Message,"Negative weight ‘<%ld>’ not allowed…\r",(long)w);
+				sprintf(Message,"Negative weight '<%ld>' not allowed...\n",(long)w);
 				Print(wTrace,Message);
 				return(20);
 				}
@@ -1735,7 +1735,7 @@ if(h_flag != NULL) NotBPCase[6] = TRUE;
 /* if(*p_pleftcontext != NULL || *p_prightcontext != NULL)
 	NotBPCase[3] = TRUE;	Remote context(s) found */
 h_flag = NULL;
-NextChar(pp3); /* $$$  GetNilString(pp3); skip “lambda” */
+NextChar(pp3); /* $$$  GetNilString(pp3); skip "lambda" */
 if((pp_rightp=Encode(FALSE,FALSE,igram,irul,pp3,pp4,p_plx,p_prx,&meta,2,
 		&h_flag,FALSE,&result)) == NULL) {
 	(*((*(Gram.p_subgram))[igram].p_rule))[irul].p_rightarg = NULL;
@@ -1750,7 +1750,7 @@ if(h_flag != NULL) NotBPCase[6] = TRUE;
 if((i = FindLeftoffset(pp_leftp,pp_rightp,&lenc)) == -1) {
 	(*((*(Gram.p_subgram))[igram].p_rule))[irul].leftoffset = 0;
 	(*((*(Gram.p_subgram))[igram].p_rule))[irul].leftnegcontext = 0;
-	sprintf(Message,"Can't have only negative contexts in argument!\r");
+	sprintf(Message,"Can't have only negative contexts in argument!\n");
 	Print(wTrace,Message);
 	return(15);
 	}
@@ -1760,7 +1760,7 @@ i = FindRightoffset(pp_leftp,pp_rightp,&lenarg);
 (*((*(Gram.p_subgram))[igram].p_rule))[irul].rightoffset = i;
 if((i=NumberWildCards(pp_leftp)) < (j=NumberWildCards(pp_rightp))) {
 	ShowError(29,igram,irul);
-	sprintf(Message,"(left side %ld, right side %ld)\r",(long)i,(long)j);
+	sprintf(Message,"(left side %ld, right side %ld)\n",(long)i,(long)j);
 	Print(wTrace,Message);
 	N_err++;
 	}
@@ -1775,32 +1775,32 @@ ShowNotBP(void)
 {
 int i,j=1;
 static char *err[] = {
-"Rule(s) with ‘lambda’, ‘empty’, ‘null’ or ‘nil’ as right argument",	/* 0 */
+"Rule(s) with 'lambda', 'empty', 'null' or 'nil' as right argument",	/* 0 */
 " ", 		/* 1 */
-"‘SUB’ or ‘SUB1’ or ‘POSLONG’ substitutions(s)",	/* 2 */
-"No rule is valid for parsing.  Use ‘<->’ instead of ‘-->’", /* 3 */
+"'SUB' or 'SUB1' or 'POSLONG' substitutions(s)",	/* 2 */
+"No rule is valid for parsing.  Use '<->' instead of '-->'", /* 3 */
 "Item contains polymetric structure(s)",		/* 4 */
-"‘<Kx>’ controlled rule weight(s)",	/* 5 */
-"‘/flag/’ programmed grammar(s)",	/* 6 */
-"Using tool(s): ‘_destru’,‘_goto’,‘_failed’,‘_repeat’,‘_retro’,‘_rndseq’", /* 7 */
+"'<Kx>' controlled rule weight(s)",	/* 5 */
+"'/flag/' programmed grammar(s)",	/* 6 */
+"Using tool(s): '_destru','_goto','_failed','_repeat','_retro','_rndseq'", /* 7 */
 "Grammar is empty!",	/* 8 */
 "Period notation is not handled in grammars"	/* 9 $$$ suppressed */
 	};
 
 if(!CompiledGr || Gram.trueBP) return(OK);
 BPActivateWindow(SLOW,wTrace);
-sprintf(Message,"\rThis is not a true BP grammar.\rThe following features are not standard:\r");
+sprintf(Message,"\nThis is not a true BP grammar.\nThe following features are not standard:\n");
 Print(wTrace,Message);
 for(i=0; i < MAXNOTBPCASES; i++) {
 	if(NotBPCase[i]) {
-		sprintf(Message,"[%ld] %s\r",(long)j,err[i]);
+		sprintf(Message,"[%ld] %s\n",(long)j,err[i]);
 		Print(wTrace,Message);
 		j++;
 		}
 	}
 ShowSelect(CENTRE,wTrace);
-if(!ScriptExecOn) Alert1("Not a true BP grammar…");
-else PrintBehind(wTrace,"Not a true BP grammar…\r");
+if(!ScriptExecOn) Alert1("Not a true BP grammar...");
+else PrintBehind(wTrace,"Not a true BP grammar...\n");
 return(FAILED);
 }
 
@@ -1823,7 +1823,7 @@ t_rule rule;
 err = 0;
 if(ClearWindow(NO,wTrace) == ABORT) return(ABORT);
 SelectBehind(GetTextLength(wTrace),GetTextLength(wTrace),TEH[wTrace]);
-PrintBehind(wTrace,"\r");
+PrintBehind(wTrace,"\n");
 
 for(igram=1; igram <= (*p_gram).number_gram; igram++) {
 	subgram = (*((*p_gram).p_subgram))[igram];

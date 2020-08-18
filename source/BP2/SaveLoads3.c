@@ -90,7 +90,7 @@ if(NewFile(w,gFileType[w],fn,&reply)) {
 		}
 	else {
 		MyPtoCstr(MAXNAME,fn,Message);
-		sprintf(LineBuff,"Can't create file Ô%sÕ",Message);
+		sprintf(LineBuff,"Can't create file '%s'",Message);
 		Alert1(LineBuff);
 		}
 	}
@@ -147,12 +147,12 @@ if(good) {
 					FlushFile(refnum);
 					MyFSClose(wAlphabet,refnum,p_spec);
 					Dirty[wAlphabet] = FALSE;
-					sprintf(Message,"Also saved Ô%sÕ",FileName[wAlphabet]);
+					sprintf(Message,"Also saved '%s'",FileName[wAlphabet]);
 					ShowMessage(TRUE,wMessage,Message);
 					CheckTextSize(wAlphabet);
 					}
 				else {
-					sprintf(Message,"Error saving Ô%sÕ",FileName[wAlphabet]);
+					sprintf(Message,"Error saving '%s'",FileName[wAlphabet]);
 					Alert1(Message);
 					}
 				}
@@ -164,7 +164,7 @@ if(good) {
 else {
 	TellError(76,io);
 	MyPtoCstr(MAXNAME,fn,LineBuff);
-	sprintf(Message,"Error opening Ô%sÕ",LineBuff);
+	sprintf(Message,"Error opening '%s'",LineBuff);
 	ShowMessage(TRUE,wMessage,Message);
 	return(FAILED);
 	}
@@ -759,7 +759,7 @@ int IdentifyBPFileType(FSSpec* spec)
 
 int PromptForFileFormat(int w, char* filename, int* type)
 {
-	sprintf(Message,"Saving %sÉ  In which format?", filename);
+	sprintf(Message,"Saving %s...  In which format?", filename);
 	ShowMessage(TRUE,wMessage,Message);
 	IsHTML[w] = IsText[w] = FALSE;
 	StopWait();
@@ -1063,16 +1063,17 @@ else {
 	}
 }
 
+#endif /* BP_CARBON_GUI */
 
-ReadOne(int bindlines,int careforhtml,int nocomment,short refnum,int strip,char ***pp_line,
+int ReadOne(int bindlines,int careforhtml,int nocomment,FILE* fin,int strip,char ***pp_line,
 	char ***pp_completeline,long *p_pos)
 // Read a line in the file and save it to text handle 'pp_completeline'
 // If the line starts with Ô//Õ, discard it
 {
 char c,oldc;
 long imax,oldcount,discount,count;
-int i,io,is,rep,j,jm,empty,offset,dos,firsttime,html;
-char **p_buffer;
+int i,is,rep,j,jm,empty,offset,dos,firsttime,html;
+char **p_buffer, *result;
 long size;
 
 MyDisposeHandle((Handle*)pp_line);
@@ -1088,9 +1089,7 @@ discount = 0; firsttime = TRUE;
 
 RESTART:
 imax = count = MAXLIN;
-MyLock(NO,(Handle) p_buffer);
-io = FSRead(refnum,&count,*p_buffer);
-MyUnlock((Handle) p_buffer);
+count = fread(*p_buffer,sizeof(char),count,fin);
 oldcount = count;
 
 CleanLF(p_buffer,&count,&dos);
@@ -1099,13 +1098,11 @@ CleanLF(p_buffer,&count,&dos);
 discount = oldcount - count;
 if(discount > 0 && firsttime) *p_pos += 1;
 firsttime = FALSE;
-if(io == noErr) {
-	rep = OK;
-	}
-else {
-	if(io == eofErr) rep = STOP;
-	else rep = FAILED;
-	}
+if (oldcount < MAXLIN) {
+	// at end of file
+	rep = STOP;
+}
+else rep = OK;
 is = 0;
 if(offset == 0) {
 	while(MySpace((*p_buffer)[is]) && (*p_buffer)[is] != '\r') is++;
@@ -1124,7 +1121,7 @@ for(i=is; i < count; i++) {
 	if(((oldc != 'Â' || !bindlines) && (c == '\n' || c == '\r')) || c == '\0'
 															|| j >= (size-discount-1)) {
 		(*p_pos) += (i + 1);
-		SetFPos(refnum,fsFromStart,*p_pos);
+		fseek(fin,*p_pos,SEEK_SET);
 		if(j >= (size-discount-1)) {
 			(**pp_line)[j] = c;
 			(**pp_completeline)[j] = c;
@@ -1175,7 +1172,7 @@ return(rep);
 }
 
 
-ReadInteger(short refnum,int* p_i,long* p_pos)
+int ReadInteger(FILE* fin,int* p_i,long* p_pos)
 // Read an integer value
 {
 int rep,i;
@@ -1183,7 +1180,7 @@ char c;
 char **p_line,**p_completeline;
 
 p_line = p_completeline = NULL;
-if((rep = ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
+if((rep = ReadOne(FALSE,FALSE,TRUE,fin,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
 if(MyHandleLen(p_line) == 0) {
 	rep = FAILED; goto QUIT;
 	}
@@ -1203,14 +1200,14 @@ return(rep);
 }
 
 
-ReadLong(short refnum,long* p_i,long* p_pos)
+int ReadLong(FILE* fin,long* p_i,long* p_pos)
 {
 int rep,i;
 char c;
 char **p_line,**p_completeline;
 
 p_line = p_completeline = NULL;
-if((rep = ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
+if((rep = ReadOne(FALSE,FALSE,TRUE,fin,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
 if(MyHandleLen(p_line) == 0) return(FAILED);
 i = 0; while(MySpace(c=(*p_line)[i])) i++;
 if(c != '-' && c != '+' && !isdigit(c)) {
@@ -1227,7 +1224,7 @@ return(OK);
 }
 
 
-ReadUnsignedLong(short refnum,unsigned long* p_i,long* p_pos)
+int ReadUnsignedLong(FILE* fin,unsigned long* p_i,long* p_pos)
 {
 int rep,i;
 char c,*end;
@@ -1235,11 +1232,11 @@ char **p_line,**p_completeline;
 long x;
 
 p_line = p_completeline = NULL;
-if((rep = ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
+if((rep = ReadOne(FALSE,FALSE,TRUE,fin,TRUE,&p_line,&p_completeline,p_pos)) == FAILED) goto QUIT;
 if(MyHandleLen(p_line) == 0) return(FAILED);
 i = 0; while(MySpace(c=(*p_line)[i])) i++;
 if(c != '-' && c != '+' && !isdigit(c)) {
-	sprintf(Message,"\rUnexpected characters in integer: %s",(*p_line));
+	sprintf(Message,"\nUnexpected characters in integer: %s",(*p_line));
 	Println(wTrace,Message);
 	rep = FAILED;
 	goto QUIT;
@@ -1250,7 +1247,7 @@ MyLock(FALSE,(Handle)p_line);
 
 /* x = atol(*p_line);
 if(x < ZERO) {
-	sprintf(Message,"\rUnexpected negative integer: %ld",x);
+	sprintf(Message,"\nUnexpected negative integer: %ld",x);
 	Println(wTrace,Message);
 	rep = FAILED;
 	goto QUIT;
@@ -1265,7 +1262,7 @@ return(OK);
 }
 
 
-ReadFloat(short refnum,double* p_i,long* p_pos)
+int ReadFloat(FILE* fin,double* p_i,long* p_pos)
 {
 int rep,i;
 long p,q;
@@ -1273,7 +1270,7 @@ char c;
 char **p_line,**p_completeline;
 
 p_line = p_completeline = NULL;
-if((rep = ReadOne(FALSE,FALSE,TRUE,refnum,TRUE,&p_line,&p_completeline,p_pos)) == FAILED)  {
+if((rep = ReadOne(FALSE,FALSE,TRUE,fin,TRUE,&p_line,&p_completeline,p_pos)) == FAILED)  {
 	rep = FAILED; goto QUIT;
 	}
 if(MyHandleLen(p_line) == 0)  {
@@ -1296,9 +1293,8 @@ MyDisposeHandle((Handle*)&p_completeline);
 return(rep);
 }
 
-#endif /* BP_CARBON_GUI */
 
-WriteToFile(int careforhtml,int format,char* line,short refnum)
+int WriteToFile(int careforhtml,int format,char* line,short refnum)
 // Writes the line and a return to the file
 {
 int res;
@@ -1358,7 +1354,7 @@ return(OK);
 }
 
 
-NoReturnWriteToFile(char* line,short refnum)
+int NoReturnWriteToFile(char* line,short refnum)
 // Writes the line and no return to the file
 {
 long count;
@@ -1400,15 +1396,15 @@ n = GetTextLength(w);
 if(n > (TEXTEDIT_MAXCHARS - 100)) {
 	if (WindowFullAlertLevel[w] < 1) {	// this test cannot be in the previous 'if'
 		if(FileName[w][0] != '\0')
-			sprintf(Message,"Window Ô%sÕ is almost full",FileName[w]);
+			sprintf(Message,"Window '%s' is almost full",FileName[w]);
 		else
-			sprintf(Message,"Window Ô%sÕ is almost full",WindowName[w]);
+			sprintf(Message,"Window '%s' is almost full",WindowName[w]);
 		Alert1(Message);
 		WindowFullAlertLevel[w] = 1;	// 1 means we've warned about being almost full
 		}
 	}
 else if (n < 0) {
-	sprintf(Message, "Text has overflowed the Ô%sÕ window! Save your work and quit...", WindowName[w]);
+	sprintf(Message, "Text has overflowed the '%s' window! Save your work and quit...", WindowName[w]);
 	Alert1(Message);
 	EmergencyExit = TRUE;
 	WindowFullAlertLevel[w] = 3;	// 3 means overflowed
@@ -1540,7 +1536,7 @@ if (err == noErr && deleteIfExists)	{	// file exists
 	if (err != noErr) {
 		if(Beta) {
 			p2cstrcpy(LineBuff, filename);
-			sprintf(Message, "Can't delete temporary file Ô%sÕ", LineBuff);
+			sprintf(Message, "Can't delete temporary file '%s'", LineBuff);
 			Alert1(Message);
 			}
 		}
@@ -1557,7 +1553,7 @@ if (rep == OK && err == fnfErr) {		// FSSpec is good
 	else {
 		if(Beta) {
 			p2cstrcpy(LineBuff, filename);
-			sprintf(Message, "Can't create temporary file Ô%sÕ", LineBuff);
+			sprintf(Message, "Can't create temporary file '%s'", LineBuff);
 			Alert1(Message);
 			}
 		return(ABORT);
@@ -1601,7 +1597,7 @@ OSErr CloseAndDeleteTemp()
 		FlushVol(NULL, TempSpec.vRefNum);
 		if(io != noErr && Beta) {
 			TellError(11,io);
-			Alert1("Err. deleting ÔBP2.tempÕ");
+			Alert1("Err. deleting 'BP2.temp'");
 		}
 	}
 
@@ -1658,9 +1654,9 @@ Str255 fn;
 FIND:
 if(filename[0] != '\0') {
 	if(DocumentTypeName[w][0] != '\0' && w != wTrace)
-		sprintf(line3,"Locate Ô%sÕ or other %s file",filename,DocumentTypeName[w]);
+		sprintf(line3,"Locate '%s' or other %s file",filename,DocumentTypeName[w]);
 	else
-		sprintf(line3,"Locate Ô%sÕ",filename);
+		sprintf(line3,"Locate '%s'",filename);
 	}
 else {
 	if(DocumentTypeName[w][0] != '\0' && w != wTrace)
@@ -1679,7 +1675,7 @@ if(!OldFile(w,type,fn,p_spec)) {
 	}
 p2cstrcpy(line2,fn);
 if(gFileType[w] != ftiAny && gFileType[w] != ftiText && IdentifyBPFileType(p_spec) != w) {
-	sprintf(Message,"BP2 is not sure that Ô%sÕ is a(n) %s file. Do you want to load it anyway",
+	sprintf(Message,"BP2 is not sure that '%s' is a(n) %s file. Do you want to load it anyway",
 		line2, DocumentTypeName[w]);
 	memexec = ScriptExecOn; ScriptExecOn = 0;
 	rep = Answer(Message,'Y'); // default to 'Y' in case script is running
@@ -1723,7 +1719,7 @@ HideWindow(Window[wMessage]);
 // FIXME ? if (!openreally), should we be calling MyOpen().  If so, how does the
 //         file get closed later ?  - akozar
 if((io=MyOpen(p_spec,fsCurPerm,p_refnum)) != noErr && io != opWrErr) {
-	sprintf(Message,"Can't open Ô%sÕ",filename);
+	sprintf(Message,"Can't open '%s'",filename);
 	Alert1(Message);
 	TellError(83,io);
 	InputOn--;
@@ -1732,7 +1728,7 @@ if((io=MyOpen(p_spec,fsCurPerm,p_refnum)) != noErr && io != opWrErr) {
 if(io == opWrErr) {
 	io = SetFPos(*p_refnum,fsFromStart,ZERO);
 	if(io != noErr) {
-		sprintf(Message,"Can't reopen Ô%sÕ",filename);
+		sprintf(Message,"Can't reopen '%s'",filename);
 		Alert1(Message);
 		TellError(84,io);
 		InputOn--;
@@ -1816,8 +1812,9 @@ if(diff) {
 	pos = ZERO;
 	}
 if(fileversion > Version) {
+	// It would be unusual for VersionName[fileversion] to exist if fileversion > Version
 	sprintf(Message,
-		"Can't use file version %s\rbecause ÔBP2Õ version is %s.\r",
+		"Can't use file version %s\nbecause 'BP2' version is %s.\n",
 		VersionName[fileversion],VersionName[Version]);
 	if(!ScriptExecOn) Alert1(Message);
 	else PrintBehind(wTrace,Message);
@@ -1839,7 +1836,7 @@ return(r);
 }
 
 
-CheckVersion(int *p_iv, char **p_line, char name[])
+int CheckVersion(int *p_iv, char **p_line, const char name[])
 {
 int diff,rep,iv;
 char version[VERSIONLENGTH];
@@ -1857,7 +1854,7 @@ for(iv=0; iv < MAXVERSION; iv++)
 	if((diff = strcmp(version,VersionName[iv])) == 0) break;
 if(iv > Version && name[0] != '\0') {
 	sprintf(Message,
-		"File Ô%sÕ was created with a version of BP2 more recent than %s. Try to read it anyway (risky)",
+		"File '%s' was created with a version of BP2 more recent than %s. Try to read it anyway (risky)",
 			name,VersionName[Version]);
 	rep = Answer(Message,'N');
 	if(rep != YES) goto ERR;
@@ -1993,7 +1990,7 @@ if(refnum == -1) {
 	return(FAILED);
 	}
 if(w >= 0 && IsHTML[w]) {
-	WriteToFile(NO,DOS,"\r\n<HR>\r\n</BODY>\r\n</HTML>",refnum);
+	WriteToFile(NO,DOS,"\r\n<HR>\r\n</BODY>\r\n</HTML>",refnum); // FIXME? Will this write CR-CR-LF on Windows?
 	}
 else NoReturnWriteToFile("\0",refnum);
 return(OK);

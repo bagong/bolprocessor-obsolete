@@ -192,30 +192,7 @@ NumInstalledDrivers = 0;
 InstalledDrivers = NULL;
 InstalledMenuItems = NULL;
 
-#if USE_BUILT_IN_MIDI_DRIVER
-Port = 1; /* MIDI output on "Modem" port */
-/* Port = 2; MIDI output on "Printer" port */
-switch(Port) {
-	case 1:
-		Portbit = PORTA; break;
-	case 2:
-		Portbit = PORTB; break;
-	}
-#endif
-
 Nbytes = Tbytes2 = ZERO;
-
-#if USE_OMS
-BytesReceived = BytesProcessed = ZERO;
-MaxOMSinputBufferSize = DEFTMAXOMSINPUTBUFFERSIZE;
-OMSinputOverflow = FALSE; DownBuffer = TRUE;
-h_OMSinputMessage = NULL;
-gChosenInputID = gChosenInputIDbydefault = 0;
-gChosenOutputID = 0;
-gInputMenu = gOutputMenu = NULL;
-gOutNodeRefNum = OMSInvalidRefNum;
-OMSoutputName[0] = OMSinputName[0] = '\0';
-#endif
 
 MIDIinputFilter = MIDIinputFilterstartup = FILTER_ALL_ON;
 MIDIoutputFilter = MIDIoutputFilterstartup = FILTER_ALL_OFF; // turn off Midi-thru by default - 061307 akozar
@@ -370,7 +347,7 @@ FileSaveMode = ALLSAME;
 FileWriteMode = NOW;
 #endif /* BP_CARBON_GUI */
 ConvertMIDItoCsound = FALSE;
-MIDIfileType = 0;
+MIDIfileType = 1;
 CsoundFileFormat = MAC;
 
 for(i=0; i < 6; i++) {
@@ -420,8 +397,8 @@ MaxScript = MAXEVENTSCRIPT; Jscriptline = 0;
 p_Script = NULL;
 InitThere = 0; JustCompiled = FALSE;
 MIDIbytestate = MIDIfileTrackNumber = 0;
-MIDItracklength = MidiLen_pos = ZERO;
-Midi_msg = OldMIDIfileTime = 0;
+MidiLen_pos = ZERO;
+MIDItracklength = Midi_msg = OldMIDIfileTime = ZERO;
 LoadedCsoundInstruments = FALSE;
 
 #if BP_CARBON_GUI
@@ -618,7 +595,8 @@ ParIDbp2 = info.processAppSpec->parID;
 RefNumbp2 = info.processAppSpec->vRefNum;
 #endif /* BP_CARBON_GUI */
 
-MIDIRefNum = HelpRefnum = TempRefnum = TraceRefnum = -1;
+OpenMIDIfilePtr = NULL;
+HelpRefnum = TempRefnum = TraceRefnum = -1;
 CsRefNum = -1; CsScoreOpened = MIDIfileTrackEmpty = FALSE;
 for(i=0; i < WMAX; i++) {
 	WindowParID[i] = ParIDstartup;
@@ -813,7 +791,7 @@ return(OK);
 Ctrlinit(void)
 {
 int i,igram,irul,j,k;
-/* Print(wTrace,"\rCtrl values:\r"); */
+/* Print(wTrace,"\nCtrl values:\n"); */
 
 if(Gram.p_subgram == NULL || Gram.number_gram < 1) return(OK);
 for(i=1; i < MAXPARAMCTRL; i++) {
@@ -1077,6 +1055,8 @@ for(w=MAXWIND; w < WMAX; w++) {
 	}
 if(bad) return(FAILED);
 ClearWindow(TRUE,wMIDIorchestra);
+#else
+Jbutt = 28;  // number of buttons must not be less than that found within settings files
 #endif /* BP_CARBON_GUI */
 
 return(OK);
@@ -1703,7 +1683,7 @@ if(!gestaltErr) {
 		}
 #endif
 	if(gestaltAnswer < 0x002) {
-		sprintf(Message,"BP2 requires at least a 68020 processor.\rThis machine has a %s processor",
+		sprintf(Message,"BP2 requires at least a 68020 processor.\nThis machine has a %s processor",
 			processor[gestaltAnswer]);
 		ParamText(in_place_c2pstr(Message), "\p", "\p", "\p");
 		StopAlert(OKAlert, NULL);
@@ -1784,7 +1764,7 @@ InsertMenu(myMenus[appleM],0) ;
 #endif
 
 for (i = fileM; i <= MAXMENU; i++) {
-	/* Also loading ‘Script’ menu */
+	/* Also loading 'Script' menu */
 	myMenus[i] = GetMenu(MenuIDoffset + i);
 	InsertMenu(myMenus[i],0);
 	}
@@ -2030,7 +2010,7 @@ else {
 		CloseMe(&refnum);
 //		if(Beta) goto MAKE;
 		if((today-secs) > (86400L * 30L)) {
-			Alert1("This copy of BP2 has been used for more than 30 days.\rIt's a good idea to click the ‘Register’ button...");
+			Alert1("This copy of BP2 has been used for more than 30 days.\nIt's a good idea to click the 'Register' button...");
 			goto REGISTERED;
 			}
 		goto OUT;
@@ -2049,7 +2029,7 @@ MAKE:
 		CopyPString(PascalLine,reply.sfFile.name);
 		result = CreateFile(-1,-1,1,PascalLine,&reply,&refnum);
 		if(result != OK) {
-			Alert1("Unexpected problem creating the registration file.  Is the hard disk full?\rContact the authors");
+			Alert1("Unexpected problem creating the registration file.  Is the hard disk full?\nContact the authors");
 			goto OUT;
 			}
 		WriteHeader(-1,refnum,reply.sfFile);
@@ -2060,7 +2040,7 @@ MAKE:
 		io = FSpGetFInfo(&spec,&fndrinfo);
 		fndrinfo.fdFlags |= fInvisible;
 		io = FSpSetFInfo(&spec,&fndrinfo);
-		Alert1("This is a fresh copy of BP2.\rIt's a good idea to click the ‘Register’ button...");
+		Alert1("This is a fresh copy of BP2.\nIt's a good idea to click the 'Register' button...");
 REGISTERED:
 		Alert1("If you already registered, contact <bel@kagi.com> to get an activation key");
 		}
@@ -2166,7 +2146,7 @@ else {
 	}
 result = CreateFile(-1,-1,1,PascalLine,&reply,&refnum);
 if(result != OK) {
-	Alert1("Unexpected problem recording your identity. Is the hard disk full?\rContact the authors");
+	Alert1("Unexpected problem recording your identity. Is the hard disk full?\nContact the authors");
 	return(ABORT);
 	}
 WriteHeader(-1,refnum,reply.sfFile);
@@ -2214,15 +2194,15 @@ if(io == noErr) {
 		}
 	if(today > secs) {
 		if(((today-secs) < (86400L * 70L)) && (io=MyOpen(&spec,fsRdPerm,&y2krefnum)) == noErr) {
-			Alert1("Welcome to the third millennium!\r(Any idea whether this software is y2k compliant?)");
+			Alert1("Welcome to the third millennium!\n(Any idea whether this software is y2k compliant?)");
 			while(Button());
 			BPActivateWindow(SLOW,wData);
 			BPActivateWindow(SLOW,wGrammar);
-			Println(wNotice,"\r\rPhew! BP2 survived the shock...\r");
-			Println(wNotice,"You'd better check your bank account, retirement planning, etc.\r");
-			Println(wNotice,"It's an auspicious day to click the ‘Register’ button if you never tried it and the bank hasn't screwed up your account ;-)\r\r");
-			Println(wNotice,"With you, forever,\r\r");
-			Println(wNotice,"•    •   •  • • Bol Processor folks • •  •   •    •\r\r");
+			Println(wNotice,"\n\nPhew! BP2 survived the shock...\n");
+			Println(wNotice,"You'd better check your bank account, retirement planning, etc.\n");
+			Println(wNotice,"It's an auspicious day to click the 'Register' button if you never tried it and the bank hasn't screwed up your account ;-)\n\n");
+			Println(wNotice,"With you, forever,\n\n");
+			Println(wNotice,"*    *   *  * * Bol Processor folks * *  *   *    *\n\n");
 			Println(wNotice,"             (Click mouse to continue)");
 			while(!Button());
 			FSClose(y2krefnum);
@@ -2232,7 +2212,7 @@ if(io == noErr) {
 	}
 else {
 	if(today < secs) {
-		Alert1("You should get the y2k certificate for this program.\rContact <bel@kagi.com>");
+		Alert1("You should get the y2k certificate for this program.\nContact <bel@kagi.com>");
 		}
 	}
 return(OK);
@@ -2258,7 +2238,7 @@ int CheckDate()
 	GetDateTime(&today);
 	if(today < secs) {
 		reply = Answer("BP2 requires a 68020 processor and at least System 4 to run. "
-				   "This isn't 1984 anymore!!\rContinue anyways?", 'Y');
+				   "This isn't 1984 anymore!!\nContinue anyways?", 'Y');
 	}
 	if (reply == YES)  return(OK);
 	else return(FAILED);

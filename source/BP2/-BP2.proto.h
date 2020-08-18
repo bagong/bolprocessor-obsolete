@@ -58,28 +58,6 @@ int main (int, char*[]);
 int LaunchOSXApplication(OSType signature);
 #endif
 
-/* in OMS.c */
-#if USE_OMS
-OSErr InitOMS(OSType appSignature);
-int ExitOMS(void);
-void CheckSignInOrOutOfMIDIManager(void);
-int OpenOrCloseConnection(int,int);
-OMSAPI(void) MyAppHook(OMSAppHookMsg*,long);
-OMSAPI(void) MyReadHook(OMSMIDIPacket*,long);
-void SignOutFromMIDIMgr(void);
-void SignInToMIDIMgr(void);
-int TryOMSoutput(void);
-int SetOMSdriver(void);
-void TestClientVirtualNodes(void);
-int OutputMenuSideEffects(void);
-int InputMenuSideEffects(void);
-int PushMIDIdata(unsigned char,unsigned char*);
-int PullMIDIdata(MIDI_Event*);
-short FindOMSdevice(int,char*);
-short GetIDandName(char*);
-int StoreDefaultOMSinput(void);
-#endif
-
 /* CoreMIDI driver functions (in CoreMIDIdriver.c) */
 #if BP_MACHO
 OSStatus InitCoreMidiDriver();
@@ -449,7 +427,7 @@ int Alert1(char[]);
 int SetOptionMenu(int);
 int GetValues(int);
 int SetButtons(int);
-int CheckVersion(int*,char**,char[]);
+int CheckVersion(int*,char**,const char[]);
 int SelectBehind(long,long,TextHandle);
 int TextDeleteBehind(int);
 int SetResumeStop(int);
@@ -609,7 +587,7 @@ int ResetTicksInItem(Milliseconds,int*,double*,double*,int*,int*,long,int*,char*
 int FindTickValues(long x,int*,int*,int*);
 int Ctrl_adjust(MIDI_Event*,int,int,int);
 int ChangeStatus(int,int,int);
-int MakeMIDIFile(char*);
+// int MakeMIDIFile(OutFileInfo* finfo);
 int MakeCsFile(const char*);
 int CloseMIDIFile(void);
 int CloseCsScore(void);
@@ -777,8 +755,6 @@ int mInputOutputSettings(int);
 int mTimeAccuracy(int);
 int mBufferSize(int);
 int mGraphicSettings(int);
-int mModemPort(int);
-int mPrinterPort(int);
 int mMIDIfilter(int);
 int mObjectPrototypes(int);
 int mPause(int);
@@ -800,7 +776,7 @@ int LoadTimeBase(short);
 int SaveTimeBase(FSSpec*);
 int SaveObjectPrototypes(FSSpec*);
 int SaveSettings(int,int,Str255,FSSpec*);
-int LoadSettings(int,int,int,int,int*);
+int LoadSettings(const char *filename, int startup);
 OSErr	FindBPPrefsFolder(FSSpecPtr location);
 OSErr	FindFileInPrefsFolder(FSSpecPtr location, StringPtr filename);
 OSErr	GetFolderID(const FSSpecPtr loc, long* dirID);
@@ -857,11 +833,11 @@ int FindVersion(char**,char*);
 int ShowLengthType(int);
 int OutlineTextInDialog(int,int);
 int ReadFile(int,short);
-int ReadOne(int,int,int,short,int,char***,char***,long*);
-int ReadInteger(short,int*,long*);
-int ReadLong(short,long*,long*);
-int ReadUnsignedLong(short,unsigned long*,long*);
-int ReadFloat(short,double*,long*);
+int ReadOne(int,int,int,FILE*,int,char***,char***,long*);
+int ReadInteger(FILE*,int*,long*);
+int ReadLong(FILE*,long*,long*);
+int ReadUnsignedLong(FILE*,unsigned long*,long*);
+int ReadFloat(FILE*,double*,long*);
 int WriteToFile(int,int,char*,short);
 int NoReturnWriteToFile(char*,short);
 int GetHeader(int);
@@ -1063,9 +1039,8 @@ int SetTimeObjects(int,unsigned long**,unsigned long,int*,int*,long*,long*,short
 Rect Set_Window_Drag_Boundaries(void);
 int MustBeSaved(int);
 int GetMIDIfileName(void);
-int WriteVarLen(short,long,long*);
-int Writedword(short,dword,int);
-int WriteReverse (short,long);
+int Writedword(FILE*, dword, int);
+int WriteReverse(FILE*, dword);
 int WriteMIDIbyte(Milliseconds,byte);
 int AcceptControl(tokenbyte);
 int TellComplex(void);
@@ -1110,6 +1085,9 @@ Rect LongRectToRect(Rect);
 Rect TextGetViewRect(TextHandle th);
 #endif
 long LineStartPos(int,int,int);
+
+// new global functions in the console build
+void CloseFile(FILE* file);
 
 #if !TARGET_API_MAC_CARBON
 /* Provide backwards compatibility for System 7 in the non-Carbon build by

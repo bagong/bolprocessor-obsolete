@@ -60,22 +60,6 @@ if(EmergencyExit) {
 	
 EventState = NO;
 
-/*	Use this deferral mechanism of dealing with MIDI Manager in response
-	to null events.  The appHook may be called at a level where the application's
-	resources are not available.  But now the resources are available. */
-#if USE_OMS
-if(Oms && !InitOn) {
-	CheckSignInOrOutOfMIDIManager();
-	if(gNodesChanged) {
-		gNodesChanged = FALSE;
-		if(gInputMenu != NULL) RebuildOMSDeviceMenu(gInputMenu);
-		if((rep=InputMenuSideEffects()) != OK) return(rep);
-		if(gOutputMenu != NULL) RebuildOMSDeviceMenu(gOutputMenu);
-		if((rep=OutputMenuSideEffects()) != OK) return(rep);
-		}
-	}
-#endif
-	
 if(!AlertOn) {
 	MaintainCursor();
 	MaintainMenus();
@@ -140,20 +124,7 @@ switch(p_event->what) {
 		rep = DoHighLevelEvent(p_event);
 		if(EventState != NO) return(EventState);
 		break;
-	case app4Evt:	/* Used by OMS */
-#if USE_OMS
-		if(Oms && (p_event->message & 0x01000000)) {	/* suspend/resume */
-			if(p_event->message & 0x00000001) {
-				OMSResume('Bel0');
-				// SetDriver();
-				/* $$$ add whatever else to resume your application */
-				}
-			else {
-				OMSSuspend('Bel0');
-				/* $$$ add whatever else to suspend your application */
-				}
-			}
-#endif
+	case app4Evt:	/* was used by OMS */
 		break;
 	case mouseDown:
 		Panic = FALSE;
@@ -188,13 +159,6 @@ switch(p_event->what) {
 					}
 				if(whichwindow == GetDialogWindow(FileSavePreferencesPtr)) {
 					if(GetFileSavePreferences() != OK) return(OK);
-					}
-				if(whichwindow == GetDialogWindow(OMSinoutPtr)) {
-#if USE_OMS
-					rep = StoreDefaultOMSinput();
-#endif
-					ClearMessage();
-					if(rep == EXIT) return(rep);
 					}
 				if(w == Nw) {
 					if(TrackGoAway(whichwindow,p_event->where)) GoAway(w);
@@ -247,15 +211,7 @@ switch(p_event->what) {
 				break;
 			case inDrag:
 				PrintEvent(p_event, "case inDrag", whichwindow);
-				if(Oms && !InitOn && whichwindow == GetDialogWindow(OMSinoutPtr)) {
-#if USE_OMS
-					if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-					if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-#endif
-					}
-				else {
-					Jcontrol = -1; ReadKeyBoardOn = FALSE;
-					}
+				Jcontrol = -1; ReadKeyBoardOn = FALSE;
 				if(whichwindow != FrontWindow()
 						&& GetDialogWindow(ResumeStopPtr) != FrontWindow()) {
 					Help = FALSE;
@@ -323,34 +279,7 @@ switch(p_event->what) {
 						break;	
 						}
 					}
-#if USE_OMS
-				if(Oms && !InitOn && whichwindow == GetDialogWindow(OMSinoutPtr)) {
-					pt = p_event->where;ShowWindow(GetDialogWindow(OMSinoutPtr));
-					SelectWindow(GetDialogWindow(OMSinoutPtr));
-					if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-					if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-					SetPortWindowPort(whichwindow);
-					GlobalToLocal(&pt);
-					found = FALSE;
-					if(gInputMenu != NULL && TestOMSDeviceMenu(gInputMenu,pt)) {
-						if(ClickOMSDeviceMenu(gInputMenu)) {
-							found = TRUE;
-							if((rep=InputMenuSideEffects()) == EXIT) return(EXIT);
-							}
-						}
-					else if(gOutputMenu != NULL && TestOMSDeviceMenu(gOutputMenu,pt)) {
-						if(ClickOMSDeviceMenu(gOutputMenu)) {
-							found = TRUE;
-							OutputMenuSideEffects();
-							}
-						}
-					if(!found) {
-						if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-						if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-						}
-					break;
-					}
-#endif
+
 				/* These windows "float", so we do content clicks when not the front window */
 				if(whichwindow == GetDialogWindow(ResumeStopPtr)
 							|| whichwindow == GetDialogWindow(ResumeUndoStopPtr)
@@ -601,7 +530,7 @@ int DoKeyCommand(EventRecord *p_event)
 				MaintainMenus();
 				BPActivateWindow(SLOW,wControlPannel);
 				if(Mute) {
-					sprintf(Message,"MUTE is ON…   cmd-space will turn if off");
+					sprintf(Message,"MUTE is ON...   cmd-space will turn if off");
 					FlashInfo(Message);
 					ShowMessage(TRUE,wMessage,Message);
 					}
@@ -725,39 +654,39 @@ if(w != wMessage && Editable[w] && !LockedWindow[w]) {
 	if(reset) {
 		switch(w) {
 			case wCsoundTables:
-				sprintf(line,"f1 0 256 10 1 ; This table may be changed\r\r");
+				sprintf(line,"f1 0 256 10 1 ; This table may be changed\n\n");
 				break;
 			case wData:
-				sprintf(line,"%s<alphabet>\r%s<interactive code file>\r%s<settings file>\r%s<glossary file>\r%s<time base file>\r%s<MIDI orchestra file>\r<Generate or type items here>\r",
+				sprintf(line,"%s<alphabet>\n%s<interactive code file>\n%s<settings file>\n%s<glossary file>\n%s<time base file>\n%s<MIDI orchestra file>\n<Generate or type items here>\n",
 					FilePrefix[wAlphabet],FilePrefix[wInteraction],
 					FilePrefix[iSettings],FilePrefix[wGlossary],FilePrefix[wTimeBase],
 					FilePrefix[wMIDIorchestra]);
 				break;
 			case wGrammar:
-				sprintf(line,"%s<alphabet>\r%s<interactive code file>\r%s<settings file>\r%s<glossary file>\r%s<time base file>\r%s<MIDI orchestra file>\r\r// Put grammar rules here\r\rCOMMENT:\rThis is an empty grammar…",
+				sprintf(line,"%s<alphabet>\n%s<interactive code file>\n%s<settings file>\n%s<glossary file>\n%s<time base file>\n%s<MIDI orchestra file>\n\n// Put grammar rules here\n\nCOMMENT:\nThis is an empty grammar...",
 					FilePrefix[wAlphabet],FilePrefix[wInteraction],
 					FilePrefix[iSettings],FilePrefix[wGlossary],FilePrefix[wTimeBase],
 					FilePrefix[wMIDIorchestra]);
 				break;
 			case wAlphabet:
-				sprintf(line,"%s<sound-object file>\r%s<keyboard file>\r%s<interactive code file>\r%s<MIDI orchestra file>\r",
+				sprintf(line,"%s<sound-object file>\n%s<keyboard file>\n%s<interactive code file>\n%s<MIDI orchestra file>\n",
 					FilePrefix[iObjects],FilePrefix[wKeyboard],FilePrefix[wInteraction],
 					FilePrefix[wMIDIorchestra]);
 				break;
 			case wInteraction:
-				sprintf(line,"BP2 script\r// Here you may write a script fixing the interactive environment (IN... instructions) or load a ‘%s’ interactive code file.\r",
+				sprintf(line,"BP2 script\n// Here you may write a script fixing the interactive environment (IN... instructions) or load a '%s' interactive code file.\n",
 					FilePrefix[wInteraction]);
 				break;
 			case wGlossary:
-				sprintf(line,"BP2 script\r// Here you may write the glossary (‘Define…’ instructions) or load a ‘%s’ glossary file.\r",
+				sprintf(line,"BP2 script\n// Here you may write the glossary ('Define...' instructions) or load a '%s' glossary file.\n",
 					FilePrefix[wGlossary]);
 				break;
 			case wScript:
-				sprintf(line,"BP2 script\r// Here you may write a script (See ‘Script’ menu) or load a ‘%s’ script file.\r",
+				sprintf(line,"BP2 script\n// Here you may write a script (See 'Script' menu) or load a '%s' script file.\n",
 					FilePrefix[wScript]);
 				break;
 			case wStartString:
-				sprintf(line,"S\r");
+				sprintf(line,"S\n");
 				break;
 			default: sprintf(line,"\0");
 			}
@@ -773,7 +702,7 @@ if(w != wMessage && Editable[w] && !LockedWindow[w]) {
 			case wInteraction:
 			case wGlossary:
 			case wScript:
-				SetSelect((long) strlen("BP2 script\r"),count,TEH[w]);
+				SetSelect((long) strlen("BP2 script\n"),count,TEH[w]);
 				break;
 			default:
 				SetSelect(count,count,TEH[w]);
@@ -971,7 +900,7 @@ if((LastAction == TYPEWIND || LastAction == TYPEDLG)
 	&& (Editable[newNw] || HasFields[newNw]) && Nw != newNw) LastAction = NO;
 if(TypeScript && ScriptRecOn && Nw != newNw) {
 	TypeScript = FALSE;
-	PrintBehind(wScript,"\r");
+	PrintBehind(wScript,"\n");
 	}
 if(Nw == newNw) goto NEXT;
 if(Nw > -1 && (rep=GetDialogValues(Nw)) != OK) return(rep);
@@ -1346,12 +1275,6 @@ else {
 			|| theWindow == GetDialogWindow(SixteenPtr)
 			|| theWindow == GetDialogWindow(MIDIprogramPtr)
 			|| theWindow == GetDialogWindow(OMSinoutPtr)) {
-#if USE_OMS
-		if(Oms && !InitOn && theWindow == GetDialogWindow(OMSinoutPtr)) {
-			if(gInputMenu != NULL) DrawOMSDeviceMenu(gInputMenu);
-			if(gOutputMenu != NULL) DrawOMSDeviceMenu(gOutputMenu);
-			}
-#endif
 		BPUpdateDialog(GetDialogFromWindow(theWindow));
 		}
 	}
@@ -1799,7 +1722,7 @@ if((changed || FileName[w][0] != '\0') && w != iSettings && w != wTrace
 	}
 else if (w == iSettings) {
 	if (Created[iSettings] && FileName[iSettings][0] != 0) {
-		sprintf(Message, "Save ‘%s’", FileName[iSettings]);
+		sprintf(Message, "Save '%s'", FileName[iSettings]);
 		c2pstrcpy(PascalLine, Message);
 		SetMenuItemText(myMenus[fileM], fmSaveSettings, PascalLine);
 		}
@@ -2047,7 +1970,7 @@ if((!Dirty[w] && !LockedWindow[w] && (NeedSave[w] || HasFields[w]))
 		|| w == iSettings) {
 	Dirty[w] = TRUE;
 	MaintainMenus();
-	DrawMenuBar();	/* Needed to update the “save” command */
+	DrawMenuBar();	/* Needed to update the "save" command */
 	}
 return(OK);
 }
