@@ -31,7 +31,8 @@ if(isset($_POST['create_object'])) {
 	$new_object = str_replace(' ','-',$new_object);
 	$new_object = str_replace('"','',$new_object);
 	if($new_object <> '') {
-		$template = $bp_php_path."/object_template";
+	//	$template = $bp_php_path."/object_template";
+		$template = "object_template";
 		$template_content = @file_get_contents($template,TRUE);
 		$new_object_file = $temp_dir.$temp_folder.SLASH.$new_object.".txt";
 		$handle = fopen($new_object_file,"w");

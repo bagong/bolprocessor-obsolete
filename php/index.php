@@ -6,7 +6,7 @@ $url_this_page = $this_page = "index.php";
 
 if($path <> '') {
 	$url_this_page .= "?path=".urlencode($path);
-	$dir = realpath($bp_application_path.SLASH.urldecode($path));
+	$dir = $bp_application_path.$path;
 	$table = explode(SLASH,$path);
 	if(($n=count($table)) > 1) {
 		$upper_dir = $table[$n - 2];
@@ -81,7 +81,8 @@ if(isset($_POST['create_timebase'])) {
 		else {
 			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
-			$template = $bp_php_path."/timebase_template";
+		//	$template = $bp_php_path."/timebase_template";
+			$template = "timebase_template";
 			$template_content = @file_get_contents($template,TRUE);
 			fwrite($handle,$template_content."\n");
 			fclose($handle);
@@ -90,12 +91,13 @@ if(isset($_POST['create_timebase'])) {
 	else unset($_POST['create_timebase']);
 	}
 
-$folder = str_replace($bp_parent_path.SLASH,'',$dir);
+// $folder = str_replace($bp_parent_path.SLASH,'',$dir);
+$folder = $dir;
 echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(is_integer(strpos($dir,SLASH.$bp_home_dir)) AND $folder <> $bp_home_dir.SLASH."php" AND $extension <> "temp") {
+if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $folder <> $bp_application_path."php" AND $extension <> "temp") {
 	if(!isset($_POST['create_grammar'])) {
 		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<p style=\"text-align:left;\">";

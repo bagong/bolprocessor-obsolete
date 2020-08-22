@@ -106,20 +106,26 @@ echo "<h3>Grammar file “".$filename."”</h3>";
 if(isset($_POST['compilegrammar'])) {
 	if(isset($_POST['alphabet_file'])) $alphabet_file = $_POST['alphabet_file'];
 	else $alphabet_file = '';
-	if(isset($_POST['note_convention'])) $note_convention = $_POST['note_convention'];
-	else $note_convention = '';
+/*	if(isset($_POST['note_convention'])) $note_convention = $_POST['note_convention'];
+	else $note_convention = ''; */
+	if(isset($_POST['settings_file'])) $settings_file = $_POST['settings_file'];
+	else $settings_file = '';
 	echo "<p id=\"timespan\">Compiling ‘".$filename."’</p>";
 	$initial_time = filemtime($grammar_file);
 //	echo date("F d Y H:i:s",$initial_time)."<br />";
-	$application_path = $bp_application_path.SLASH;
-	$olddir = getcwd();
-	chdir($dir);
+	$application_path = $bp_application_path;
+/*	$olddir = getcwd();
+	chdir($dir); */
 	$command = $application_path."bp compile";
-	if($note_convention <> '') $command .= " --".$note_convention;
-	$thisgrammar = $filename;
+	// if($note_convention <> '') $command .= " --".$note_convention;
+	$thisgrammar = $dir.$filename;
 	if(is_integer(strpos($thisgrammar,' ')))
 		$thisgrammar = '"'.$thisgrammar.'"';
-	$command .= " ".$thisgrammar;
+	$command .= " -gr ".$thisgrammar;
+	
+	if($settings_file <> '')
+		$command .= " -se ".$dir.$settings_file;
+		
 	$thisalphabet = $alphabet_file;
 	if(is_integer(strpos($thisalphabet,' ')))
 		$thisalphabet = '"'.$thisalphabet.'"';
@@ -130,7 +136,7 @@ if(isset($_POST['compilegrammar'])) {
 	$no_error = FALSE;
 	exec($command,$o);
 	$n_messages = count($o);
-	chdir($olddir);
+//	chdir($olddir);
 	if($n_messages > 0) {
 		for($i=0; $i < $n_messages; $i++) {
 			$mssg = $o[$i];
@@ -151,7 +157,7 @@ else {
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
-	echo "Location of output files: <font color=\"blue\">".$bp_home_dir.SLASH."</font>";
+	echo "Location of output files: <font color=\"blue\">".$bp_application_path."</font>";
 	echo "<input type=\"text\" name=\"output_folder\" size=\"25\" value=\"".$output_folder."\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"change_output_folder\" value=\"SAVE THIS LOCATION\"><br />➡ global setting for all projects in this session.<br /><i>Folder will be created if necessary…</i>";
 	echo "</form>";
@@ -196,6 +202,7 @@ echo "<td><p>Name of output file (with proper extension):<br /><input type=\"tex
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savegrammar\" value=\"SAVE\"></p>";
 echo "</td>";
 echo "<td><p style=\"text-align:left;\">";
+if($test) echo "file_format = ".$file_format."<br />";
 echo "<input type=\"radio\" name=\"file_format\" value=\"\"";
 if($file_format == "") echo " checked";
 echo ">No file";
@@ -211,21 +218,29 @@ echo ">CSOUND file";
 echo "</p></td>";
 echo "<td style=\"text-align:right; vertical-align:middle;\" rowspan=\"2\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savegrammar\" value=\"SAVE ‘".$filename."’\"><br /><br />";
+
+echo "<input type=\"settings_file\" name=\"settings_file\" value=\"".$settings_file."\">";
+
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"compilegrammar\" value=\"COMPILE GRAMMAR\"><br /><br />";
 if($produce_all_items > 0) $action = "produce-all";
 else $action = "produce";
 $link = "produce.php?instruction=".$action."&grammar=".urlencode($grammar_file);
 if($alphabet_file <> '')
 	$link .= "&alphabet=".urlencode($alphabet_file);
-if($note_convention <> '')
-	$link .= "&note_convention=".$note_convention;
+/* if($note_convention <> '')
+	$link .= "&note_convention=".$note_convention; */
+if($settings_file <> '')
+	$link .= "&settings_file=".urlencode($settings_file);
+if($test) echo "output = ".$output."<br />";
+if($test) echo "output_file = ".$output_file."<br />";
 $link .= "&output=".urlencode($output.SLASH.$output_file)."&format=".$file_format;
 if($show_production > 0)
 	$link .= "&show_production=1";
 if($trace_production > 0)
 	$link .= "&trace_production=1";
 $link .= "&here=".urlencode($here);
-echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','produce','width=800,height=800,left=200'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
+$window_name = window_name($filename);
+echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$link."','".$window_name."','width=800,height=800,left=200'); return false;\" type=\"submit\" name=\"produce\" value=\"PRODUCE ITEM(s)\">";
 echo "</td></tr>";
 echo "<tr><td colspan=\"2\"><p style=\"text-align:center;\">➡ <i>You can change above settings, then save the grammar…</i></p></td></tr>";
 echo "</table>";

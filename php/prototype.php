@@ -59,7 +59,9 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			$midi = new Midi();
 			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi_import,$midi,$midi_file);
 			$division = $_POST['division'] = $midi_text_bytes[0];
+		//	$division = $_POST['division'] = 1000;
 			$tempo = $_POST['tempo'] = $midi_text_bytes[1];
+		//	$tempo = $_POST['tempo'] = 1000000;
 			$timesig = $_POST['timesig'] = "0 TimeSig ".$midi_text_bytes[2]." ".$midi_text_bytes[3]." ".$midi_text_bytes[4];
 			$temp_bytes = array();
 			for($i = 5; $i < count($midi_text_bytes); $i++)
@@ -69,17 +71,20 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			}
 		}
 	}
-else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
+// else echo "<p>Object file: <font color=\"blue\">".str_replace($root,'',$object_file)."</font>";
+else echo "<p>Object file: <font color=\"blue\">".$object_file."</font>";
 
 if(isset($_POST['division']) AND $_POST['division'] > 0) $division = $_POST['division'];
 else $division = 1000;
 if(isset($_POST['tempo']) AND $_POST['tempo'] > 0) $tempo = $_POST['tempo'];
 else $tempo = 1000000;
+/* if(isset($_POST['old_tempo']) AND $_POST['old_tempo'] > 0) $old_tempo = $_POST['old_tempo'];
+else $old_tempo = 1000000; */
 if(isset($_POST['timesig']) AND $_POST['timesig'] <> '') $timesig = $_POST['timesig'];
 else $timesig = "0 TimeSig 4/4 24 8";
 
 if(isset($_POST['savethisprototype']) OR isset($_POST['suppress_pressure']) OR isset($_POST['suppress_pitchbend']) OR isset($_POST['suppress_polyphonic_pressure']) OR isset($_POST['suppress_volume']) OR isset($_POST['adjust_duration']) OR isset($_POST['adjust_beats']) OR isset($_POST['adjust_duration']) OR isset($_POST['silence_before']) OR isset($_POST['silence_after']) OR isset($_POST['add_allnotes_off']) OR isset($_POST['suppress_allnotes_off']) OR isset($_POST['quantize_NoteOn']) OR isset($_POST['delete_midi']) OR isset($_POST['cancel'])) {
-	if($test) echo "<br />object_file = ".$object_file."<br />";
+	// if($test) echo "<br />object_file = ".$object_file."<br />";
 	echo "<span id=\"timespan\">&nbsp;&nbsp;<font color=\"red\">➡ Saving this file...</font></span>";
 	$prototype_file = $object_file;
 	$handle = fopen($prototype_file,"w");
@@ -480,6 +485,8 @@ echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file."\">";
 echo "<input type=\"hidden\" name=\"source_file\" value=\"".$source_file."\">";
 echo "<input type=\"hidden\" name=\"temp_dir\" value=\"".$temp_dir."\">";
 
+// echo "<input type=\"hidden\" name=\"old_tempo\" value=\"".$old_tempo."\">";
+
 $object_comment = recode_tags($object_comment);
 $size = strlen($object_comment);
 echo "<p>Comment on this prototype = <input type=\"text\" name=\"object_comment\" size=\"".$size."\" value=\"".$object_comment."\"></p>";
@@ -524,7 +531,8 @@ echo "<p>TIME REFERENCE</p>";
 $Trefc = $object_param[$j++];
 $Tref = $Trefc * $object_param[1];
 if(isset($_POST['Tref'])) $Tref = $_POST['Tref'];
-echo "Tref = <input type=\"text\" name=\"Tref\" size=\"5\" value=\"".$Tref."\"> ms ➡ ";
+if(isset($_FILES['mid_upload']) AND isset($_POST['tempo'])) $Tref = $tempo / 1000;
+echo "Tref = <input type=\"text\" name=\"Tref\" size=\"10\" value=\"".$Tref."\"> ms ➡ ";
 if($Tref > 0) echo "this object is <font color=\"blue\">striated</font> (it has a pivot) and Tref is the period of its reference metronome.<br /><i>Set this value to zero if the object is smooth (no pivot).</i><br />";
 else echo "this object is <font color=\"blue\">smooth</font> (it has no pivot)<br />";
 
@@ -1381,9 +1389,7 @@ $duration_warning = '';
 $change_beats = FALSE;
 if(isset($_POST['adjust_beats'])) {
 	$NewBeats = $_POST['NewBeats'];
-//	$NewDuration = round($Tref * $NewBeats * $resolution);
 	$NewDuration = round($Tref * $NewBeats);
-//	echo "NewDuration = ".$NewDuration." ms<br />";
 	$change_beats = TRUE;
 	}
 if($change_beats OR isset($_POST['adjust_duration'])) {
@@ -1749,6 +1755,10 @@ echo "➡ <i>If changes are not visible on these pop-up windows, juste clear the
 	}
 else echo "<p>No MIDI codes in this sound-object prototype</p>";
 
+if($new_midi) echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
+
+echo "<font color=\"red\">➡</font> Create or replace MIDI codes loading a MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
+
 echo "<p>DURATION OF MIDI SEQUENCE</p>";
 $real_duration = $Duration - $PreRoll + $PostRoll;
 store($h_image,"PreRoll",$PreRoll);
@@ -1766,9 +1776,6 @@ echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_be
 if($silence_after_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_after_warning."<br />";
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
 
-if($new_midi) echo "<p style=\"color:red;\">You should save this prototype to preserve uploaded MIDI codes! ➡ <input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisprototype\" value=\"SAVE IT\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"cancel\" value=\"CANCEL\"></p>";
-
-echo "<font color=\"red\">➡</font> Create or replace MIDI codes loading a MIDI file (*.mid): <input type=\"file\" name=\"mid_upload\">&nbsp;<input type=\"submit\" value=\" send \">";
 if(!$new_midi AND !$no_midi) {
 	echo "<p style=\"text-align:left;\"><input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pressure\" value=\"SUPPRESS channel pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_polyphonic_pressure\" value=\"SUPPRESS polyphonic pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pitchbend\" value=\"SUPPRESS pitchbend\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_volume\" value=\"SUPPRESS volume control\"><br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"add_allnotes_off\" value=\"APPEND AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_allnotes_off\" value=\"SUPPRESS AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"delete_midi\" value=\"SUPPRESS all MIDI codes\"><br />";

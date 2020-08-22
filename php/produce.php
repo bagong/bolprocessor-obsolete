@@ -6,7 +6,8 @@ $url_this_page = "produce.php";
 $this_title = "BP console";
 require_once("_header.php");
 
-$application_path = $bp_application_path.SLASH;
+// $application_path = $bp_application_path.SLASH;
+$application_path = "..".SLASH;
 
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
@@ -22,6 +23,8 @@ else {
 	if(isset($_GET['grammar'])) $grammar_path = urldecode($_GET['grammar']);
 	else $grammar_path = '';
 	if($grammar_path == '') die();
+	if(isset($_GET['settings_file'])) $settings_file = $_GET['settings_file'];
+	else $settings_file = '';
 	if(isset($_GET['note_convention'])) $note_convention = $_GET['note_convention'];
 	else $note_convention = '';
 	if(isset($_GET['alphabet'])) $alphabet_file = urldecode($_GET['alphabet']);
@@ -45,7 +48,8 @@ else {
 	$thisgrammar = $grammar_path;
 	if(is_integer(strpos($thisgrammar,' ')))
 		$thisgrammar = '"'.$thisgrammar.'"';
-	$command = $application_path."bp ".$instruction." -gr ".$thisgrammar;
+	// $command = $application_path."bp ".$instruction." -gr ".$thisgrammar;
+	$command = "../bp ".$instruction." -gr ".$thisgrammar;
 
 	$thisalphabet = $alphabet_file;
 	if(is_integer(strpos($thisalphabet,' ')))
@@ -55,12 +59,13 @@ else {
 	if($alphabet_file <> '') $command .= " -ho ".$thisalphabet;
 
 	if($note_convention <> '') $command .= " --".$note_convention;
+	if($settings_file <> '') $command .= " -se ".$dir.$settings_file;
 	switch($file_format) {
 		case "data":
 			$command .= " -d -o ".$output;
 			break;
 		case "midi":
-			$command .= " -d --midiout ";
+			$command .= " -d --midiout ".$output;
 			break;
 		case "csound":
 			$command .= " -d --csoundout ".$output;
@@ -69,7 +74,7 @@ else {
 			$command .= " -d --rtmidi";
 			break;
 		}
-	if($tracefile <> '') $command .= " --traceout ".$dir.$tracefile;
+	if($tracefile <> '') $command .= " --traceout ".$tracefile;
 	if($show_production) $command .= " --show-production";
 	if($trace_production) $command .= " --trace-production";
 	}
@@ -85,12 +90,12 @@ for($i=0; $i < $n_messages; $i++) {
 	}
 echo "<hr>";
 
-$this_data_folder = str_replace($bp_home_dir.SLASH,'',$here);
+// $this_data_folder = str_replace($bp_application_path.SLASH,'',$here);
 
 if($instruction <> "help") {
-	$tracefile_html = clean_up_file($dir.$tracefile);
+	$tracefile_html = clean_up_file($tracefile);
 	$trace_link = $tracefile_html;
-	$output_link = "..".str_replace($bp_application_path,'',$output);
+	$output_link = $output;
 	
 if($test) echo "output = ".$output."<br />";
 if($test) echo "tracefile_html = ".$tracefile_html."<br />";

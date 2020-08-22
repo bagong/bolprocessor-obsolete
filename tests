@@ -65,7 +65,8 @@ if [ "$SYSTEM" == "windows-msys2" ]; then
 	export BINARY="bp.exe"
 	# This is the standard install in the native environment.
 	# Note the 8.3 filename for Program Files to avoid the space.
-	# This might not work or support needs to be configured on some systems.
+	# This might not work, or support for 8.3-names needs to be
+	# enabled on some systems.
 	export CSEXEC="/c/PROGRA~1/Csound6_x64/bin/csound.exe"
 else
 	export MAKECMD="make"
@@ -120,10 +121,7 @@ fi
 ## ggc-version - gcc sends versioninfo to stderror! Well, it is gcc, no need for an empty stdout file:
 gcc -v 2> $RESULTSDIR/versioninfo-gcc.stderr
 
-## remove binary first to get full build verbosity
-if [ -f "$BPEXEC" ]; then
-	rm $BPEXEC
-fi
+## "make clean" first for clean build and full build output verbosity
 
 $MAKECMD -d > $RESULTSDIR/bp-make.stdout 2> $RESULTSDIR/bp-make.stderr
 

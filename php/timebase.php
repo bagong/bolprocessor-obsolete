@@ -46,15 +46,11 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			$midi = new Midi();
 			$midi_text_bytes = convert_mf2t_to_bytes(FALSE,$midi_import_mf2t,$midi,$midi_import_file);
 			$division = $_POST['division'] = $midi_text_bytes[0];
+		//	$division = $_POST['division'] = 1000;
 			$tempo = $_POST['tempo'] = $midi_text_bytes[1];
+		//	$tempo = $_POST['tempo'] = 1000000;
 			$timesig = $_POST['timesig'] = "0 TimeSig ".$midi_text_bytes[2]." ".$midi_text_bytes[3]." ".$midi_text_bytes[4];
-		/*	$division = $_POST['division'] = $midi_text_bytes[0];
-			$temp_bytes = array();
-			for($i = 1; $i < count($midi_text_bytes); $i++)
-				$temp_bytes[] = $midi_text_bytes[$i];
-			$midi_text_bytes = $temp_bytes; */
 			fix_mf2t_file($midi_import_mf2t,"imported_");
-		//	echo "ok5"; die();
 			}
 		}
 	}
@@ -125,13 +121,18 @@ $maxticks = $table[$j++];
 $maxbeats = $table[$j++];
 // echo "maxbeats = ".$maxbeats."<br />";
 
-$p_clock = 4;
+$p_clock = 1;
 $q_clock = 1;
 if(isset($_POST['p_clock'])) $p_clock = $_POST['p_clock'];
 if(isset($_POST['q_clock'])) $q_clock = $_POST['q_clock'];
-
+$metronome = metronome($p_clock,$q_clock);
+$p_clock = round(1000 * $metronome);
+$q_clock = 60000;
+$g = gcd($p_clock,$q_clock);
+$p_clock = $p_clock / $g;
+$q_clock = $q_clock / $g;
 if(isset($_POST['division']) AND $_POST['division'] > 0) $division = $_POST['division'];
-else $division = 480;
+else $division = 1000;
 if(isset($_POST['tempo']) AND $_POST['tempo'] > 0) $tempo = $_POST['tempo'];
 else $tempo = 1000000;
 if(isset($_POST['timesig']) AND $_POST['timesig'] <> '') $timesig = $_POST['timesig'];
@@ -141,10 +142,19 @@ echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/fo
 echo "<input type=\"hidden\" name=\"changestatus\" value=\"1\">";
 echo "<input type=\"hidden\" name=\"maxticks\" value=\"".$maxticks."\">";
 echo "<input type=\"hidden\" name=\"maxbeats\" value=\"".$maxbeats."\">";
-$metronome = round(($p_clock * 60 / $q_clock),3);
-echo "<p style=\"text-align:left;\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savealldata\" value=\"SAVE ALL DATA\">";
-echo "&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"p_clock\" size=\"8\" value=\"".$p_clock."\"> beats in <input type=\"text\" name=\"q_clock\" size=\"8\" value=\"".$q_clock."\"> sec. ➡ mm = ".$metronome." beats/mn</p>";
+echo "<p>&nbsp;&nbsp;&nbsp;<input type=\"text\" name=\"p_clock\" size=\"8\" value=\"".$p_clock."\"> beats in <input type=\"text\" name=\"q_clock\" size=\"8\" value=\"".$q_clock."\"> sec. ➡ mm = ".$metronome." beats/mn</p>";
+if(file_exists($midi_import_mf2t)) {
+	$new_metronome = metronome(1000000,$tempo);
+	if($new_metronome <> $metronome) {
+		$new_p_clock = round(1000 * $new_metronome);
+		$new_q_clock = 60000;
+		$g = gcd($new_p_clock,$new_q_clock);
+		$new_p_clock = $new_p_clock / $g;
+		$new_q_clock = $new_q_clock / $g;
+		echo "<p><font color=\"red\">➡</font> MIDIfile suggests <font color=\"red\">".$new_p_clock." beats</font> in <font color=\"red\">".$new_q_clock." sec.</font> ➡ mm = <font color=\"red\">".$new_metronome." beats/mn</font></p>";
+		}
+	}
 
 echo "<table style=\"background-color:gold;\">";
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
@@ -203,7 +213,7 @@ if(file_exists($midi_import_mf2t)) {
 	$mf2t_content = @file_get_contents($midi_import_mf2t,TRUE);
 	$duration_of_midifile = duration_of_midifile($mf2t_content);
 //	echo "duration_of_midifile = ".$duration_of_midifile."<br />";
-	$beats_of_midifile = round(($duration_of_midifile * $p_clock / $q_clock / 1000), 3);
+	$beats_of_midifile = round(($duration_of_midifile * $p_clock / $q_clock / 1000),2);
 //	echo $midi_import_file; die();
 /*	$midi = new Midi();
 	$midi->importTxt($mf2t_content);
@@ -303,7 +313,7 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 
 if($MIDIfile_exists AND !$mute[$i_midifile]) {
 	$actual_duration_combined = round($duration_of_midifile / 1000, 3);
-	$actual_beats_combined = $actual_duration_combined * $p_clock / $q_clock;
+	$actual_beats_combined = round($actual_duration_combined * $p_clock / $q_clock, 2);
 	}
 else {
 	$actual_beats_combined = $repeat[$i_ok] * $TickCycle[$i_ok] * $Qtick[$i_ok] / $Ptick[$i_ok];
@@ -324,7 +334,6 @@ if($MIDIfile_exists AND !$mute[$i_midifile]) {
 $mf2t = $temp_dir.$temp_folder.SLASH."mf2t.txt";
 
 $handle = fopen($mf2t,"w");
-// $division = 480;
 if(isset($_POST['max_repeat'])) $max_repeat = intval($_POST['max_repeat']);
 else $max_repeat = 3;
 if($max_repeat == 0) $max_repeat = 1;

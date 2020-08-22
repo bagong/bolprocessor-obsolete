@@ -12,16 +12,18 @@ $root = str_replace("\\",SLASH,$root);
 $root = str_replace(SLASH,SLASH,$root);
 
 // take bottom-up approach
-$bp_php_path = getcwd();
-$bp_application_path = dirname($bp_php_path);
-$bp_parent_path = dirname($bp_application_path);
+// $bp_php_path = getcwd();
+// $bp_application_path = dirname($bp_php_path);
+$bp_application_path = "../";
+// $bp_parent_path = dirname($bp_application_path);
 
-$bp_home_dir = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
+// $bp_application_path = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
+$bp_application_path = $bp_application_path;
 
-$bp_php_path = str_replace("\\",SLASH,$bp_php_path);
-$bp_application_path = str_replace("\\",SLASH,$bp_application_path);
-$bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
-$bp_home_dir = str_replace("\\",SLASH,$bp_home_dir);
+// $bp_php_path = str_replace("\\",SLASH,$bp_php_path);
+// $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
+// $bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
+// $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
 
 $temp_dir = "..".SLASH."temp_bolprocessor";
 if(!file_exists($temp_dir)) {
@@ -69,7 +71,7 @@ foreach($dircontent as $thisfile) {
 if(isset($_GET['path'])) $path = urldecode($_GET['path']);
 else $path = '';
 
-$text_help_file = $bp_application_path.SLASH."BP2_help.txt";
+$text_help_file = $bp_application_path."BP2_help.txt";
 
 $test = FALSE;
 // $test = TRUE;
@@ -77,10 +79,9 @@ if($test) {
 	echo "<small>";
 	echo "path = ".$path."<br />";
 	echo "root = ".$root."<br />";
-	echo "bp_php_path = ".$bp_php_path."<br />";
+//	echo "bp_php_path = ".$bp_php_path."<br />";
 	echo "bp_application_path = ".$bp_application_path."<br />";
-	echo "bp_parent_path = ".$bp_parent_path."<br />";
-	echo "bp_home_dir = ".$bp_home_dir."<br />";
+//	echo "bp_parent_path = ".$bp_parent_path."<br />";
 	echo "temp_dir = ".$temp_dir."<br />";
 //	echo "path_above = ".$path_above."<br />";
 	echo "text_help_file = ".$text_help_file."<br />";
@@ -172,6 +173,14 @@ function fix_file_name($line,$type) {
 	return $goodline;
 	}
 
+function window_name($text) {
+	$text = str_replace('-','_',$text);
+	$text = str_replace(' ','_',$text);
+	$text = str_replace('"','_',$text);
+	$text = str_replace("'",'_',$text);
+	return $text;
+	}
+	
 function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound_file,$alphabet_file,$settings_file,$orchestra_file,$interaction_file,$midisetup_file,$timebase_file,$keyboard_file,$glossary_file) {
 	global $output_file, $file_format,$test;
 	$page_type = str_replace(".php",'',$url_this_page);
@@ -704,13 +713,12 @@ function convert_mf2t_to_bytes($verbose,$midi_import,$midi,$midi_file) {
 			$old_division = intval($table2[3]);
 			}
 		if(isset($table2[2]) AND $table2[1] == "Tempo" AND $table2[0] == "0") {
-			$old_tempo = intval($table2[2]);
+			$tempo = intval($table2[2]);
 			break;
 			}
 		}
-	$alpha = $old_tempo / $old_division / 1000;
-	$division = 1000; $tempo = 1000000;
-//	echo $alpha; die();
+	$division = $tempo / 1000; 
+	$alpha = $division / $old_division;
 	for($i = 0; $i < count($table); $i++) {
 		$line = $table[$i];
 	//	echo $line."<br />";
@@ -727,7 +735,7 @@ function convert_mf2t_to_bytes($verbose,$midi_import,$midi,$midi_file) {
 			fwrite($handle,$line."\n");
 			continue;
 			}
-		if(count($table2) > 3 OR (isset($table2[2]) AND $table2[2] == "TrkEnd")) {
+		if(count($table2) > 3 OR (isset($table2[2]) AND ($table2[2] == "TrkEnd" OR $table2[1] == "PrCh"))) {
 			$time = round($table2[0] * $alpha);
 			$table2[0] = $time;
 			$line = implode(' ',$table2);
@@ -900,6 +908,11 @@ function mf2t_no_header($mf2t_content) {
 		if($found_MTrk > 1) $result[] = $line;
 		}
 	return $result;
+	}
+
+function metronome($p,$q) {
+	$mm = round($p * 60 / $q, 3);
+	return $mm;
 	}
 	
 function rcopy($src,$dst) {
