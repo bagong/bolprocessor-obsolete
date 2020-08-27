@@ -26,12 +26,9 @@ if($test) echo "url_this_page = ".$url_this_page."<br />";
 $new_file = '';
 if(isset($_POST['create_grammar'])) {
 	$filename = trim($_POST['filename']);
+	$filename = good_name("gr",$filename);
 	if($test) echo "filename = ".$filename."<br />";
 	if($filename <> '') {
-		if(!is_integer($pos=strpos($filename,"-gr")) OR $pos > 0) {
-			$filename = trim(str_replace("-gr",'',$filename));
-			$filename = "-gr.".$filename;
-			}
 		$new_file = $filename;
 		if($test) echo "newfile = ".$new_file."<br />";
 		if(file_exists($dir.SLASH.$filename)) {
@@ -39,47 +36,58 @@ if(isset($_POST['create_grammar'])) {
 			unset($_POST['create_grammar']);
 			}
 		else {
-			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
+//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
-	else unset($_POST['create_grammar']);
+//	else unset($_POST['create_grammar']);
+	}
+if(isset($_POST['create_data'])) {
+	$filename = trim($_POST['filename']);
+	$filename = good_name("da",$filename);
+	if($filename <> '') {
+		$new_file = $filename;
+		if(file_exists($dir.SLASH.$filename)) {
+			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
+			unset($_POST['create_data']);
+			}
+		else {
+//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
+			$handle = fopen($dir.SLASH.$filename,"w");
+			fclose($handle);
+			}
+		}
+//	else unset($_POST['create_data']);
 	}
 if(isset($_POST['create_alphabet'])) {
 	$filename = trim($_POST['filename']);
+	$filename = good_name("ho",$filename);
 	if($filename <> '') {
-		if(!is_integer($pos=strpos($filename,"-ho")) OR $pos > 0) {
-			$filename = trim(str_replace("-ho",'',$filename));
-			$filename = "-ho.".$filename;
-			}
 		$new_file = $filename;
 		if(file_exists($dir.SLASH.$filename)) {
 			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
 			unset($_POST['create_alphabet']);
 			}
 		else {
-			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
+//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
-	else unset($_POST['create_alphabet']);
+//	else unset($_POST['create_alphabet']);
 	}
 if(isset($_POST['create_timebase'])) {
 	$filename = trim($_POST['filename']);
+	$filename = good_name("tb",$filename);
 	if($filename <> '') {
-		if(!is_integer($pos=strpos($filename,"-tb")) OR $pos > 0) {
-			$filename = trim(str_replace("-tb",'',$filename));
-			$filename = "-tb.".$filename;
-			}
 		$new_file = $filename;
 		if(file_exists($dir.SLASH.$filename)) {
 			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
 			unset($_POST['create_timebase']);
 			}
 		else {
-			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
+//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 		//	$template = $bp_php_path."/timebase_template";
 			$template = "timebase_template";
@@ -88,22 +96,29 @@ if(isset($_POST['create_timebase'])) {
 			fclose($handle);
 			}
 		}
-	else unset($_POST['create_timebase']);
+//	else unset($_POST['create_timebase']);
 	}
 
-// $folder = str_replace($bp_parent_path.SLASH,'',$dir);
-$folder = $dir;
-echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
+$folder = str_replace("..".SLASH,'',$dir);
+if($folder <> '') echo "<h3>Content of folder <font color=\"red\">".$folder."</font></h3>";
 // echo "dir = ".$dir."<br />";
 $table = explode('_',$folder);
 $extension = end($table);
-if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $folder <> $bp_application_path."php" AND $extension <> "temp") {
+if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $dir <> $bp_application_path."php" AND $extension <> "temp") {
 	if(!isset($_POST['create_grammar'])) {
 		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 		echo "<p style=\"text-align:left;\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_grammar\" value=\"CREATE NEW GRAMMAR FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 		echo "<font color=\"blue\">".$folder.SLASH."</font>";
-		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-gr.\"></p>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bpgr\"></p>";
+		echo "</form>";
+		}
+	if(!isset($_POST['create_data'])) {
+		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+		echo "<p style=\"text-align:left;\">";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_data\" value=\"CREATE NEW DATA FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+		echo "<font color=\"blue\">".$folder.SLASH."</font>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bpda\"></p>";
 		echo "</form>";
 		}
 	if(!isset($_POST['create_alphabet'])) {
@@ -111,7 +126,7 @@ if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $folder <> $bp_
 		echo "<p style=\"text-align:left;\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_alphabet\" value=\"CREATE NEW ALPHABET FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 		echo "<font color=\"blue\">".$folder.SLASH."</font>";
-		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-ho.\"></p>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bpho\"></p>";
 		echo "</form>";
 		}
 	if(!isset($_POST['create_timebase'])) {
@@ -119,7 +134,7 @@ if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $folder <> $bp_
 		echo "<p style=\"text-align:left;\">";
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_timebase\" value=\"CREATE NEW TIMEBASE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 		echo "<font color=\"blue\">".$folder.SLASH."</font>";
-		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"-tb.\"></p>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bptb\"></p>";
 		echo "</form>";
 		}
 	}

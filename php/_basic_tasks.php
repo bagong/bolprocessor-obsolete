@@ -105,6 +105,7 @@ function pick_up_headers($content) {
 	$table_out = $pick_up_headers = array();
 	$start = TRUE;
 	$pick_up_headers['metronome'] = $pick_up_headers['time_structure'] = $pick_up_headers['headers'] = $pick_up_headers['alphabet'] = $pick_up_headers['objects'] = $pick_up_headers['csound'] = $pick_up_headers['settings'] = $pick_up_headers['data'] = $pick_up_headers['orchestra'] = $pick_up_headers['timebase'] = $pick_up_headers['interaction'] = $pick_up_headers['midisetup'] = $pick_up_headers['timebase'] = $pick_up_headers['keyboard'] = $pick_up_headers['glossary'] = '';
+	$pick_up_headers['templates'] = FALSE;
 	for($i = 0; $i < count($table); $i++) {
 		$line = trim($table[$i]);
 		$line = preg_replace("/\s/u",' ',$line);
@@ -121,6 +122,9 @@ function pick_up_headers($content) {
 			continue;
 			}
 		$table_out[] = $line;
+		if(is_integer($pos=strpos($line,"TEMPLATES:")) AND $pos == 0) {
+			$pick_up_headers['templates'] = TRUE;
+			}
 		if(is_integer($pos=strpos($line,"_mm")) AND $pos == 0) {
 			$metronome = preg_replace("/.+\((.+)\).+/u","$1",$line);
 			$pick_up_headers['metronome'] = $metronome;
@@ -277,7 +281,6 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 function ask_create_new_file($url_this_page,$filename) {
 	echo "File ‘".$filename."’ not found. Do you wish to create a new one under that name?";
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
-
 	echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"createfile\" value=\"YES\">";
 	echo "&nbsp;<input style=\"background-color:yellow;\" type=\"submit\" name=\"dontcreate\" value=\"NO\"></p>";
 	echo "</form>";
@@ -464,6 +467,7 @@ function clean_up_encoding($convert,$text) {
 	$text = str_replace("Â","¬",$text);
 	$text = str_replace("¤","•",$text);
 	$text = str_replace("â¢","•",$text);
+	$text = str_replace(" . ","•",$text);
 	$text = str_replace("²","≤",$text);
 	$text = str_replace("³","≥",$text);
 //	$text = str_replace("â•","≥",$text);
@@ -478,7 +482,7 @@ function recode_tags($text) {
 	}
 
 function recode_entities($text) {
-	$text = str_replace("•","&bull;",$text);
+	$text = str_replace("•"," . ",$text);
 	$text = str_replace(" … "," _rest ",$text);
 	return $text;
 	}
@@ -541,6 +545,7 @@ function get_setting($parameter,$settings_file) {
 	if($parameter == "show_production") $i = 14;
 	if($parameter == "trace_production") $i = 17;
 	if($parameter == "produce_all_items") $i = 13;
+	if($parameter == "random_seed") $i = 45;
 	if($i <> -1) return $table[$i];
 	else return '';
 	}
@@ -932,5 +937,16 @@ function store($handle,$varname,$var) {
 	// $line = str_replace('§','$',$line);
 	fwrite($handle,$line);
 	return;
+	}
+
+function good_name($type,$filename) {
+	$filename = trim($filename);
+//	echo "filename = ".$filename."<br />";
+	if(is_integer($pos=strpos($filename,"-".$type.".")) AND $pos == 0) return $filename;
+	$table = explode('.',$filename);
+	$extension = end($table);
+	if($extension == "bp".$type) return $filename;
+	$filename = $filename.".bp".$type;
+	return $filename;
 	}
 ?>

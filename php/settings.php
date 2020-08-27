@@ -65,10 +65,13 @@ if(isset($_POST['saveparameters'])) {
 try_create_new_file($this_file,$filename);
 $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
+if(trim($content) == '') {
+	$template = "settings_template";
+	$content = @file_get_contents($template,TRUE);
+	}
 $pick_up_headers = pick_up_headers($content);
 echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
 $content = $pick_up_headers['content'];
-
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"saveparameters\" value=\"SAVE PARAMETERS TO ‘".$filename."’\"></p>";
 echo "<table style=\"border-spacing: 2px;\" cellpadding=\"2px;\">";

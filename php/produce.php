@@ -37,6 +37,8 @@ else {
 	else $show_production = FALSE;
 	if(isset($_GET['trace_production'])) $trace_production = TRUE;
 	else $trace_production = FALSE;
+	if(isset($_GET['random_seed'])) $random_seed = $_GET['random_seed'];
+	else $random_seed = 0;
 
 	$table = explode('/',$grammar_path);
 	$grammar_name = $table[count($table) - 1];
@@ -60,23 +62,26 @@ else {
 
 	if($note_convention <> '') $command .= " --".$note_convention;
 	if($settings_file <> '') $command .= " -se ".$dir.$settings_file;
-	switch($file_format) {
-		case "data":
-			$command .= " -d -o ".$output;
-			break;
-		case "midi":
-			$command .= " -d --midiout ".$output;
-			break;
-		case "csound":
-			$command .= " -d --csoundout ".$output;
-			break;
-		default:
-			$command .= " -d --rtmidi";
-			break;
+	if($instruction == "produce" OR $instruction == "produce-all") {
+		switch($file_format) {
+			case "data":
+				$command .= " -d -o ".$output;
+				break;
+			case "midi":
+				$command .= " -d --midiout ".$output;
+				break;
+			case "csound":
+				$command .= " -d --csoundout ".$output;
+				break;
+			default:
+				$command .= " -d --rtmidi";
+				break;
+			}
 		}
 	if($tracefile <> '') $command .= " --traceout ".$tracefile;
 	if($show_production) $command .= " --show-production";
 	if($trace_production) $command .= " --trace-production";
+	$command .= " --seed ".$random_seed;
 	}
 
 echo "<p style=\"color:red;\"><small>command = ".$command."</small></p>";
@@ -108,8 +113,8 @@ if($test) echo "output_link = ".$output_link."<br />";
 		}
 	else {
 		echo "<p>";
-		if($output <> '') echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$output_link."','".$file_format."','width=800,height=800,left=300'); return false;\" href=\"".$output_link."\">output file</a><br />";
-		if($trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">trace file</a>";
+		if($output <> '' AND $file_format <> "midi") echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$output_link."','".$file_format."','width=800,height=800,left=300'); return false;\" href=\"".$output_link."\">output file</a><br />";
+		if($trace_production OR $instruction == "templates" OR $show_production OR $trace_production) echo "<font color=\"red\">➡</font> Read the <a onclick=\"window.open('".$trace_link."','trace','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">trace file</a>";
 		echo "</p>";
 		}
 	}
