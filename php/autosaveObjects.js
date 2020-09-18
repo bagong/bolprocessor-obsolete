@@ -1,4 +1,4 @@
-function getData() {
+function getData1() {
 	var fd = new FormData();
 	var temp_folder = document.getElementsByName('temp_folder')[0].value;
 	var dir = document.getElementsByName('dir')[0].value;
@@ -28,8 +28,8 @@ function savePost() {
 	catch(e) {
 		console.log(e);
 		}
-	var data1 = getData();
-	xhttp.open('POST','autosave.php?save=1');
+	var data1 = getData1();
+	xhttp.open('POST','autosaveObjects.php?save=1');
 	xhttp.send(data1);
 	xhttp.onreadystatechange = function() {
 		if(this.status == 200 && this.readyState == 4) {

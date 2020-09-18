@@ -112,10 +112,10 @@ try_create_new_file($this_file,$filename);
 $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 $objects_file = $csound_file = $alphabet_file = $settings_file = $orchestra_file = $interaction_file = $midisetup_file = $timebase_file = $keyboard_file = $glossary_file = '';
-$pick_up_headers = pick_up_headers($content);
-echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
-$content = $pick_up_headers['content'];
-$csound_file = $pick_up_headers['csound'];
+$extract_data = extract_data(TRUE,$content);
+echo "<p style=\"color:blue;\">".$extract_data['headers']."</p>";
+$content = $extract_data['content'];
+$csound_file = $extract_data['csound'];
 
 $comment_on_file = '';
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
@@ -161,7 +161,6 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("<HTML>",'',$line);
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
-
 		$object_file[$iobj] = $temp_dir.$temp_folder.SLASH.$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
 		$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
@@ -222,7 +221,7 @@ echo "<p style=\"color:blue;\">".$comment_on_file."</p>";
 echo "<p style=\"text-align:left;\">";
 echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’ INCLUDING ALL CHANGES TO PROTOTYPES\"><br />";
 echo "➡ <i>This file is autosaved every 30 seconds. Still, it is safe to save it before quitting the editor.</i></p>";
-echo "<script type=\"text/javascript\" src=\"autosave.js\"></script>";
+echo "<script type=\"text/javascript\" src=\"autosaveObjects.js\"></script>";
 
 echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"create_object\" value=\"CREATE A NEW OBJECT\"> named <input type=\"text\" name=\"new_object\" size=\"10\" value=\"\"></p>";
 if($deleted_objects <> '') echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"restore\" value=\"RESTORE ALL DELETED OBJECTS\"> = <font color=\"blue\"><big>".$deleted_objects."</big></font></p>";

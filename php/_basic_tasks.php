@@ -11,19 +11,8 @@ $root = $_SERVER['DOCUMENT_ROOT'].SLASH;
 $root = str_replace("\\",SLASH,$root);
 $root = str_replace(SLASH,SLASH,$root);
 
-// take bottom-up approach
-// $bp_php_path = getcwd();
-// $bp_application_path = dirname($bp_php_path);
 $bp_application_path = "../";
-// $bp_parent_path = dirname($bp_application_path);
-
-// $bp_application_path = str_replace($bp_parent_path.SLASH,'',$bp_application_path);
 $bp_application_path = $bp_application_path;
-
-// $bp_php_path = str_replace("\\",SLASH,$bp_php_path);
-// $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
-// $bp_parent_path = str_replace("\\",SLASH,$bp_parent_path);
-// $bp_application_path = str_replace("\\",SLASH,$bp_application_path);
 
 $temp_dir = "..".SLASH."temp_bolprocessor";
 if(!file_exists($temp_dir)) {
@@ -93,19 +82,21 @@ $help = compile_help($text_help_file,$html_help_file);
 $tracefile = $temp_dir."trace_".session_id().".txt";
 $top_header = "// Bol Processor BP3 compatible with version BP2.9.8";
 
-function pick_up_headers($content) {
+function extract_data($compact,$content) {
 	$content = trim($content);
 	$content = str_replace(chr(13).chr(10),chr(10),$content);
 	$content = str_replace(chr(13),chr(10),$content);
 	$content = str_replace(chr(9),' ',$content); // Remove tabulations
 	$content = clean_up_encoding(TRUE,$content);
-	do $content = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$content,$count);
-	while($count > 0);
+	if($compact) {
+		do $content = str_replace(chr(10).chr(10).chr(10),chr(10).chr(10),$content,$count);
+		while($count > 0);
+		}
 	$table = explode(chr(10),$content);
-	$table_out = $pick_up_headers = array();
+	$table_out = $extract_data = array();
 	$start = TRUE;
-	$pick_up_headers['metronome'] = $pick_up_headers['time_structure'] = $pick_up_headers['headers'] = $pick_up_headers['alphabet'] = $pick_up_headers['objects'] = $pick_up_headers['csound'] = $pick_up_headers['settings'] = $pick_up_headers['data'] = $pick_up_headers['orchestra'] = $pick_up_headers['timebase'] = $pick_up_headers['interaction'] = $pick_up_headers['midisetup'] = $pick_up_headers['timebase'] = $pick_up_headers['keyboard'] = $pick_up_headers['glossary'] = '';
-	$pick_up_headers['templates'] = FALSE;
+	$extract_data['metronome'] = $extract_data['time_structure'] = $extract_data['headers'] = $extract_data['alphabet'] = $extract_data['objects'] = $extract_data['csound'] = $extract_data['settings'] = $extract_data['data'] = $extract_data['orchestra'] = $extract_data['timebase'] = $extract_data['interaction'] = $extract_data['midisetup'] = $extract_data['timebase'] = $extract_data['keyboard'] = $extract_data['glossary'] = $extract_data['cstables'] = '';
+	$extract_data['templates'] = FALSE;
 	for($i = 0; $i < count($table); $i++) {
 		$line = trim($table[$i]);
 		$line = preg_replace("/\s/u",' ',$line);
@@ -115,51 +106,51 @@ function pick_up_headers($content) {
 		if($start AND is_integer($pos=strpos($line,"//")) AND $pos == 0) {
 			if($i > 1) $table_out[] = $line;
 			else {
-				if($pick_up_headers['headers'] <> '')
-					$pick_up_headers['headers'] .= "<br />";
-				$pick_up_headers['headers'] .= $line;
+				if($extract_data['headers'] <> '')
+					$extract_data['headers'] .= "<br />";
+				$extract_data['headers'] .= $line;
 				}
 			continue;
 			}
 		$table_out[] = $line;
 		if(is_integer($pos=strpos($line,"TEMPLATES:")) AND $pos == 0) {
-			$pick_up_headers['templates'] = TRUE;
+			$extract_data['templates'] = TRUE;
 			}
 		if(is_integer($pos=strpos($line,"_mm")) AND $pos == 0) {
 			$metronome = preg_replace("/.+\((.+)\).+/u","$1",$line);
-			$pick_up_headers['metronome'] = $metronome;
+			$extract_data['metronome'] = $metronome;
 			$time_structure = preg_replace("/.+\)\s+_(.+)$/u","$1",$line);
 			if($time_structure == "striated" OR $time_structure == "smooth")
-				$pick_up_headers['time_structure'] = $time_structure;
+				$extract_data['time_structure'] = $time_structure;
 			}
 		if(is_integer($pos=strpos($line,"-ho")) AND $pos == 0)
-			$pick_up_headers['alphabet'] = fix_file_name($line,"ho");
+			$extract_data['alphabet'] = fix_file_name($line,"ho");
 		else if(is_integer($pos=strpos($line,"-mi")) AND $pos == 0)
-			$pick_up_headers['objects'] = fix_file_name($line,"mi");
+			$extract_data['objects'] = fix_file_name($line,"mi");
 		else if(is_integer($pos=strpos($line,"-cs")) AND $pos == 0)
-			$pick_up_headers['csound'] = fix_file_name($line,"cs");
+			$extract_data['csound'] = fix_file_name($line,"cs");
 		else if(is_integer($pos=strpos($line,"-se")) AND $pos == 0)
-			$pick_up_headers['settings'] = fix_file_name($line,"se");
+			$extract_data['settings'] = fix_file_name($line,"se");
 		else if(is_integer($pos=strpos($line,"-da")) AND $pos == 0)
-			$pick_up_headers['data'] = fix_file_name($line,"da");
+			$extract_data['data'] = fix_file_name($line,"da");
 		else if(is_integer($pos=strpos($line,"-or")) AND $pos == 0)
-			$pick_up_headers['orchestra'] = fix_file_name($line,"or");
+			$extract_data['orchestra'] = fix_file_name($line,"or");
 		else if(is_integer($pos=strpos($line,"-tb")) AND $pos == 0)
-			$pick_up_headers['timebase'] = fix_file_name($line,"tb");
+			$extract_data['timebase'] = fix_file_name($line,"tb");
 		else if(is_integer($pos=strpos($line,"-in")) AND $pos == 0)
-			$pick_up_headers['interaction'] = fix_file_name($line,"in");
+			$extract_data['interaction'] = fix_file_name($line,"in");
 		else if(is_integer($pos=strpos($line,"-md")) AND $pos == 0)
-			$pick_up_headers['midisetup'] = fix_file_name($line,"md");
+			$extract_data['midisetup'] = fix_file_name($line,"md");
 		else if(is_integer($pos=strpos($line,"-tb")) AND $pos == 0)
-			$pick_up_headers['timebase'] = fix_file_name($line,"tb");
+			$extract_data['timebase'] = fix_file_name($line,"tb");
 		else if(is_integer($pos=strpos($line,"-kb")) AND $pos == 0)
-			$pick_up_headers['keyboard'] = fix_file_name($line,"kb");
+			$extract_data['keyboard'] = fix_file_name($line,"kb");
 		else if(is_integer($pos=strpos($line,"-gl")) AND $pos == 0)
-			$pick_up_headers['glossary'] = fix_file_name($line,"gl");
+			$extract_data['glossary'] = fix_file_name($line,"gl");
 		else if($line <> '') $start = FALSE;
 		}
-	$pick_up_headers['content'] = implode(chr(10),$table_out);
-	return $pick_up_headers;
+	$extract_data['content'] = implode(chr(10),$table_out);
+	return $extract_data;
 	}
 
 function fix_file_name($line,$type) {
@@ -226,7 +217,7 @@ function display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound
 	if($csound_file <> '') {
 		$url_this_page = "csound.php?file=".urlencode($dir.$csound_file);
 		echo "<td><form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
-		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"opencsound\" onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$csound_file."’\">&nbsp;";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" onclick=\"this.form.target='_blank';return true;\" value=\"EDIT ‘".$csound_file."’\">&nbsp;";
 		echo "</td></form>";
 		}
 	if($settings_file <> '') {
@@ -526,7 +517,7 @@ function get_setting($parameter,$settings_file) {
 		if($line == "-- end --") break;
 		$imax_parameters++;
 		$table2 = explode(chr(9),$line);
-		$x = str_replace(chr(9),".",$line);
+		$r = str_replace(chr(9),".",$line);
 		if(count($table2) < 3) echo "ERR: ".$table2[0]."<br />";
 		$parameter_name[$i] = $table2[0];
 		$parameter_unit[$i] = $table2[1];
@@ -537,8 +528,8 @@ function get_setting($parameter,$settings_file) {
 		}
 	$content = @file_get_contents($dir.$settings_file,TRUE);
 	if($content == FALSE) return "error reading ".$dir.$settings_file;
-	$pick_up_headers = pick_up_headers($content);
-	$content = $pick_up_headers['content'];
+	$extract_data = extract_data(TRUE,$content);
+	$content = $extract_data['content'];
 	$table = explode(chr(10),$content);
 	$i = -1;
 	if($parameter == "note_convention") $i = 47;
@@ -598,10 +589,10 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		$object_label = str_replace(".".$extension,'',$thisfile);
 		if($verbose) echo $object_label." ";
 		$content = file_get_contents($temp_dir.$temp_folder.SLASH.$thisfile,TRUE);
-		$pick_up_headers = pick_up_headers($content);
-		$headers = $pick_up_headers['headers'];
+		$extract_data = extract_data(TRUE,$content);
+		$headers = $extract_data['headers'];
 		if(!is_integer($pos=strpos($headers,"//"))) continue;
-		$content = $pick_up_headers['content'];
+		$content = $extract_data['content'];
 		$table = explode(chr(10),$content);
 		$line = "<HTML>".$object_label."</HTML>";
 		fwrite($handle,$line."\n");
@@ -633,6 +624,82 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 	return;
 	}
 
+function SaveCsoundInstruments($verbose,$dir,$filename,$temp_folder) {
+	global $top_header, $test, $temp_dir;
+//	$verbose = TRUE;
+	if($verbose) echo "dir = ".$dir."<br />";
+	if($verbose) echo "filename = ".$filename."<br />";
+	if($verbose) echo "temp_folder = ".$temp_folder."<br />";
+	$handle = fopen($dir.$filename,"w");
+//	$handle = fopen($dir."essai.txt","w");
+	$file_header = $top_header."\n// Csound instrument file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
+	fwrite($handle,$file_header."\n");
+	$number_channels = $_POST['number_channels'];
+	fwrite($handle,$number_channels."\n");
+	for($ch = 0; $ch < $number_channels; $ch++) {
+		$arg = "whichCsoundInstrument_".$ch;
+		$whichCsoundInstrument = convert_empty($_POST[$arg]);
+		fwrite($handle,$whichCsoundInstrument."\n");
+		}
+	$CsoundOrchestraName = $_POST['CsoundOrchestraName'];
+	fwrite($handle,$CsoundOrchestraName."\n");
+	$number_instruments = $_POST['number_instruments'];
+	fwrite($handle,$number_instruments."\n");
+	$dircontent = scandir($temp_dir.$temp_folder);
+	foreach($dircontent as $thisfile) {
+		if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
+		$table = explode(".",$thisfile);
+		$extension = end($table);
+		if($extension <> "txt") continue;
+		$instrument_label = str_replace(".".$extension,'',$thisfile);
+		if($verbose) echo $instrument_label." ";
+		$content = file_get_contents($temp_dir.$temp_folder.SLASH.$thisfile,TRUE);
+		$extract_data = extract_data(FALSE,$content);
+		$headers = $extract_data['headers'];
+		if(!is_integer($pos=strpos($headers,"//"))) continue;
+		$content = $extract_data['content'];
+		$table = explode(chr(10),$content);
+		fwrite($handle,$instrument_label."\n");
+	//	echo "count(table) = ".count($table)."<br />";
+		for($i = 1; $i < count($table); $i++) {
+			$line = $table[$i];
+			fwrite($handle,$line."\n");
+			}
+		$number_param = 0;
+		$instrument_folder_name = str_replace(' ','_',$instrument_label);
+		$instrument_folder_name = str_replace('-','_',$instrument_folder_name);
+		$folder_this_instrument = $temp_dir.$temp_folder.SLASH.$instrument_folder_name;
+		if(!is_dir($folder_this_instrument)) mkdir($folder_this_instrument);
+		$dir_instrument = scandir($folder_this_instrument);
+		foreach($dir_instrument as $thisparameter) {
+			if($thisparameter == '.' OR $thisparameter == ".." OR $thisparameter == ".DS_Store") continue;
+			$table = explode(".",$thisparameter);
+			$extension = end($table);
+			if($extension <> "txt") continue;
+			$number_param++;
+			}
+		fwrite($handle,$number_param."\n");
+		foreach($dir_instrument as $thisparameter) {
+			if($thisparameter == '.' OR $thisparameter == ".." OR $thisparameter == ".DS_Store") continue;
+			$table = explode(".",$thisparameter);
+			$extension = end($table);
+			if($extension <> "txt") continue;
+			$content_parameter = file_get_contents($folder_this_instrument.SLASH.$thisparameter,TRUE);
+			$table = explode(chr(10),$content_parameter);
+			for($i = 0; $i < count($table); $i++) {
+				$line = trim($table[$i]);
+				if($line <> '' OR $i < 2) fwrite($handle,$line."\n");
+				}
+			}
+		}
+	$begin_tables = $_POST['begin_tables'];
+	fwrite($handle,$begin_tables."\n");
+	$cstables = $_POST['cstables'];
+	fwrite($handle,$cstables."\n");
+	fclose($handle);
+	return;
+	}
+	
 function reformat_grammar($verbose,$grammar_file) {
 	if(!file_exists($grammar_file)) return;
 	$content = @file_get_contents($grammar_file,TRUE);
@@ -948,5 +1015,110 @@ function good_name($type,$filename) {
 	if($extension == "bp".$type) return $filename;
 	$filename = $filename.".bp".$type;
 	return $filename;
+	}
+
+function MIDIparameter_argument($i,$parameter,$StartIndex,$EndIndex,$TableIndex,$param_value,$IsLogX,$IsLogY,$GEN) {
+	$r = "<table>";
+	$r .= "<tr>";
+	$r .= "<td>";
+	$r .= "</td>";
+	$r .= "<td>";
+	$r .= "start";
+	$r .= "</td>";
+	$r .= "<td>";
+	$r .= "end";
+	$r .= "</td>";
+	$r .= "<td>";
+	$r .= "table";
+	$r .= "</td>";
+	$r .= "</tr>";
+	$r .= "<tr>";
+	$r .= "<td style=\"padding: 5px;\">";
+	$r .= "<font color=\"red\">".$parameter."</font> continuous arguments";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $StartIndex;
+	if($x < 0) $x = '';
+	$r .= "<input type=\"text\" name=\"StartIndex_".$i."\" size=\"4\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $EndIndex;
+	if($x < 0) $x = '';
+	$r .= "<input type=\"text\" name=\"EndIndex_".$i."\" size=\"4\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $TableIndex;
+	if($x < 0) $x = '';
+	$r .= "<input type=\"text\" name=\"TableIndex_".$i."\" size=\"4\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "</tr>";
+	$r .= "</table><br />";
+	$r .= "<table>";
+	$r .= "<tr>";
+	$r .= "<td colspan=\"5\">";
+	$r .= "<font color=\"red\">".$parameter."</font> variations";
+	$r .= "</td>";
+	$r .= "</tr>";
+	$r .= "<tr>";
+	$r .= "<td style=\"padding: 5px;\">";
+	$x = $param_value[0];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_0_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $param_value[1];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_1_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $param_value[2];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_2_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$r .= "<input type=\"checkbox\" name=\"IsLogX_".$i."\"";
+    if($IsLogX > 0) $r .= " checked";
+    $r .= ">log";
+	$r .= "</td>";
+	$r .= "<td style=\"vertical-align:middle;\" rowspan=\"2\">";
+	$r .= "GEN ";
+	$x = intval($GEN);
+	if($x < 10) $x = "0".$x;
+	$r .= "<input type=\"text\" name=\"GEN_".$i."\" size=\"4\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "</tr>";
+	$r .= "<tr>";
+	$r .= "<td style=\"padding: 5px;\">";
+	$x = $param_value[3];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_3_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $param_value[4];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_4_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$x = $param_value[5];
+	if($x > 1000000) $x = '';
+	$r .= "<input type=\"text\" name=\"paramvalue_5_".$i."\" size=\"8\" value=\"".$x."\">";
+	$r .= "</td>";
+	$r .= "<td>";
+	$r .= "<input type=\"checkbox\" name=\"IsLogY_".$i."\"";
+    if($IsLogY > 0) $r .= " checked";
+    $r .= ">log";
+	$r .= "</td>";
+	$r .= "</table>";
+	return $r;
+	}
+
+function convert_empty($value) {
+	if(trim($value) == '') $value = -1;
+	return($value);
+	}
+	
+function convert2_empty($value) {
+	if(trim($value) == '') $value = 2147483647; // 2^31 - 1 (Mersenne)
+	return($value);
 	}
 ?>

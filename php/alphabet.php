@@ -34,17 +34,17 @@ $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 
 $objects_file = $csound_file = $alphabet_file = $settings_file = $orchestra_file = $interaction_file = $midisetup_file = $timebase_file = $keyboard_file = $glossary_file = '';
-$pick_up_headers = pick_up_headers($content);
-echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
-$content = $pick_up_headers['content'];
-$objects_file = $pick_up_headers['objects'];
-$csound_file = $pick_up_headers['csound'];
-$orchestra_file = $pick_up_headers['orchestra'];
-$interaction_file = $pick_up_headers['interaction'];
-$midisetup_file = $pick_up_headers['midisetup'];
-$timebase_file = $pick_up_headers['timebase'];
-$keyboard_file = $pick_up_headers['keyboard'];
-$glossary_file = $pick_up_headers['glossary'];
+$extract_data = extract_data(TRUE,$content);
+echo "<p style=\"color:blue;\">".$extract_data['headers']."</p>";
+$content = $extract_data['content'];
+$objects_file = $extract_data['objects'];
+$csound_file = $extract_data['csound'];
+$orchestra_file = $extract_data['orchestra'];
+$interaction_file = $extract_data['interaction'];
+$midisetup_file = $extract_data['midisetup'];
+$timebase_file = $extract_data['timebase'];
+$keyboard_file = $extract_data['keyboard'];
+$glossary_file = $extract_data['glossary'];
 
 if(is_integer($pos=strpos($content,"-mi")) AND $pos > 0) {
 	// Some old files did not have ‘//’ in their headers

@@ -69,9 +69,9 @@ if(trim($content) == '') {
 	$template = "settings_template";
 	$content = @file_get_contents($template,TRUE);
 	}
-$pick_up_headers = pick_up_headers($content);
-echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
-$content = $pick_up_headers['content'];
+$extract_data = extract_data(TRUE,$content);
+echo "<p style=\"color:blue;\">".$extract_data['headers']."</p>";
+$content = $extract_data['content'];
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"saveparameters\" value=\"SAVE PARAMETERS TO ‘".$filename."’\"></p>";
 echo "<table style=\"border-spacing: 2px;\" cellpadding=\"2px;\">";

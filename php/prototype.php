@@ -412,10 +412,10 @@ echo link_to_help();
 echo "<h2>Object prototype <big><font color=\"red\">".$object_name."</font></big></h2>";
 
 $content = file_get_contents($object_file,TRUE);
-$pick_up_headers = pick_up_headers($content);
-$source_file = $pick_up_headers['objects'];
-echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."<br />// Source: ".$source_file."</p>";
-$content = $pick_up_headers['content'];
+$extract_data = extract_data(TRUE,$content);
+$source_file = $extract_data['objects'];
+echo "<p style=\"color:blue;\">".$extract_data['headers']."<br />// Source: ".$source_file."</p>";
+$content = $extract_data['content'];
 
 $table = explode(chr(10),$content);
 $object_param = array();

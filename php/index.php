@@ -1,7 +1,7 @@
 <?php
 require_once("_basic_tasks.php");
 require_once("_header.php");
-echo "<h2>This is on-line Bol Processor</h2>";
+echo "<h2>Welcome to Bol Processor!</h2>";
 $url_this_page = $this_page = "index.php";
 
 if($path <> '') {
@@ -87,16 +87,31 @@ if(isset($_POST['create_timebase'])) {
 			unset($_POST['create_timebase']);
 			}
 		else {
-//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
-		//	$template = $bp_php_path."/timebase_template";
 			$template = "timebase_template";
 			$template_content = @file_get_contents($template,TRUE);
 			fwrite($handle,$template_content."\n");
 			fclose($handle);
 			}
 		}
-//	else unset($_POST['create_timebase']);
+	}
+if(isset($_POST['create_csound'])) {
+	$filename = trim($_POST['filename']);
+	$filename = good_name("cs",$filename);
+	if($filename <> '') {
+		$new_file = $filename;
+		if(file_exists($dir.SLASH.$filename)) {
+			echo "<p><font color=\"red\">This file already exists:</font> <font color=\"red\">".$filename."</font></p>";
+			unset($_POST['create_csound']);
+			}
+		else {
+			$handle = fopen($dir.SLASH.$filename,"w");
+			$template = "csound_template";
+			$template_content = @file_get_contents($template,TRUE);
+			fwrite($handle,$template_content."\n");
+			fclose($handle);
+			}
+		}
 	}
 
 $folder = str_replace("..".SLASH,'',$dir);
@@ -135,6 +150,14 @@ if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $dir <> $bp_app
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_timebase\" value=\"CREATE NEW TIMEBASE IN THIS FOLDER\">&nbsp;➡&nbsp;";
 		echo "<font color=\"blue\">".$folder.SLASH."</font>";
 		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bptb\"></p>";
+		echo "</form>";
+		}
+	if(!isset($_POST['create_csound'])) {
+		echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
+		echo "<p style=\"text-align:left;\">";
+		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"create_csound\" value=\"CREATE NEW CSOUND INSTRUMENT FILE IN THIS FOLDER\">&nbsp;➡&nbsp;";
+		echo "<font color=\"blue\">".$folder.SLASH."</font>";
+		echo "<input type=\"text\" name=\"filename\" size=\"20\" style=\"background-color:CornSilk;\" value=\"name.bpcs\"></p>";
 		echo "</form>";
 		}
 	}

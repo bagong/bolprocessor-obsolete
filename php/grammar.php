@@ -158,6 +158,8 @@ if(isset($_POST['compilegrammar'])) {
 	reformat_grammar(FALSE,$grammar_file);
 	}
 else {
+	if(isset($_POST['random_seed'])) $random_seed = $_POST['random_seed'];
+	else $random_seed = 0;
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"output_file\" value=\"".$output_file."\">";
 	echo "<input type=\"hidden\" name=\"file_format\" value=\"".$file_format."\">";
@@ -174,22 +176,22 @@ $content = @file_get_contents($grammar_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 $metronome = 0;
 $time_structure = $objects_file = $csound_file = $alphabet_file = $settings_file = $orchestra_file = $interaction_file = $midisetup_file = $timebase_file = $keyboard_file = $glossary_file = '';
-$pick_up_headers = pick_up_headers($content);
-echo "<p style=\"color:blue;\">".$pick_up_headers['headers']."</p>";
-$content = $pick_up_headers['content'];
-$alphabet_file = $pick_up_headers['alphabet'];
-$objects_file = $pick_up_headers['objects'];
-$csound_file = $pick_up_headers['csound'];
-$settings_file = $pick_up_headers['settings'];
-$orchestra_file = $pick_up_headers['orchestra'];
-$interaction_file = $pick_up_headers['interaction'];
-$midisetup_file = $pick_up_headers['midisetup'];
-$timebase_file = $pick_up_headers['timebase'];
-$keyboard_file = $pick_up_headers['keyboard'];
-$glossary_file = $pick_up_headers['glossary'];
-$metronome = $pick_up_headers['metronome'];
-$time_structure = $pick_up_headers['time_structure'];
-$templates = $pick_up_headers['templates'];
+$extract_data = extract_data(TRUE,$content);
+echo "<p style=\"color:blue;\">".$extract_data['headers']."</p>";
+$content = $extract_data['content'];
+$alphabet_file = $extract_data['alphabet'];
+$objects_file = $extract_data['objects'];
+$csound_file = $extract_data['csound'];
+$settings_file = $extract_data['settings'];
+$orchestra_file = $extract_data['orchestra'];
+$interaction_file = $extract_data['interaction'];
+$midisetup_file = $extract_data['midisetup'];
+$timebase_file = $extract_data['timebase'];
+$keyboard_file = $extract_data['keyboard'];
+$glossary_file = $extract_data['glossary'];
+$metronome = $extract_data['metronome'];
+$time_structure = $extract_data['time_structure'];
+$templates = $extract_data['templates'];
 
 if($settings_file <> '') $show_production = get_setting("show_production",$settings_file);
 else $show_production = 0;
