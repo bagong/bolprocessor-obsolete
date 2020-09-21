@@ -163,44 +163,19 @@ if(/* is_integer(strpos($dir,SLASH.$bp_application_path)) AND */ $dir <> $bp_app
 	}
 
 $dircontent = scandir($dir);
-//$now = time();
-//$yesterday = $now - (24 * 3600);
 foreach($dircontent as $thisfile) {
 	if($thisfile == '.' OR $thisfile == ".." OR $thisfile == ".DS_Store") continue;
-//	$time_saved = filemtime($dir.SLASH.$thisfile);
-//	if($time_saved < $yesterday) $old = TRUE;
-//	else $old = FALSE;
 	if(is_dir($dir.SLASH.$thisfile)) {
 		$table = explode('_',$thisfile);
 		$extension = end($table);
 		if($path == '') $link = $this_page."?path=".urlencode($thisfile);
 		else $link = $this_page."?path=".urlencode($path.SLASH.$thisfile);
-/*		if($extension == "temp" AND count($table) > 2) {
-			$id = $table[count($table) - 2];
-			if($old) {
-				if($id <> session_id()) {
-					my_rmdir($dir.SLASH.$thisfile);
-					continue;
-					}
-				}
-			} */
 		if($extension <> "temp")
 			echo "<b><a href=\"".$link."\">".$thisfile."</a></b><br />";
 		continue;
 		}
 	$table = explode(".",$thisfile);
 	$extension = end($table);
-/*	if($old) {
-		$table = explode('_',$thisfile);
-		$prefix = $table[0];
-		if($prefix == "trace") {
-			$id = $table[1];
-			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
-				unlink($dir.SLASH.$thisfile);
-				continue;
-				}
-			}
-		} */
 	$table = explode("_",$thisfile);
 	$prefix = $table[0];
 	if($prefix == "trace") continue;
@@ -246,6 +221,7 @@ foreach($dircontent as $thisfile) {
 		case "bptb": $type = "timebase"; break;
 		case "bpkb": $type = "keyboard"; break;
 		case "bpgl": $type = "glossary"; break;
+		case "orc": $type = "csorchestra"; break;
 		}
 	if($type <> '') {
 		$link = $type.".php?file=".urlencode($path.SLASH.$thisfile);

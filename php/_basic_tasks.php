@@ -660,7 +660,6 @@ function SaveCsoundInstruments($verbose,$dir,$filename,$temp_folder) {
 		$content = $extract_data['content'];
 		$table = explode(chr(10),$content);
 		fwrite($handle,$instrument_label."\n");
-	//	echo "count(table) = ".count($table)."<br />";
 		for($i = 1; $i < count($table); $i++) {
 			$line = $table[$i];
 			fwrite($handle,$line."\n");
@@ -1110,6 +1109,42 @@ function MIDIparameter_argument($i,$parameter,$StartIndex,$EndIndex,$TableIndex,
 	$r .= "</td>";
 	$r .= "</table>";
 	return $r;
+	}
+
+function max_argument($argmax_file) {
+	include($argmax_file);
+//	echo "argmax_file = ".$argmax_file."<br />";
+	$max = 0;
+	if(isset($last_argument)) {
+		foreach($last_argument as $value) {
+			if($value > $max) $max = $value;
+			}
+		}
+	return $max;
+	}
+	
+function set_argmax_argument($argmax_file,$name,$arg) {
+	include($argmax_file);
+	$text = "<xxxphp\n";
+	$found = FALSE;
+	if(isset($last_argument)) {
+		foreach($last_argument as $key => $value) {
+		//	echo "<br />key = ".$key."<br />";
+			if($key == $name) {
+				$value = $arg;
+				$found = TRUE;
+				}
+			$text .= "yyylast_argument[\"".$key."\"] = ".$value.";\n";
+			}
+		}
+	if(!$found) $text .= "yyylast_argument[\"".$name."\"] = ".$arg.";\n";
+	$text .= "xxx>\n";
+	$text = str_replace("xxx","?",$text);
+	$text = str_replace("yyy","$",$text);
+	$handle = fopen($argmax_file,"w");
+	fwrite($handle,$text);
+	fclose($handle);
+	return;
 	}
 
 function convert_empty($value) {

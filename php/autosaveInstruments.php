@@ -9,7 +9,6 @@ if(isset($_GET['save'])) {
 	if(!$test) {
 		SaveCsoundInstruments(FALSE,$dir,$filename,$temp_folder);
 		echo "<font color=\"red\">".date('H\hi - s \s\e\c\o\n\d\s')."</font> ➡ <font color=\"red\">Autosaved all instruments in</font> “<font color=\"blue\">".$filename."</font>”";
-//		echo "okokok";
 		}
 	}
 ?>

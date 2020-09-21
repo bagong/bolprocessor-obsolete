@@ -14,6 +14,7 @@ else {
 	}
 
 $this_title = $instrument_name;
+$instrument_name = str_replace(' ','_',$instrument_name);
 require_once("_header.php");
 
 $instrument_folder_name = str_replace('-','_',$instrument_name);
@@ -29,6 +30,8 @@ echo "<p>Instrument file: <font color=\"blue\">".$instrument_file."</font>";
 echo link_to_help();
 echo "<h2>Csound instrument <big><font color=\"red\">".$instrument_name."</font></big></h2>";
 
+$argmax_file = $folder_this_instrument.SLASH."argmax.php";
+		
 $exists_name = array();
 $dircontent = scandir($folder_this_instrument);
 foreach($dircontent as $oldfile) {
@@ -97,7 +100,11 @@ if(isset($_POST['saveinstrument'])) {
 	$comment = recode_tags($_POST['comment']);
 	fwrite($handle,$comment."\n");
 	$argmax = $_POST['argmax'];
+	$instrument_argmax = max_argument($argmax_file);
+	if($instrument_argmax > $argmax) $argmax = $instrument_argmax;
+	
 	fwrite($handle,$argmax."\n");
+	$argmax = 0;
 	$InstrumentIndex = $_POST['InstrumentIndex'];
 	fwrite($handle,$InstrumentIndex."\n");
 	$InstrumentDilationRatioIndex = convert_empty($_POST['InstrumentDilationRatioIndex']);
@@ -107,6 +114,7 @@ if(isset($_POST['saveinstrument'])) {
 	$InstrumentReleaseVelocityIndex = convert_empty($_POST['InstrumentReleaseVelocityIndex']);
 	fwrite($handle,$InstrumentReleaseVelocityIndex."\n");
 	$InstrumentPitchIndex = convert_empty($_POST['InstrumentPitchIndex']);
+	if($InstrumentPitchIndex > $argmax) $argmax = $InstrumentPitchIndex;
 	fwrite($handle,$InstrumentPitchIndex."\n");
 	$InstrumentPitchFormat = $_POST['InstrumentPitchFormat'];
 	fwrite($handle,$InstrumentPitchFormat."\n");
@@ -149,36 +157,51 @@ if(isset($_POST['saveinstrument'])) {
 	fwrite($handle,$InstrumentPanoramicIsLogY."\n");
 	
 	$InstrumentPitchbendStartIndex = convert_empty($_POST['StartIndex_0']);
+	if($InstrumentPitchbendStartIndex > $argmax) $argmax = $InstrumentPitchbendStartIndex;
 	fwrite($handle,$InstrumentPitchbendStartIndex."\n");
 	$InstrumentVolumeStartIndex = convert_empty($_POST['StartIndex_1']);
+	if($InstrumentVolumeStartIndex > $argmax) $argmax = $InstrumentVolumeStartIndex;
 	fwrite($handle,$InstrumentVolumeStartIndex."\n");
 	$InstrumentPressureStartIndex = convert_empty($_POST['StartIndex_2']);
+	if($InstrumentPressureStartIndex > $argmax) $argmax = $InstrumentPressureStartIndex;
 	fwrite($handle,$InstrumentPressureStartIndex."\n");
 	$InstrumentModulationStartIndex = convert_empty($_POST['StartIndex_3']);
+	if($InstrumentModulationStartIndex > $argmax) $argmax = $InstrumentModulationStartIndex;
 	fwrite($handle,$InstrumentModulationStartIndex."\n");
 	$InstrumentPanoramicStartIndex = convert_empty($_POST['StartIndex_4']);
+	if($InstrumentPanoramicStartIndex > $argmax) $argmax = $InstrumentPanoramicStartIndex;
 	fwrite($handle,$InstrumentPanoramicStartIndex."\n");
 	
 	$InstrumentPitchbendEndIndex = convert_empty($_POST['EndIndex_0']);
+	if($InstrumentPitchbendEndIndex > $argmax) $argmax = $InstrumentPitchbendEndIndex;
 	fwrite($handle,$InstrumentPitchbendEndIndex."\n");
 	$InstrumentVolumeEndIndex = convert_empty($_POST['EndIndex_1']);
+	if($InstrumentVolumeEndIndex > $argmax) $argmax = $InstrumentVolumeEndIndex;
 	fwrite($handle,$InstrumentVolumeEndIndex."\n");
 	$InstrumentPressureEndIndex = convert_empty($_POST['EndIndex_2']);
+	if($InstrumentPressureEndIndex > $argmax) $argmax = $InstrumentPressureEndIndex;
 	fwrite($handle,$InstrumentPressureEndIndex."\n");
 	$InstrumentModulationEndIndex = convert_empty($_POST['EndIndex_3']);
+	if($InstrumentModulationEndIndex > $argmax) $argmax = $InstrumentModulationEndIndex;
 	fwrite($handle,$InstrumentModulationEndIndex."\n");
 	$InstrumentPanoramicEndIndex = convert_empty($_POST['EndIndex_4']);
+	if($InstrumentPanoramicEndIndex > $argmax) $argmax = $InstrumentPanoramicEndIndex;
 	fwrite($handle,$InstrumentPanoramicEndIndex."\n");
 	
 	$InstrumentPitchbendTableIndex = convert_empty($_POST['TableIndex_0']);
+	if($InstrumentPitchbendTableIndex > $argmax) $argmax = $InstrumentPitchbendTableIndex;
 	fwrite($handle,$InstrumentPitchbendTableIndex."\n");
 	$InstrumentVolumeTableIndex = convert_empty($_POST['TableIndex_1']);
+	if($InstrumentVolumeTableIndex > $argmax) $argmax = $InstrumentVolumeTableIndex;
 	fwrite($handle,$InstrumentVolumeTableIndex."\n");
 	$InstrumentPressureTableIndex = convert_empty($_POST['TableIndex_2']);
+	if($InstrumentPressureTableIndex > $argmax) $argmax = $InstrumentPressureTableIndex;
 	fwrite($handle,$InstrumentPressureTableIndex."\n");
 	$InstrumentModulationTableIndex = convert_empty($_POST['TableIndex_3']);
+	if($InstrumentModulationTableIndex > $argmax) $argmax = $InstrumentModulationTableIndex;
 	fwrite($handle,$InstrumentModulationTableIndex."\n");
 	$InstrumentPanoramicTableIndex = convert_empty($_POST['TableIndex_4']);
+	if($InstrumentPanoramicTableIndex > $argmax) $argmax = $InstrumentPanoramicTableIndex;
 	fwrite($handle,$InstrumentPanoramicTableIndex."\n");
 	
 	$InstrumentPitchbendGEN = convert_empty($_POST['GEN_0']);
@@ -204,6 +227,7 @@ if(isset($_POST['saveinstrument'])) {
 		fwrite($handle,$param."\n");
 		}
 	fclose($handle);
+	set_argmax_argument($argmax_file,$instrument_name,$argmax);
 	}
 
 $content = file_get_contents($instrument_file,TRUE);
@@ -222,6 +246,8 @@ $verbose = TRUE;
 $verbose = FALSE;
 $i = 1;
 $argmax = $table[++$i];
+$instrument_argmax = max_argument($argmax_file);
+if($instrument_argmax > $argmax) $argmax = $instrument_argmax;
 if($verbose) echo "argmax = ".$argmax."<br />";
 echo "<input type=\"hidden\" name=\"argmax\" value=\"".$argmax."\">";
 $InstrumentIndex = $table[++$i];

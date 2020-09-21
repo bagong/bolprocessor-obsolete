@@ -29,7 +29,7 @@ echo "<h2>Csound parameter <big>“<font color=\"green\">".$parameter_name."</fo
 echo "<p>This parameter belongs to instrument “<font color=\"blue\">".$instrument_name."</font>” in file “<font color=\"blue\">".$csfilename."</font>”</p>";
 
 if(isset($_POST['saveparameter'])) {
-//	$csfilename = $_POST['csfilename'];
+//	echo "parameter_name = ".$parameter_name."<br />";
 	echo "<p id=\"timespan\"><font color=\"red\">Saving this parameter…</font>";
 	$parameter_file = $folder_this_instrument.SLASH.$parameter_name.".txt";
 	$handle = fopen($parameter_file,"w");
@@ -37,11 +37,15 @@ if(isset($_POST['saveparameter'])) {
 	fwrite($handle,$parameter_name."\n");
 	$comment = recode_tags($_POST['comment']);
 	fwrite($handle,$comment."\n");
+	$argmax = 0;
 	$start_index = convert_empty($_POST['start_index']);
+	if($start_index > $argmax) $argmax = $start_index;
 	fwrite($handle,$start_index."\n");
 	$end_index = convert_empty($_POST['end_index']);
+	if($end_index > $argmax) $argmax = $end_index;
 	fwrite($handle,$end_index."\n");
 	$table_index = convert_empty($_POST['table_index']);
+	if($table_index > $argmax) $argmax = $table_index;
 	fwrite($handle,$table_index."\n");
 	$default_value = $_POST['default_value'];
 	fwrite($handle,$default_value."\n");
@@ -50,6 +54,8 @@ if(isset($_POST['saveparameter'])) {
 	$mode = $_POST['mode'];
 	fwrite($handle,$mode."\n");
 	fclose($handle);
+	$argmax_file = $folder_this_instrument.SLASH."argmax.php";
+	set_argmax_argument($argmax_file,$parameter_name,$argmax);
 	}
 
 echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
@@ -58,6 +64,7 @@ echo "<input type=\"hidden\" name=\"parameter_name\" value=\"".$parameter_name."
 echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 echo "<input type=\"hidden\" name=\"folder_this_instrument\" value=\"".$folder_this_instrument."\">";
 echo "<input type=\"hidden\" name=\"instrument_name\" value=\"".$instrument_name."\">";
+echo "<input type=\"hidden\" name=\"csfilename\" value=\"".$csfilename."\">";
 
 echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"saveparameter\" value=\"SAVE THIS PARAMETER\"></p>";
 
