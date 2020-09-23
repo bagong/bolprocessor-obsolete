@@ -50,20 +50,11 @@ if(isset($_FILES['mid_upload']) AND $_FILES['mid_upload']['tmp_name'] <> '') {
 			$tempo = $_POST['tempo'] = $midi_text_bytes[1];
 		//	$tempo = $_POST['tempo'] = 1000000;
 			$timesig = $_POST['timesig'] = "0 TimeSig ".$midi_text_bytes[2]." ".$midi_text_bytes[3]." ".$midi_text_bytes[4];
-			fix_mf2t_file($midi_import_mf2t,"imported_");
+			$message = fix_mf2t_file($midi_import_mf2t,"imported_");
+		//	if($message <> '') echo $message."<br />";
 			}
 		}
 	}
-
-/* if(isset($_POST['savethisfile'])) {
-	echo "<p id=\"timespan\" style=\"color:red;\">Saved file…</p>";
-	$content = $_POST['thistext'];
-	$handle = fopen($this_file,"w");
-	$file_header = $top_header."\n// Time base file saved as \"".$filename."\". Date: ".gmdate('Y-m-d H:i:s');
-	fwrite($handle,$file_header."\n");
-	fwrite($handle,$content);
-	fclose($handle);
-	} */
 
 if(isset($_POST['changestatus'])) {
 	$new_track = isset($_POST['addtrack']);
@@ -212,12 +203,7 @@ if(file_exists($midi_import_mf2t)) {
 	// We reconstruct the imported MIDI file so that bugs are fixed…
 	$mf2t_content = @file_get_contents($midi_import_mf2t,TRUE);
 	$duration_of_midifile = duration_of_midifile($mf2t_content);
-//	echo "duration_of_midifile = ".$duration_of_midifile."<br />";
 	$beats_of_midifile = round(($duration_of_midifile * $p_clock / $q_clock / 1000),2);
-//	echo $midi_import_file; die();
-/*	$midi = new Midi();
-	$midi->importTxt($mf2t_content);
-	$midi->saveMidFile($midi_import_file); */
 	echo "<tr id=\"midi\">";
 	echo "<td style=\"text-align: center; vertical-align: middle; background-color: gold; font-size: x-large; color:red;\" rowspan=\"2\"><b>";
 	if($mute[$i_midifile]) echo "(<font color=\"white\">".($i_midifile + 1)."</font>)";
@@ -389,11 +375,12 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	fwrite($handle,"TrkEnd\n");
 	}
 if(count($mf2t_no_header) > 0) {
-	for($i = 0; $i < count($mf2t_no_header); $i++)
+	for($i = 0; $i < count($mf2t_no_header); $i++) {
 		fwrite($handle,$mf2t_no_header[$i]."\n");
+//		echo $mf2t_no_header[$i]."<br />";
+		}
 	}
 fclose($handle);
-// fix_mf2t_file($mf2t,"unnamed_");
 
 $midi_file = $temp_dir.$temp_folder.SLASH."midicodes.mid";
 
@@ -401,7 +388,6 @@ $mf2t_content = @file_get_contents($mf2t,TRUE);
 $midi = new Midi();
 $midi->importTxt($mf2t_content);
 $midi->saveMidFile($midi_file);
-// echo "ok4"; die();
 
 if(file_exists($midi_file)) {
 	echo "&nbsp;<a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_file."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play combined MIDI file</a>";
@@ -418,10 +404,4 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	}
 echo "</ul>";
 echo "</form>";
-
-/*
-echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
-echo "<p style=\"text-align:left;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"savethisfile\" value=\"SAVE ‘".$filename."’\"></p>";
-echo "<textarea name=\"thistext\" rows=\"40\" style=\"width:700px; background-color:Cornsilk;\">".$content."</textarea>";
-echo "</form>"; */
 ?>

@@ -898,7 +898,8 @@ function fix_mf2t_file($mf2tfile,$tracknames) {
 		echo "<p style=\"color:red;\">Cannot find: ".$mf2tfile."</p>";
 		return;
 		}
-	$message = "<span style=\"color:red;\">Fixing imported MIDI file:</span><ul>";
+	$header = "<span style=\"color:red;\">Fixing imported MIDI file:</span><ul>";
+	$message = '';
 	$content = @file_get_contents($mf2tfile,TRUE);
 	$handle = fopen($mf2tfile,"w");
 	$table = explode(chr(10),$content);
@@ -909,12 +910,12 @@ function fix_mf2t_file($mf2tfile,$tracknames) {
 		$table2 = explode(' ',$line);
 		$new_track_number = intval($table2[2]) + 1;
 		$table2[2] = $new_track_number;
-		$line = implode(' ',$table2);
+		$newline = implode(' ',$table2);
 		fwrite($handle,$newline."\n");
-		echo "<li>Modified: ".$newline."</li>";
+		echo "<span style=\"color:red;\">Adding header:</span><ul><li>".$newline."</li>";
 		$line = "MTrk\n0 Meta TrkName \"header\"\n0 TimeSig 1/4 24 8\n0 Tempo 1000000\n0 KeySig 0 major\n0 Meta TrkEnd\nTrkEnd";
-		fwrite($handle,$newline."\n");
-		echo "<li>Modified: ".str_replace("\n","<br />",$newline)."</li>";
+		fwrite($handle,$line."\n");
+		echo "<li>".str_replace("\n","<br />",$line)."</li></ul>";
 		}
 	$new_track_nr = 1;
 	for($i = $i0; $i < count($table); $i++) {
@@ -923,13 +924,13 @@ function fix_mf2t_file($mf2tfile,$tracknames) {
 			$line2 = trim($table[$i - 1]);
 			if(!is_integer(strpos($line2,"TrkEnd"))) {
 				$bad = TRUE;
-				if(!$said) echo $message;
+				if(!$said) $message .= $header;
 				$said = TRUE;
 				$table2 = explode(' ',$line2);
 				$time = intval($table2[0]);
 				$newline = $time." Meta TrkEnd";
 				fwrite($handle,$newline."\n");
-				echo "<li>Added: ".$newline."</li>";
+				$message .= "<li>Added: ".$newline."</li>";
 				}
 			}
 		fwrite($handle,$line."\n");
@@ -937,18 +938,18 @@ function fix_mf2t_file($mf2tfile,$tracknames) {
 			$line2 = trim($table[$i + 1]);
 			if(!is_integer(strpos($line2,"TrkName"))) {
 				$bad = TRUE;
-				if(!$said) echo $message;
+				if(!$said) $message .= $header;
 				$said = TRUE;
 				$newline = "0 Meta TrkName \"".$tracknames.$new_track_nr."\"";
 				$new_track_nr++;
 				fwrite($handle,$newline."\n");
-				echo "<li>Added: ".$newline."</li>";
+				$message .= "<li>Added: ".$newline."</li>";
 				}
 			}
 		}
-	if($bad) echo "</ul>";
+	if($bad) $message .= "</ul>";
 	fclose($handle);
-	return;
+	return $message;
 	}
 
 function duration_of_midifile($mf2t_content) {
@@ -976,7 +977,19 @@ function mf2t_no_header($mf2t_content) {
 		if($table2[0] == "MTrk") {
 			$found_MTrk++;
 			}
-		if($found_MTrk > 1) $result[] = $line;
+		if($found_MTrk > 1) {
+			$result[] = $line;
+		//	echo $line."<br />";
+			}
+		else {
+			if(count($table2) > 1) $x = $table2[1];
+			else $x = '';
+			if($x == "Par" OR $x == "On" OR $x == "Off" OR $x == "ChPr" OR $x == "PrCh") {
+				$found_MTrk++;
+				$result[] = "MTrk";
+				$result[] = $line;
+				}
+			}
 		}
 	return $result;
 	}
