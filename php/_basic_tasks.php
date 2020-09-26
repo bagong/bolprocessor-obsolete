@@ -1169,4 +1169,72 @@ function convert2_empty($value) {
 	if(trim($value) == '') $value = 2147483647; // 2^31 - 1 (Mersenne)
 	return($value);
 	}
+
+function octave($convention,$key) {
+	switch($convention) {
+		case "English":
+			$octave = intdiv($key,12) - 1;
+			break;
+		case "French":
+		case "Indian":
+			$octave = intdiv($key,12) - 2;
+			break;
+		}
+	return $octave;
+	}
+
+function key_to_note($convention,$key) {
+	$name["English"] = array("C","Db","D","Eb","E","F","F#","G","Ab","A","Bb","B");
+	$name["French"] = array("do","reb","re","mib","mi","fa","fa#","sol","lab","la","sib","si");
+	$name["Indian"] = array("sa","rek","re","gak","ga","ma","ma#","pa","dhak","dha","nik","ni");
+	$octave = octave($convention,$key);
+	$class = $key - (12 * intdiv($key,12));
+//	echo $key." ".$octave." ".$class."<br />";
+	return $name[$convention][$class].$octave;
+	}
+
+function polymetric_expression($mute,$TickKey,$TickCycle,$TickChannel,$TickVelocity,$Ptick,$Qtick,$TickDuration,$ThisTick,$p_clock,$q_clock) {
+	$period = $q_clock / $p_clock;
+	$p = "{";
+	$imax = count($TickKey);
+	$lcm = 1;
+	for($i = 0; $i < $imax; $i++) {
+		if($mute[$i]) continue;
+		$x = gcd($TickCycle[$i] * $Qtick[$i],$Ptick[$i]);
+		$y = ($TickCycle[$i] * $Qtick[$i]) / $x;
+		$lcm = ($lcm * $y) / gcd($lcm, $y);
+		}
+	$first = TRUE;
+	for($i = 0; $i < $imax; $i++) {
+		if($mute[$i]) continue;
+		$repeat = ($lcm * $Ptick[$i]) / ($TickCycle[$i] * $Qtick[$i]);
+		if(($repeat) > 50) return "Expression is too complex!";
+		$tick_period = (1000 * $period * $Qtick[$i]) / $Ptick[$i];
+		$staccato = intval(100 * ($tick_period - $TickDuration[$i]) / $tick_period);
+		if(!$first) $p .= ", ";
+		else {
+		$gcd = gcd($Ptick[$i],$Qtick[$i]);
+		$pmin = $Ptick[$i] / $gcd;
+		$qmin = $Qtick[$i] / $gcd;
+		if($qmin > 1)
+			$p .= "_tempo(".$pmin."/".$qmin.") ";
+		else
+			if($pmin > 1) $p .= "_tempo(".$pmin.") ";
+			}
+		$p .= "_chan(".$TickChannel[$i].") ";
+		$p .= "_vel(".$TickVelocity[$i].") ";
+		$p .= "_staccato(".$staccato.") ";
+		$first = FALSE;
+		for($r = 0; $r < $repeat; $r++) {
+			for($j = 0; $j < $TickCycle[$i]; $j++) {
+				if($ThisTick[$i][$j]) $p .= key_to_note("English",$TickKey[$i])." ";
+				else $p .= "- ";
+				}
+			}
+		}
+	$p .=  "}";
+//	$p .= "<br />".$lcm;
+//	$p .= "<br />".$lcm_beats;
+	return $p;
+	}
 ?>

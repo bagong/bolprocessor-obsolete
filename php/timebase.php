@@ -80,16 +80,30 @@ if(isset($_POST['changestatus'])) {
 	for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 		fwrite($handle,"1\n"); // Obsolete variable
 		fwrite($handle,"7\n"); // Obsolete variable
-		fwrite($handle,$_POST['TickKey_'.$i_cycle]."\n");
-		fwrite($handle,$_POST['TickChannel_'.$i_cycle]."\n");
-		fwrite($handle,$_POST['TickVelocity_'.$i_cycle]."\n");
+		$key = intval($_POST['TickKey_'.$i_cycle]);
+		if($key < 0) $key = 0;
+		if($key > 127) $key = 127;
+		fwrite($handle,$key."\n");
+		$channel = intval($_POST['TickChannel_'.$i_cycle]);
+		if($channel < 1) $channel = 1;
+		if($channel > 16) $channel = 16;
+		fwrite($handle,$channel."\n");
+		$velocity = intval($_POST['TickVelocity_'.$i_cycle]);
+		if($velocity < 0) $velocity = 0;
+		if($velocity > 127) $velocity = 127;
+		fwrite($handle,$velocity."\n");
 		$TickCycle[$i_cycle] = intval($_POST['TickCycle_'.$i_cycle]);
 		if($TickCycle[$i_cycle] > 40) $TickCycle[$i_cycle] = 40;
-		if($TickCycle[$i_cycle] == 0) $TickCycle[$i_cycle] = 1;
+		if($TickCycle[$i_cycle] < 1) $TickCycle[$i_cycle] = 1;
 		fwrite($handle,$TickCycle[$i_cycle]."\n");
-		fwrite($handle,$_POST['Ptick_'.$i_cycle]."\n");
-		fwrite($handle,$_POST['Qtick_'.$i_cycle]."\n");
-		fwrite($handle,$_POST['TickDuration_'.$i_cycle]."\n");
+		$p_tick = intval($_POST['Ptick_'.$i_cycle]);
+		$q_tick = intval($_POST['Qtick_'.$i_cycle]);
+		$gcd = gcd($p_tick,$q_tick);
+		$p_tick = $p_tick / $gcd;
+		$q_tick = $q_tick / $gcd;
+		fwrite($handle,$p_tick."\n");
+		fwrite($handle,$q_tick."\n");
+		fwrite($handle,intval($_POST['TickDuration_'.$i_cycle])."\n");
 		for($i = 0; $i < $maxbeats; $i++) {
 			if(isset($_POST['ThisTick_'.$i_cycle.'_'.$i])) fwrite($handle,"1\n");
 			else fwrite($handle,"0\n");
@@ -174,12 +188,14 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"activate_".$i_cycle."\" value=\"ACTIVATE\">";
 	echo "</td>";
 	echo "<td style=\"padding:6px;\">Cycle of <input type=\"text\" name=\"TickCycle_".$i_cycle."\" size=\"3\" value=\"".$TickCycle[$i_cycle]."\"> beat(s) [max 40]</td>";
-	echo "<td style=\"text-align: right;\">Speed ratio <input type=\"text\" name=\"Ptick_".$i_cycle."\" size=\"3\" value=\"".$Ptick[$i_cycle]."\">&nbsp;/&nbsp;<input type=\"text\" name=\"Qtick_".$i_cycle."\" size=\"3\" value=\"".$Qtick[$i_cycle]."\"></td>";
+	echo "<td colspan=\"2\" style=\"text-align: right;\">Speed ratio <input type=\"text\" name=\"Ptick_".$i_cycle."\" size=\"3\" value=\"".$Ptick[$i_cycle]."\">&nbsp;/&nbsp;<input type=\"text\" name=\"Qtick_".$i_cycle."\" size=\"3\" value=\"".$Qtick[$i_cycle]."\"></td>";
 	echo "</tr>";
 	echo "<tr>";
-	echo "<td colspan=\"2\" style=\"padding:6px;\">key = <input type=\"text\" name=\"TickKey_".$i_cycle."\" size=\"3\" value=\"".$TickKey[$i_cycle]."\"> channel = <input type=\"text\" name=\"TickChannel_".$i_cycle."\" size=\"3\" value=\"".$TickChannel[$i_cycle]."\"> velocity = <input type=\"text\" name=\"TickVelocity_".$i_cycle."\" size=\"3\" value=\"".$TickVelocity[$i_cycle]."\"> duration = <input type=\"text\" name=\"TickDuration_".$i_cycle."\" size=\"3\" value=\"".$TickDuration[$i_cycle]."\"> ms</td>";
+	$key = $TickKey[$i_cycle];
+	echo "<td style=\"padding:6px; text-align:center;\">key = <input type=\"text\" name=\"TickKey_".$i_cycle."\" size=\"3\" value=\"".$TickKey[$i_cycle]."\">&nbsp;&nbsp;<span style=\"color:blue;\">".key_to_note('English',$key)." / ".key_to_note('French',$key)." / ".key_to_note('Indian',$key)."</span></td>";
+	echo "<td colspan=\"2\" style=\"padding:6px; text-align:center;\">channel = <input type=\"text\" name=\"TickChannel_".$i_cycle."\" size=\"3\" value=\"".$TickChannel[$i_cycle]."\"> velocity = <input type=\"text\" name=\"TickVelocity_".$i_cycle."\" size=\"3\" value=\"".$TickVelocity[$i_cycle]."\"> duration = <input type=\"text\" name=\"TickDuration_".$i_cycle."\" size=\"3\" value=\"".$TickDuration[$i_cycle]."\"> ms</td>";
 	echo "</tr>";
-	echo "<tr><td colspan=\"3\">";
+	echo "<tr><td colspan=\"4\">";
 	for($i = 0; $i < $maxbeats; $i++) {
 		echo "<input type=\"checkbox\" name=\"ThisTick_".$i_cycle."_".$i."\"";
 		if($ThisTick[$i_cycle][$i] == 1) echo " checked";
@@ -187,9 +203,11 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 		echo ">&nbsp;";
 		}
 	echo "</td></tr>";
-	echo "<tr><td colspan=\"3\" style=\"background-color:gold;\">";
+	echo "<tr><td colspan=\"4\" style=\"background-color:gold;\">";
 	echo "</td></tr>";
 	}
+
+$polymetric_expression = polymetric_expression($mute,$TickKey,$TickCycle,$TickChannel,$TickVelocity,$Ptick,$Qtick,$TickDuration,$ThisTick,$p_clock,$q_clock);
 
 $MIDIfile_exists = FALSE;
 if(file_exists($midi_import_mf2t)) {
@@ -214,16 +232,16 @@ if(file_exists($midi_import_mf2t)) {
 	else
 		echo "<input style=\"background-color:yellow;\" type=\"submit\" name=\"activate_".$i_midifile."\" value=\"ACTIVATE\">";
 	echo "</td>";
-	echo "<td colspan=\"2\" style=\"padding:6px; text-align:center;\">";
+	echo "<td colspan=\"3\" style=\"padding:6px; text-align:center;\">";
 	if(isset($_POST['upload_filename']) AND $_POST['upload_filename'] <> '') $upload_filename = $_POST['upload_filename'];
 	echo "<input type=\"hidden\" name=\"upload_filename\" value=\"".$upload_filename."\">";
 	echo "<a href=\"#midi\" onClick=\"MIDIjs.play('".$midi_import_file."');\"><img src=\"pict/loudspeaker.png\" width=\"70px;\" style=\"vertical-align:middle;\" />Play “<font color=\"blue\">".$upload_filename."</font>” MIDI file</a>";
 	echo " (<a href=\"#midi\" onClick=\"MIDIjs.stop();\">Stop playing</a>)";
 	echo "<br />Duration = ".round($duration_of_midifile / 1000, 3)." sec = ".$beats_of_midifile." beats<br />Division = <input type=\"text\" name=\"division\" size=\"5\" value=\"".$division."\">&nbsp;&nbsp;&nbsp;Tempo = <input type=\"text\" name=\"tempo\" size=\"7\" value=\"".$tempo."\"> µs ➡ show <a onclick=\"window.open('".$midi_import_mf2t."','importedMIDIbytes','width=300,height=500,left=300'); return false;\" href=\"".$midi_import_mf2t."\">MF2T code</a>";
 	echo "</td></tr>";
-	$colspan = 2;
+	$colspan = 3;
 	}
-else $colspan = 3;
+else $colspan = 4;
 
 
 echo "<tr><td colspan=\"".$colspan."\" style=\"padding:6px; text-align:center;\">";
@@ -234,7 +252,7 @@ else $comment = '';
 $comment = trim(str_replace("DATA:",'',$comment));
 $comment = str_ireplace("<HTML>",'',$comment);
 $comment = str_ireplace("</HTML>",'',$comment);
-echo "<tr><td colspan=\"3\" style=\"padding:6px;\">";
+echo "<tr><td colspan=\"4\" style=\"padding:6px;\">";
 echo "<div style=\"float:right;\"><input style=\"background-color:yellow;\" type=\"submit\" name=\"addtrack\" value=\"ADD ANOTHER TRACK\"></div>";
 
 echo "Comment on this timebase:<br /><input type=\"text\" name=\"comment\" size=\"80\" value=\"".$comment."\">";
@@ -396,6 +414,9 @@ if(file_exists($midi_file)) {
 	echo "&nbsp;&nbsp;&nbsp;➡ Show <a onclick=\"window.open('".$mf2t."','combinedMIDIbytes','width=300,height=500,left=100'); return false;\" href=\"".$mf2t."\">MF2T code</a>";
 	}
 echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"savealldata\" value=\"SAVE ALL DATA\"></p>";
+echo "</form>";
+
+echo "<p>Equivalent polymetric expression:<br /><small><span style=\"color:blue;\">".$polymetric_expression."</span></small></p>";
 echo "<p>Actual duration of complete cycle would be ".$actual_beats_combined." beats = ".$actual_duration_combined." seconds with:</p>";
 echo "<ul>";
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
@@ -403,5 +424,4 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	echo "<li>track #".($i_cycle + 1)." repeated ".$repeat[$i_cycle]." time(s)</li>";
 	}
 echo "</ul>";
-echo "</form>";
 ?>

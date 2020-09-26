@@ -231,7 +231,10 @@ foreach($dircontent as $thisfile) {
 		if($type == "grammar") echo "<font color=\"red\">";
 		else if($type == "data") echo "<font color=\"gold\">";
 		else if($type <> "settings") echo "<font color=\"lightgreen\">";
-		echo $type."</font><br />";
+		echo $type."</font>";
+		$time_saved = filemtime($dir.SLASH.$thisfile);
+		echo " <small>➡ ".gmdate('Y-m-d H\hi',$time_saved)."</small>";
+		echo "<br />";
 		}
 	else echo $thisfile."<br />";
 	}

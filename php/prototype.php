@@ -1441,6 +1441,67 @@ if($change_beats OR isset($_POST['adjust_duration'])) {
 	$Duration = $NewDuration;
 	}
 
+if(isset($_POST['CroppedDuration'])) {
+	$CroppedDuration = round($_POST['CroppedDuration']);
+	if($CroppedDuration > 0) {
+		$new_midi_code = $OnKey = array();
+		$lasttime = 0;
+		for($k = 0; $k < $kmax; $k++) {
+			$byte = $midi_text_bytes[$k];
+			$code = $byte % 256;
+			$time = ($byte - $code) / 256;
+			if($time > $CroppedDuration) break;
+			$new_midi_code[$k] = $byte;
+			$lasttime = $time;
+			if($code >= 144 AND $code < 160) { // NoteOn
+				$channel = $code - 144 + 1;
+				$byte = $midi_text_bytes[$k + 1];
+				$key = $byte % 256;
+				$byte = $midi_text_bytes[$k + 2];
+				$velocity = $byte % 256;
+				if($velocity > 0) $OnKey[$channel][$key] = TRUE;
+				else if(isset($OnKey[$channel][$key])) unset($OnKey[$channel][$key]);
+				}
+			if($code >= 128 AND $code < 144) { // NoteOff
+				$channel = $code - 128 + 1;
+				$byte = $midi_text_bytes[$k + 1];
+				$key = $byte % 256;
+				if(isset($OnKey[$channel][$key])) unset($OnKey[$channel][$key]);
+				}
+			}
+		for($channel = 1; $channel <= 16; $channel++) {
+			if(!isset($OnKey[$channel])) continue;
+			foreach($OnKey[$channel] as $key => $value) {
+			//	echo "key = ".$key." value = ".$value."<br />";
+				$code = 128 + $channel - 1;  // NoteOff
+				$byte = $code + (256 * $CroppedDuration);
+				$new_midi_code[$k++] = $byte;
+				$byte = $key + (256 * $CroppedDuration);
+				$new_midi_code[$k++] = $byte;
+				$byte = 256 * $CroppedDuration;
+				$new_midi_code[$k++] = $byte;
+				$lasttime = $CroppedDuration;
+				}
+			}
+		if($lasttime < $CroppedDuration) {
+			$code = 208;
+			$new_midi_code[$k++] = $code + (256 * $CroppedDuration);
+			$new_midi_code[$k++] = 256 * $CroppedDuration;
+			}
+		$kmax = count($new_midi_code);
+		$midi_text_bytes = array();
+		$handle_bytes = fopen($midi_bytes,"w");
+		fwrite($handle_bytes,$kmax."\n");
+		for($k = 0; $k < $kmax; $k++) {
+			$byte = $new_midi_code[$k];
+			fwrite($handle_bytes,$byte."\n");
+			$midi_text_bytes[$k] = $byte;
+			}
+		fclose($handle_bytes);
+		$Duration = $CroppedDuration;
+		}
+	}
+	
 if(!$no_midi) {
 	if($new_midi) {
 		if(file_exists($midi_text)) copy($midi_text,$midi_text.".old");
@@ -1770,6 +1831,10 @@ echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_
 if($Tref > 0) echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"adjust_beats\" value=\"Adjust event beat duration\"> to <input type=\"text\" name=\"NewBeats\" size=\"8\" value=\"".round($Duration/($Tref),2)."\"> beats (striated object with Tref = ".($Tref / $resolution)." ticks of ".$resolution." ms, i.e. ".($Tref)." ms)";
 echo "</p>";
 
+echo "<p>";
+echo "<p><input style=\"background-color:azure;\" type=\"submit\" name=\"crop_duration\" value=\"Crop event time duration\"> to <input type=\"text\" name=\"CroppedDuration\" size=\"8\" value=\"\"> ms (truncate the end of the MIDI sequence)<br />";
+echo "</p>";
+
 if($silence_before_warning <> '') echo "<font color=\"red\">➡</font> ".$silence_before_warning."<br />";
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_before\" value=\"Insert silence before this object\"> = <input type=\"text\" name=\"SilenceBefore\" size=\"8\" value=\"\"> ms ➡ current pre-roll = ".$PreRoll." ms<br />";
 
@@ -1777,6 +1842,7 @@ if($silence_after_warning <> '') echo "<font color=\"red\">➡</font> ".$silence
 echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"silence_after\" value=\"Append silence after this object\"> = <input type=\"text\" name=\"SilenceAfter\" size=\"8\" value=\"\"> ms ➡ current post-roll = ".$PostRoll." ms<br /><br />";
 
 if(!$new_midi AND !$no_midi) {
+	echo "<p>CHANGE MIDI CONTROLS</p>";
 	echo "<p style=\"text-align:left;\"><input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pressure\" value=\"SUPPRESS channel pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_polyphonic_pressure\" value=\"SUPPRESS polyphonic pressure\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_pitchbend\" value=\"SUPPRESS pitchbend\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_volume\" value=\"SUPPRESS volume control\"><br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"add_allnotes_off\" value=\"APPEND AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"suppress_allnotes_off\" value=\"SUPPRESS AllNotesOff (all channels)\">&nbsp;<input style=\"background-color:azure;\" type=\"submit\" name=\"delete_midi\" value=\"SUPPRESS all MIDI codes\"><br />";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"quantize_NoteOn\" value=\"QUANTIZE NoteOns\"> = 1 / <input type=\"text\" name=\"NoteOnQuantize\" size=\"4\" value=\"64\"> beat</p>";
