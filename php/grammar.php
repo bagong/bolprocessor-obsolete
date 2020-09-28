@@ -18,6 +18,9 @@ $file_format = "csound";
 if(isset($_POST['output_file'])) $output_file = $_POST['output_file'];
 if(isset($_POST['file_format'])) $file_format = $_POST['file_format'];
 
+$expression = '';
+if(isset($_POST['expression'])) $expression = trim($_POST['expression']);
+
 require_once("_header.php");
 
 echo "<p><small>Current directory = ".$dir;
@@ -92,7 +95,7 @@ if(isset($_POST['change_output_folder'])) {
 	}
 else {
 	$output = $bp_application_path.SLASH.$output_folder;
-	do $output = str_replace("//",'/',$output,$count);
+	do $output = str_replace(SLASH.SLASH,SLASH,$output,$count);
 	while($count > 0);
 	if(!file_exists($output)) {
 		echo "<p><font color=\"red\">Created folder:</font><font color=\"blue\"> ".$output."</font><br />";
@@ -103,7 +106,7 @@ else {
 echo link_to_help();
 
 echo "<h3>Grammar file “".$filename."”</h3>";
-
+	
 if(isset($_POST['compilegrammar'])) {
 	if(isset($_POST['alphabet_file'])) $alphabet_file = $_POST['alphabet_file'];
 	else $alphabet_file = '';
@@ -312,7 +315,7 @@ else {
 	$time_structure = '';
 //	echo "<input type=\"hidden\" name=\"settings_file\" value=\"".$settings_file."\">";
 	}
-if($note_convention <> '') echo "• Note convention = <font color=\"blue\">".ucfirst($note_convention)."</font> found in <font color=\"blue\">‘".$settings_file."’</font><br />";
+if($note_convention <> '') echo "• Note convention = <font color=\"blue\">".intval($note_convention)."</font> found in <font color=\"blue\">‘".$settings_file."’</font><br />";
 if($produce_all_items == 1) echo "• Produce all items has been set ON by <font color=\"blue\">‘".$settings_file."’</font><br />";
 if($show_production == 1) echo "• Show production has been set ON by <font color=\"blue\">‘".$settings_file."’</font><br />";
 if($trace_production == 1) echo "• Trace production has been set ON by <font color=\"blue\">‘".$settings_file."’</font><br />";
@@ -330,4 +333,131 @@ echo "<textarea name=\"thisgrammar\" rows=\"25\" style=\"width:700px; background
 echo "</form>";
 
 display_more_buttons($content,$url_this_page,$dir,$objects_file,$csound_file,$alphabet_file,$settings_file,$orchestra_file,$interaction_file,$midisetup_file,$timebase_file,$keyboard_file,$glossary_file);
+
+$table = explode(chr(10),$content);
+$imax = count($table);
+$variable = array();
+for($i = 0; $i < $imax; $i++) {
+	$line = trim($table[$i]);
+	$line = preg_replace("/\[.*\]/u",'',$line);
+	if($line == '') continue;
+	if($line == "COMMENT:") break;
+	if(is_integer($pos=strpos($line,"//")) AND $pos == 0) continue;
+	if(is_integer($pos=strpos($line,"-")) AND $pos == 0) continue;
+	$table2 = explode(' ',$line);
+	for($j = 0; $j < count($table2); $j++) {
+		$word = $table2[$j];
+		if($word == '') continue;
+		$word = is_variable($note_convention,$word);
+		if($word == '') continue;
+		if(isset($variable[$word])) continue;
+		$variable[$word] = TRUE;
+		}
+	}
+
+echo "<form method=\"post\" action=\"".$url_this_page."#expression\" enctype=\"multipart/form-data\">";
+// echo "<input type=\"hidden\" name=\"metronome\" value=\"".$metronome."\">";
+// echo "<input type=\"hidden\" name=\"time_structure\" value=\"".$time_structure."\">";
+// echo "<input type=\"hidden\" name=\"alphabet_file\" value=\"".$alphabet_file."\">";
+$action = "produce";
+$link = "produce.php?instruction=".$action."&grammar=".urlencode($grammar_file);
+if($alphabet_file <> '') $link .= "&alphabet=".urlencode($alphabet_file);
+if($settings_file <> '') $link .= "&settings_file=".urlencode($settings_file);
+$link .= "&output=".urlencode($output.SLASH.$output_file)."&format=".$file_format;
+if($show_production > 0)
+	$link .= "&show_production=1";
+if($trace_production > 0)
+	$link .= "&trace_production=1";
+$link .= "&random_seed=".$random_seed;
+$link .= "&here=".urlencode($here);
+$window_name = window_name($filename);
+if(count($variable) > 0) {
+	echo "<h3>Variables (click to use as startup string):</h3>";
+	ksort($variable);
+	foreach($variable as $var => $val) {
+		$thislink = $link."&startup=".$var;
+		echo "<input style=\"color:DarkBlue; background-color:Aquamarine;\" onclick=\"window.open('".$thislink."','".$window_name."','width=800,height=800,left=200'); return false;\" type=\"submit\" name=\"startup_".$var."\" value=\"".$var."\"> ";
+		}
+	}
+
+echo "<p id=\"expression\">Use this (polymetric) expression as startup&nbsp;➡&nbsp;<input type=\"text\" name=\"expression\" size=\"60\" value=\"".$expression."\">&nbsp;<input style=\"background-color:Aquamarine;\" type=\"submit\" name=\"playexpression\" value=\"PRODUCE ITEM…\"></p>";
+if(isset($_POST['playexpression'])) {
+	if($expression == '') {
+		echo "<p id=\"timespan\"><font color=\"red\">➡ Cannot play empty expression…</font></p>";
+		}
+	else {
+		echo "<p id=\"timespan\"><font color=\"red\">➡ Playing:</font> <font color=\"blue\"><big>".$expression."</big></font></p>";
+		$data = $temp_dir."temp_".session_id()."outdata.bpda";
+		$result_file = $output.SLASH.$output_file;
+		$handle = fopen($data,"w");
+		$file_header = $top_header."\n// Data saved as \"expression.bpda\". Date: ".gmdate('Y-m-d H:i:s');
+		fwrite($handle,$file_header."\n");
+		fwrite($handle,$expression."\n");
+		fclose($handle);
+		if(file_exists($result_file)) unlink($result_file); 
+		$application_path = $bp_application_path;
+		$command = $application_path."bp produce";
+		$command .= " -gr ".$dir.$filename;
+		$command .= " -S ".$data;
+		if($settings_file <> '') $command .= " -se \"".$dir.$settings_file."\"";
+		if($alphabet_file<> '') $command .= " -ho \"".$dir.$alphabet_file."\"";
+		if($objects_file <> '') $command .= " -mi \"".$dir.$objects_file."\"";
+		if($csound_file <> '') $command .= " -cs \"".$dir.$csound_file."\"";
+		switch($file_format) {
+			case "data":
+				$command .= " -d -o ".$result_file;
+				break;
+			case "midi":
+				$command .= " -d --midiout ".$result_file;
+				break;
+			case "csound":
+				$command .= " -d --csoundout ".$result_file;
+				break;
+			default:
+				$command .= " -d --rtmidi";
+				break;
+			}
+		echo "<p style=\"color:red;\"><small>".$command."</small></p>";
+		$no_error = FALSE;
+		exec($command,$o);
+		$n_messages = count($o);
+		if($n_messages > 0) {
+			for($i=0; $i < $n_messages; $i++) {
+				$mssg[$i] = $o[$i];
+				$mssg[$i] = clean_up_encoding(TRUE,$mssg[$i]);
+				if(is_integer($pos=strpos($mssg[$i],"Errors: 0")) AND $pos == 0) $no_error = TRUE;
+				}
+			}
+		$message = '';
+		if(!$no_error) {
+			$message .= "<p><font color=\"red\">➡ </font>This process:<br /><small>";
+			for($i=0; $i < $n_messages; $i++) {
+				$message .= "&nbsp;&nbsp;&nbsp;".$mssg[$i]."<br />";
+				}
+			$message .= "</small></p>";
+			}
+		echo $message;
+		
+		if($file_format == "data" OR $file_format == "csound")  {
+			echo "<p><font color=\"red\">➡ </font>Result:<br />";
+			$content = @file_get_contents($result_file,TRUE);
+			$table = explode(chr(10),$content);
+			$imax = count($table);
+			$found = FALSE;
+			for($i = 0; $i < $imax; $i++) {
+				$line = trim($table[$i]);
+				if($line == '') continue;
+				$found = TRUE;
+				$line = recode_tags($line);
+				echo "&nbsp;&nbsp;&nbsp;".$line."<br />";
+				}
+			if(!$found) echo "&nbsp;&nbsp;&nbsp;No result…";
+			echo "</p>";
+			}
+		}
+	}
+
+echo "</form>";
+echo "</body>";
+echo "</html>";
 ?>

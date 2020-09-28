@@ -13,6 +13,18 @@ $filename = end($table);
 $this_file = "..".SLASH.$file;
 $dir = str_replace($filename,'',$this_file);
 
+if(isset($_POST['createcsoundinstruments'])) {
+	$CsoundInstruments_filename = $_POST['CsoundInstruments_filename'];
+	$handle = fopen($dir.$CsoundInstruments_filename,"w");
+	$template = "csound_template";
+	$template_content = @file_get_contents($template,TRUE);
+	fwrite($handle,$template_content."\n");
+	fclose($handle);
+	$path = str_replace("..".SLASH,'',$dir);
+	$url = "csound.php?file=".urlencode($path.$CsoundInstruments_filename);
+	header("Location: ".$url); 
+	}
+
 require_once("_header.php");
 echo "<p>Current directory = ".$dir;
 echo "   <span id='message1' style=\"margin-bottom:1em;\"></span>";
@@ -143,8 +155,24 @@ for($i = 0; $i < count($table); $i++) {
 		echo "PrototypeTickVelocity = <input type=\"text\" name=\"PrototypeTickVelocity\" size=\"4\" value=\"".$PrototypeTickVelocity."\"><br />";
 		}
 	if($i == 3) {
-		$CsoundInstruments_filename = $line;
-		echo "CsoundInstruments filename = <input type=\"text\" name=\"CsoundInstruments_filename\" size=\"20\" value=\"".$CsoundInstruments_filename."\"><br />";
+		$CsoundInstruments_filename = trim($line);
+		if($CsoundInstruments_filename <> '' AND !is_integer(strpos($CsoundInstruments_filename,"-cs.")) AND !is_integer(strpos($CsoundInstruments_filename,".bpcs")))
+			$CsoundInstruments_filename .= ".bpcs";
+		echo "<input type=\"hidden\" name=\"CsoundInstruments_filename\" value=\"".$CsoundInstruments_filename."\">";
+		echo "CsoundInstruments filename = <input type=\"text\" name=\"CsoundInstruments_filename\" size=\"20\" value=\"".$CsoundInstruments_filename."\">";
+		if($CsoundInstruments_filename <> '') { 
+			echo "&nbsp;➡&nbsp;";
+			$CsoundInstruments_file = $dir.$CsoundInstruments_filename;
+			$path = str_replace("..".SLASH,'',$dir);
+			if($CsoundInstruments_filename <> '' AND file_exists($CsoundInstruments_file)) {
+				echo "<a target=\"_blank\" href=\"csound.php?file=".urlencode($path.$CsoundInstruments_filename)."\">edit this file</a>";
+				}
+			else {
+				echo "File not found: <input style=\"background-color:yellow;\" type=\"submit\" onclick=\"this.form.target='_blank';return true;\" name=\"createcsoundinstruments\" value=\"CREATE ‘".$CsoundInstruments_filename."’\">";
+				}
+			}
+		else $CsoundInstruments_file = '';
+		echo "<br />";
 		}
 	if($i == 4) {
 		$maxsounds = $line;
@@ -164,33 +192,49 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("<HTML>",'',$line);
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_name[$iobj] = trim($clean_line);
+		
+		$object_da[$iobj] = $temp_dir.$temp_folder.SLASH.$object_name[$iobj].".bpda";
+		$handle_da = fopen($object_da[$iobj],"w");
+		$file_header = $top_header."\n// Data saved as \"".$object_name[$iobj].".bpda\". Date: ".gmdate('Y-m-d H:i:s');
+		fwrite($handle_da,$file_header."\n");
+		fwrite($handle_da,$object_name[$iobj]."\n");
+		fclose($handle_da);
 		$object_file[$iobj] = $temp_dir.$temp_folder.SLASH.$object_name[$iobj].".txt";
 		$object_foldername = clean_folder_name($object_name[$iobj]);
 		$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
 		if(!is_dir($save_codes_dir)) mkdir($save_codes_dir);
-		
 		if($handle_object) fclose($handle_object);
 		$handle_object = fopen($object_file[$iobj],"w");
 		$midi_bytes = $save_codes_dir."/midibytes.txt";
 		$handle_bytes = fopen($midi_bytes,"w");
-
-		$file_header = $top_header."\n// Object prototype saved as \"".$object_name[$iobj]."\". Date: ".gmdate('Y-m-d H:i:s');
+		
+		$csound_file_this_object = $save_codes_dir."/csound.txt";
+		$handle_csound = fopen($csound_file_this_object,"w");
+		
+		$file_header = $top_header."\n// Data saved as \"".$object_name[$iobj]."\". Date: ".gmdate('Y-m-d H:i:s');
 		$file_header .= "\n".$filename;
 		fwrite($handle_object,$file_header."\n");
 		echo "<input type=\"hidden\" name=\"object_name_".$iobj."\" value=\"".$object_name[$iobj]."\">";
 		$j = $i_start_midi = $n = 0; $first = TRUE;
+		$has_csound[$iobj] = FALSE;
 		do {
 			$i++; $line = $table[$i];
 			if(is_integer($pos=strpos($line,"_beginCsoundScore_"))) {
-				fwrite($handle_object,$line."\n");
 				$i++; $line = $table[$i];
-				if(is_integer($pos=strpos($line,"_endCsoundScore_"))) {
-					// CsoundScore is empty; create 1 empty line
+			/*	if(is_integer($pos=strpos($line,"_endCsoundScore_"))) {
 					$score = "<HTML></HTML>";
-					fwrite($handle_object,$score."\n");
 					}
-				else while(!is_integer($pos=strpos($line,"_endCsoundScore_"))) {
-					fwrite($handle_object,$line."\n");
+				else */
+				while(!is_integer($pos=strpos($line,"_endCsoundScore_"))) {
+					$test_csound = preg_replace("/i[0-9]\s/u","•§§§•",$line);
+					if(is_integer($pos=strpos($test_csound,"•§§§•")))
+						$has_csound[$iobj] = TRUE;
+				//	echo $test_csound."<br />";
+					$score_line = str_ireplace("<HTML>",'',$line);
+					$score_line = str_ireplace("</HTML>",'',$score_line);
+					$score_line = str_ireplace("<BR>","\n",$score_line);
+					$score_line = str_ireplace("_beginCsoundScore_","\n",$score_line);
+					fwrite($handle_csound,$score_line."\n");
 					$i++; $line = $table[$i];
 					}
 				$i_start_midi = $i;
@@ -207,7 +251,8 @@ for($i = 0; $i < count($table); $i++) {
 				if($n <= $nmax) fwrite($handle_bytes,$line."\n");
 				$n++;
 				}
-			else if(!$number_codes) fwrite($handle_object,$line."\n");
+			else if(!$number_codes AND !is_integer(strpos($line,"_endCsoundScore_")))
+				fwrite($handle_object,$line."\n");
 			if(is_integer($pos=stripos($line,"<HTML>"))) break;
 			$j++;
 			continue;
@@ -217,8 +262,10 @@ for($i = 0; $i < count($table); $i++) {
 		$clean_line = str_ireplace("</HTML>",'',$clean_line);
 		$object_comment[$iobj] = $clean_line;
 		fclose($handle_bytes);
+		fclose($handle_csound);
 		}
 	}
+		
 if($handle_object) fclose($handle_object);
 echo "<p style=\"color:blue;\">".$comment_on_file."</p>";
 echo "<p style=\"text-align:left;\">";
@@ -234,17 +281,22 @@ echo "</form>";
 echo "<hr>";
 echo "<h3>Click object prototypes below to edit them:</h3>";
 
-$temp_alphabet_file = $temp_dir.$temp_folder."/-ho.alphabet";
+$temp_alphabet_file = $temp_dir.$temp_folder.SLASH."temp.bpho";
 $handle = fopen($temp_alphabet_file,"w");
+$file_header = $top_header."\n// Alphabet saved as \"temp.bpho\". Date: ".gmdate('Y-m-d H:i:s');
+fwrite($handle,$file_header."\n");
 fwrite($handle,$filename."\n");
 fwrite($handle,"*\n");
 echo "<table style=\"background-color:lightgrey;\">";
 for($i = 0; $i <= $iobj; $i++) {
-	echo "<tr><td>";
+	echo "<tr><td style=\"padding:4px; vertical-align:middle;\">";
 	echo "<form method=\"post\" action=\"prototype.php\" enctype=\"multipart/form-data\">";
 //	echo "<input type=\"hidden\" name=\"temp_dir\" value=\"".$temp_dir."\">";
 	echo "<input type=\"hidden\" name=\"temp_folder\" value=\"".$temp_folder."\">";
 	echo "<input type=\"hidden\" name=\"object_file\" value=\"".$object_file[$i]."\">";
+	echo "<input type=\"hidden\" name=\"prototypes_file\" value=\"".$dir.$filename."\">";
+	echo "<input type=\"hidden\" name=\"prototypes_name\" value=\"".$filename."\">";
+	echo "<input type=\"hidden\" name=\"CsoundInstruments_file\" value=\"".$CsoundInstruments_file."\">";
 	echo "<input style=\"background-color:azure; font-size:larger;\" type=\"submit\" onclick=\"this.form.target='_blank';return true;\" name=\"object_name\" value=\"".$object_name[$i]."\">";
 	fwrite($handle,$object_name[$i]."\n");
 	echo "</form>";
@@ -252,7 +304,10 @@ for($i = 0; $i <= $iobj; $i++) {
 	echo "<td style=\"vertical-align:middle;\">";
 	echo $object_comment[$i];
 	echo "</td>";
-	echo "<td>";
+	echo "<td style=\"vertical-align:middle;\">";
+	if($has_csound[$i]) echo "Csound";
+	echo "</td>";
+	echo "<td style=\"padding:4px; vertical-align:middle;\">";
 	echo "<form method=\"post\" action=\"".$url_this_page."\" enctype=\"multipart/form-data\">";
 	echo "<input type=\"hidden\" name=\"dir\" value=\"".$dir."\">";
 	echo "<input type=\"hidden\" name=\"filename\" value=\"".$filename."\">";
@@ -266,7 +321,7 @@ for($i = 0; $i <= $iobj; $i++) {
 	echo "<input type=\"hidden\" name=\"object_name\" value=\"".$object_name[$i]."\">";
 	echo "<input style=\"background-color:yellow; \" type=\"submit\" name=\"delete_object\" value=\"DELETE\">";
 	echo "</td>";
-	echo "<td style=\"text-align:right;\">";
+	echo "<td style=\"padding:4px; vertical-align:middle; text-align:right;\">";
 	echo "<input style=\"background-color:azure;\" type=\"submit\" name=\"duplicate_object\" value=\"DUPLICATE AS\">: <input type=\"text\" name=\"copy_object\" size=\"15\" value=\"\">";
 	echo "</td>";
 	echo "</tr>";

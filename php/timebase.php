@@ -128,14 +128,16 @@ $maxbeats = $table[$j++];
 
 $p_clock = 1;
 $q_clock = 1;
-if(isset($_POST['p_clock'])) $p_clock = $_POST['p_clock'];
-if(isset($_POST['q_clock'])) $q_clock = $_POST['q_clock'];
-$metronome = metronome($p_clock,$q_clock);
+if(isset($_POST['p_clock'])) $p_clock = round($_POST['p_clock']);
+if(isset($_POST['q_clock'])) $q_clock = round($_POST['q_clock']);
+/* $metronome = metronome($p_clock,$q_clock);
 $p_clock = round(1000 * $metronome);
-$q_clock = 60000;
+$p_clock = (1000 * $metronome);
+$q_clock = 60000; */
 $g = gcd($p_clock,$q_clock);
 $p_clock = $p_clock / $g;
 $q_clock = $q_clock / $g;
+$metronome = metronome($p_clock,$q_clock);
 if(isset($_POST['division']) AND $_POST['division'] > 0) $division = $_POST['division'];
 else $division = 1000;
 if(isset($_POST['tempo']) AND $_POST['tempo'] > 0) $tempo = $_POST['tempo'];
@@ -273,7 +275,9 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	$mute[$i_cycle] = TRUE;
 	for($i = 0; $i < $maxbeats; $i++) {
 		if($ThisTick[$i_cycle][$i] == 1) {
-			$mute[$i_cycle] = FALSE; break;
+			$mute[$i_cycle] = FALSE;
+		//	echo "<p>".$i_cycle." is not mute</p>";
+			break;
 			}
 		}
 	if($mute[$i_cycle]) {
@@ -281,7 +285,7 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 		continue;
 		}
 	$duration[$i_cycle] = 1000 * $TickCycle[$i_cycle] * $Qtick[$i_cycle] / $Ptick[$i_cycle];
-	if($check_midi) echo ($i_cycle+ 1)." duration = ".$duration[$i_cycle]." ms<br />";
+	if($check_midi) echo ($i_cycle + 1).") duration = ".$duration[$i_cycle]." ms<br />";
 	}
 if($MIDIfile_exists AND !$mute[$i_midifile]) {
 	$duration[$i_midifile] = $duration_of_midifile;
@@ -291,21 +295,38 @@ $gcd = gcd_array($duration,0);
 if($gcd == 0) $gcd = 1;
 if($check_midi) echo "gcd = ".$gcd."<br /><br />";
 
-$mult = 1;
+// $mult = 1;
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	if($mute[$i_cycle]) continue;
 	$duration[$i_cycle] = $duration[$i_cycle] / $gcd;
-	$mult = $mult * ($duration[$i_cycle] / gcd($mult,$duration[$i_cycle]));
+//	$mult = $mult * ($duration[$i_cycle] / gcd($mult,$duration[$i_cycle]));
 	if($check_midi) echo ($i_cycle+ 1)." relative duration = ".$duration[$i_cycle]."<br />";
 	}
 if($MIDIfile_exists AND !$mute[$i_midifile]) {
 	$duration[$i_midifile] = $duration[$i_midifile] / $gcd;
-	$mult = $mult * ($duration[$i_midifile] / gcd($mult,$duration[$i_midifile]));
+//	$mult = $mult * ($duration[$i_midifile] / gcd($mult,$duration[$i_midifile]));
 	if($check_midi) echo "MIDI file relative duration = ".$duration[$i_midifile]."<br />";
 	}
-if($check_midi) echo "mult = ".$mult."<br /><br />";
+// if($check_midi) echo "mult = ".$mult."<br /><br />";
 
+$lcm = 1;
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	if($mute[$i_cycle]) continue;
+	$x = gcd($TickCycle[$i_cycle] * $Qtick[$i_cycle],$Ptick[$i_cycle]);
+	$y = ($TickCycle[$i_cycle] * $Qtick[$i_cycle]) / $x;
+	$lcm = ($lcm * $y) / gcd($lcm, $y);
+	}
+for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
+	if($mute[$i_cycle]) continue;
+	$i_ok = $i_cycle;
+	if($MIDIfile_exists AND !$mute[$i_midifile]) {
+		$repeat[$i_cycle] = ceil($duration[$i_midifile] / $duration[$i_cycle]);
+		}
+	else $repeat[$i_cycle] = ($lcm * $Ptick[$i_cycle]) / ($TickCycle[$i_cycle] * $Qtick[$i_cycle]);
+	if($check_midi) echo ($i_cycle + 1)." repeat = ".$repeat[$i_cycle]."<br />";
+	}
+		
+/* for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	if($mute[$i_cycle]) continue;
 	$i_ok = $i_cycle;
 	if($MIDIfile_exists AND !$mute[$i_midifile]) {
@@ -313,7 +334,7 @@ for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 		}
 	else $repeat[$i_cycle] = $mult / $duration[$i_cycle];
 	if($check_midi) echo ($i_cycle + 1)." repeat = ".$repeat[$i_cycle]."<br />";
-	}
+	} */
 
 if($MIDIfile_exists AND !$mute[$i_midifile]) {
 	$actual_duration_combined = round($duration_of_midifile / 1000, 3);
@@ -417,7 +438,8 @@ echo "<p><input style=\"background-color:yellow;\" type=\"submit\" name=\"saveal
 echo "</form>";
 
 echo "<p>Equivalent polymetric expression:<br /><small><span style=\"color:blue;\">".$polymetric_expression."</span></small></p>";
-echo "<p>Actual duration of complete cycle would be ".$actual_beats_combined." beats = ".$actual_duration_combined." seconds with:</p>";
+
+echo "<p>Actual duration of complete cycle should be ".$actual_beats_combined." beats = ".$actual_duration_combined." seconds with:</p>";
 echo "<ul>";
 for($i_cycle = 0; $i_cycle < $maxticks; $i_cycle++) {
 	if($mute[$i_cycle]) continue;

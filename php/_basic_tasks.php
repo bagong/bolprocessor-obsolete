@@ -47,7 +47,7 @@ foreach($dircontent as $thisfile) {
 	if($old) {
 		$table = explode('_',$thisfile);
 		$prefix = $table[0];
-		if($prefix == "trace") {
+		if($prefix == "trace" OR $prefix == "temp") {
 			$id = $table[1];
 			if(($extension == "txt" OR $extension == "html") AND $id <> session_id()) {
 				unlink($temp_dir.$thisfile);
@@ -596,23 +596,42 @@ function SaveObjectPrototypes($verbose,$dir,$filename,$temp_folder) {
 		$table = explode(chr(10),$content);
 		$line = "<HTML>".$object_label."</HTML>";
 		fwrite($handle,$line."\n");
+		$object_foldername = clean_folder_name($object_label);
+		$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
+		$midi_bytes = $save_codes_dir."/midibytes.txt";
+		$comment_this_prototype = '';
 		for($i = 1; $i < count($table); $i++) {
+			if($i > 10 AND trim($table[$i]) == '') break;
 			$line = $table[$i];
-			fwrite($handle,$line."\n");
-			if($line == "_endCsoundScore_") {
-				// We fetch MIDI codes from a separate "midibytes.txt" file
-				$object_foldername = clean_folder_name($object_label);
-				$save_codes_dir = $temp_dir.$temp_folder.SLASH.$object_foldername."_codes";
-				$midi_bytes = $save_codes_dir."/midibytes.txt";
-			//	if(!file_exists($midi_bytes)) { echo $midi_bytes; die(); }
-				$all_bytes = @file_get_contents($midi_bytes,TRUE);
-				$table_bytes = explode(chr(10),$all_bytes);
-				for($j = 0; $j < count($table_bytes); $j++) {
-					$byte = trim($table_bytes[$j]);
-					if($byte <> '') fwrite($handle,$byte."\n");
-					}
+			if(is_integer($pos=strpos($line,"<HTML>"))) {
+				$comment_this_prototype = $line;
+				$comment_this_prototype = str_replace("<HTML>",'',$comment_this_prototype);
+				$comment_this_prototype = trim(str_replace("</HTML>",'',$comment_this_prototype));
 				}
+			else fwrite($handle,$line."\n");
 			}
+		fwrite($handle,"_beginCsoundScore_\n");
+		$csound_file = $save_codes_dir."/csound.txt";
+		$csound_score = @file_get_contents($csound_file,TRUE);
+		$table2 = explode(chr(10),$csound_score);
+		$csound_score = "<HTML>";
+		for($k = 0; $k < count($table2); $k++) {
+			$line = trim($table2[$k]);
+			if($line <> '') $csound_score .= $line."<BR>";
+			}
+		$csound_score .= "</HTML>";
+		
+		fwrite($handle,$csound_score."\n");
+		fwrite($handle,"_endCsoundScore_\n");
+		// We fetch MIDI codes from a separate "midibytes.txt" file
+		$all_bytes = @file_get_contents($midi_bytes,TRUE);
+		$table_bytes = explode(chr(10),$all_bytes);
+		for($j = 0; $j < count($table_bytes); $j++) {
+			$byte = trim($table_bytes[$j]);
+			if($byte <> '') fwrite($handle,$byte."\n");
+			}
+		$comment_this_prototype = "<HTML>".$comment_this_prototype."</HTML>";
+		fwrite($handle,$comment_this_prototype."\n");
 		}
 	fwrite($handle,"DATA:\n");
 	$comment_on_file = $_POST['comment_on_file'];
@@ -995,7 +1014,7 @@ function mf2t_no_header($mf2t_content) {
 	}
 
 function metronome($p,$q) {
-	$mm = round($p * 60 / $q, 3);
+	$mm = round(($p * 60) / $q, 3);
 	return $mm;
 	}
 	
@@ -1013,7 +1032,7 @@ function rcopy($src,$dst) {
 
 function store($handle,$varname,$var) {
 	$line = "$".$varname." = \"".$var."\";\n";
-	// $line = str_replace('§','$',$line);
+	// echo $varname."<br />";
 	fwrite($handle,$line);
 	return;
 	}
@@ -1202,7 +1221,7 @@ function polymetric_expression($mute,$TickKey,$TickCycle,$TickChannel,$TickVeloc
 		if($mute[$i]) continue;
 		$x = gcd($TickCycle[$i] * $Qtick[$i],$Ptick[$i]);
 		$y = ($TickCycle[$i] * $Qtick[$i]) / $x;
-		$lcm = ($lcm * $y) / gcd($lcm, $y);
+		$lcm = ($lcm * $y) / gcd($lcm,$y);
 		}
 	$first = TRUE;
 	for($i = 0; $i < $imax; $i++) {
@@ -1213,13 +1232,13 @@ function polymetric_expression($mute,$TickKey,$TickCycle,$TickChannel,$TickVeloc
 		$staccato = intval(100 * ($tick_period - $TickDuration[$i]) / $tick_period);
 		if(!$first) $p .= ", ";
 		else {
-		$gcd = gcd($Ptick[$i],$Qtick[$i]);
-		$pmin = $Ptick[$i] / $gcd;
-		$qmin = $Qtick[$i] / $gcd;
-		if($qmin > 1)
-			$p .= "_tempo(".$pmin."/".$qmin.") ";
-		else
-			if($pmin > 1) $p .= "_tempo(".$pmin.") ";
+			$gcd = gcd($Ptick[$i],$Qtick[$i]);
+			$pmin = $Ptick[$i] / $gcd;
+			$qmin = $Qtick[$i] / $gcd;
+			if($qmin > 1)
+				$p .= "_tempo(".$pmin."/".$qmin.") ";
+			else
+				if($pmin > 1) $p .= "_tempo(".$pmin.") ";
 			}
 		$p .= "_chan(".$TickChannel[$i].") ";
 		$p .= "_vel(".$TickVelocity[$i].") ";
@@ -1233,8 +1252,33 @@ function polymetric_expression($mute,$TickKey,$TickCycle,$TickChannel,$TickVeloc
 			}
 		}
 	$p .=  "}";
-//	$p .= "<br />".$lcm;
-//	$p .= "<br />".$lcm_beats;
 	return $p;
+	}
+
+function is_variable($note_convention,$word) {
+	$word = str_replace(",",'',$word);
+	$word = str_replace("{",'',$word);
+	$word = str_replace("}",'',$word);
+	$word = str_replace(":",'',$word);
+	if($word == "S") return ''; // We take only non-startup variables
+	if($word == "RND") return '';
+	if($word == "ORD") return '';
+	if($word == "LIN") return '';
+	if($word == "SUB") return '';
+	if($word == "SUB1") return '';
+	if($word == "DATA") return '';
+	if($word == "TEMPLATES") return '';
+	if($word == "COMMENT") return '';
+	if($word == '') return $word;
+	if($word[0] == '|' AND $word[count($word) - 1] == '|') {
+		$word = str_replace('|','',$word);
+		return $word;
+		}
+	if(!ctype_upper($word[0])) return '';
+	if($note_convention == 0) { // English convention
+		$test = preg_replace("/[A-G]#?b?[0-9]/u",'',$word);
+		if($test == '') return '';
+		}
+	return $word;
 	}
 ?>

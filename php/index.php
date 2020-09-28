@@ -1,7 +1,7 @@
 <?php
 require_once("_basic_tasks.php");
 require_once("_header.php");
-echo "<h2>Welcome to Bol Processor!</h2>";
+echo "<h2>Welcome to Bol Processor ‘BP3’</h2>";
 $url_this_page = $this_page = "index.php";
 
 if($path <> '') {
@@ -20,6 +20,8 @@ if($path <> '') {
 	}
 else $dir = $bp_application_path;
 
+echo link_to_help();
+
 if($test) echo "dir = ".$dir."<br />";
 if($test) echo "url_this_page = ".$url_this_page."<br />";
 
@@ -36,12 +38,10 @@ if(isset($_POST['create_grammar'])) {
 			unset($_POST['create_grammar']);
 			}
 		else {
-//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
 			fclose($handle);
 			}
 		}
-//	else unset($_POST['create_grammar']);
 	}
 if(isset($_POST['create_data'])) {
 	$filename = trim($_POST['filename']);
@@ -58,7 +58,6 @@ if(isset($_POST['create_data'])) {
 			fclose($handle);
 			}
 		}
-//	else unset($_POST['create_data']);
 	}
 if(isset($_POST['create_alphabet'])) {
 	$filename = trim($_POST['filename']);
@@ -70,12 +69,13 @@ if(isset($_POST['create_alphabet'])) {
 			unset($_POST['create_alphabet']);
 			}
 		else {
-//			echo "<p style=\"color:red;\" id=\"timespan\">Creating ‘".$filename."’…</p>";
 			$handle = fopen($dir.SLASH.$filename,"w");
+			$template = "alphabet_template";
+			$template_content = @file_get_contents($template,TRUE);
+			fwrite($handle,$template_content."\n");
 			fclose($handle);
 			}
 		}
-//	else unset($_POST['create_alphabet']);
 	}
 if(isset($_POST['create_timebase'])) {
 	$filename = trim($_POST['filename']);

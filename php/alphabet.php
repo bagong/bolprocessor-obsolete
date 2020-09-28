@@ -29,7 +29,7 @@ if($test) echo "file = ".$file."<br />";
 if($test) echo "this_file = ".$this_file."<br />";
 if($test) echo "filename = ".$filename."<br />";
 
-try_create_new_file($this_file,$filename);
+$result = try_create_new_file($this_file,$filename);
 $content = @file_get_contents($this_file,TRUE);
 if($content === FALSE) ask_create_new_file($url_this_page,$filename);
 

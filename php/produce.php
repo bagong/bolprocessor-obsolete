@@ -1,13 +1,23 @@
 <?php
 require_once("_basic_tasks.php");
-
 $url_this_page = "produce.php";
-
 $this_title = "BP console";
 require_once("_header.php");
 
 // $application_path = $bp_application_path.SLASH;
 $application_path = "..".SLASH;
+
+/* foreach($_POST as $key => $val) {
+	$table = explode('_',$key);
+	if($table[0] == "startup") {
+		$startup = $table[1];
+		echo "<p>Producing item with startup ".$startup."</p>";
+		die();
+		break;
+		}
+	} */
+if(isset($_GET['startup'])) $startup = $_GET['startup'];
+else $startup = '';
 
 if(isset($_GET['instruction'])) $instruction = $_GET['instruction'];
 else $instruction = '';
@@ -62,6 +72,8 @@ else {
 
 	if($note_convention <> '') $command .= " --".$note_convention;
 	if($settings_file <> '') $command .= " -se ".$dir.$settings_file;
+	
+	if($startup <> '') $command .= " --start ".$startup;
 	if($instruction == "produce" OR $instruction == "produce-all") {
 		switch($file_format) {
 			case "data":
@@ -109,7 +121,7 @@ if($test) echo "trace_link = ".$trace_link."<br />";
 if($test) echo "output_link = ".$output_link."<br />";
 
 	if(!$no_error) {
-		echo "<p><font color=\"red\">Errors found… Open the </font> <a onclick=\"window.open('".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">error trace</a> file!</p>";
+		echo "<p><font color=\"red\">Errors found… Check the </font> <a onclick=\"window.open('".$trace_link."','errors','width=800,height=800,left=400'); return false;\" href=\"".$trace_link."\">error trace</a> file!</p>";
 		}
 	else {
 		echo "<p>";

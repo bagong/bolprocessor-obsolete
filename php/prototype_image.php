@@ -151,17 +151,26 @@ if($image_range == "midi") $x2max = $x2;
 
 // Draw time line and time units
 imageline($im,$x1,110,$x2max+($alpha*$PostRoll),110,$black);
-$t = 0;
+$t = $n = 0;
+$i = 10;
 while(TRUE) {
-	imagefilledrectangle($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t)+1,125,$black);
+	if($i > 9) {
+		$y = 5;
+		$i = 0;
+		}
+	else $y = 0;
+	imagefilledrectangle($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t)+1,120+$y,$black);
 	$t += 1000;
+	$i++; $n++;
 	if($t > $max_duration) break;
 	}
 $t = 0;
-while(TRUE) {
-	imageline($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t),120,$black);
-	$t += 100;
-	if($t > $max_duration) break;
+if($n < 10) {
+	while(TRUE) {
+		imageline($im,$margin_left+($alpha*$t),110,$margin_left+($alpha*$t),115,$black);
+		$t += 100;
+		if($t > $max_duration) break;
+		}
 	}
 imagestring($im,10,$margin_left-2,92,"0",$black);
 
@@ -180,14 +189,21 @@ if($Tref > 0 AND $Tref <= $max_duration) {
 	$mssg = "(beats) ";
 	$length_mssg = imagefontwidth(10) * strlen($mssg);
 	$t = 0;
+	$i = 10;
 	while(TRUE) {
 		$x = $x1 + ($alpha * $t);
-		imagefilledrectangle($im,$x-1,125,$x+1,145,$green);
+		if($i > 9) {
+			$y = 5;
+			$i = 0;
+			}
+		else $y = 0;
+		imagefilledrectangle($im,$x-1,125,$x+1,140+$y,$green);
 		$t += $Tref;
+		$i++;
 		if($t > ($max_duration + $PostRoll)) break;
 		}
-	imageline($im,$x1,135,$x2 - $length_mssg - 10,135,$green);
-	imagestring($im,10,$x2 - $length_mssg,125,$mssg,$black);
+	// imageline($im,$x1,135,$x2 - $length_mssg - 10,135,$red);
+	imagestring($im,10,$x2 - $length_mssg,125,$mssg,$green);
 	}
 
 // Draw period if object is cyclic
